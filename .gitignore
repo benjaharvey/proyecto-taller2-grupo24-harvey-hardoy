@@ -1,0 +1,43 @@
+## Build and Output directories
+bin/
+obj/
+out/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Visual Studio Code / JetBrains Rider
+.vscode/
+.idea/
+*.DotSettings.user
+
+## .NET Core / C# specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.log
+*.tmp
+
+## Database & Local Storage
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+## Environment & Secrets
+appsettings.Development.json
+appsettings.Local.json
+.env
+.env.local
+
+## OS generated files
+.DS_Store
+Thumbs.db
