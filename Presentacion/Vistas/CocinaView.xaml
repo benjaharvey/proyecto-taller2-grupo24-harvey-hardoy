@@ -69,16 +69,11 @@
                     <!-- Submit Button (RF-10) -->
                     <Button Content="🧑‍🍳 Elaborar y Despachar" 
                             Command="{Binding RegistrarProduccionYEnvioCommand}"
-                            Background="{StaticResource PrimaryBrush}" 
-                            Foreground="White" 
-                            FontWeight="Bold"
                             FontSize="13"
                             Padding="16,10"
-                            BorderThickness="0"
-                            Cursor="Hand"
                             HorizontalAlignment="Stretch">
                         <Button.Style>
-                            <Style TargetType="Button">
+                            <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
                                 <Setter Property="IsEnabled" Value="True"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding EsProduccionFactible}" Value="False">

@@ -42,6 +42,17 @@ public class VentaHistoricaItem
     public string Estado { get; set; } = "CONFIRMADA"; // CONFIRMADA, ANULADA, CANCELADA
 }
 
+public class ClienteRegistradoItem
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string Apellido { get; set; } = string.Empty;
+    public string Dni { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string NombreCompleto => $"{Nombre} {Apellido}".Trim();
+    public string InfoResumen => $"{NombreCompleto} · DNI: {Dni}";
+}
+
 public partial class VentasViewModel : ObservableObject
 {
     [ObservableProperty]
@@ -53,12 +64,28 @@ public partial class VentasViewModel : ObservableObject
     [ObservableProperty]
     private string _vendedorActual = "Segundo Hardoy";
 
-    // Cliente
+    // Cliente actual asociado
     [ObservableProperty]
-    private string _clienteDni = string.Empty;
+    private string _clienteDni = "00000000";
 
     [ObservableProperty]
     private string _clienteNombre = "Consumidor Final";
+
+    // Modales de clientes
+    [ObservableProperty]
+    private bool _mostrarDialogoSeleccionarCliente;
+
+    [ObservableProperty]
+    private string _busquedaClienteTexto = string.Empty;
+
+    [ObservableProperty]
+    private ObservableCollection<ClienteRegistradoItem> _clientesRegistrados = new();
+
+    [ObservableProperty]
+    private ObservableCollection<ClienteRegistradoItem> _clientesFiltrados = new();
+
+    [ObservableProperty]
+    private ClienteRegistradoItem? _clienteSeleccionadoEnLista;
 
     [ObservableProperty]
     private bool _mostrarDialogoNuevoCliente;
@@ -118,7 +145,18 @@ public partial class VentasViewModel : ObservableObject
             new() { Id = 6, Codigo = "ALF-003", Nombre = "Alfajor Maicena Tradicional", Categoria = "Alfajores", Precio = 1500.00m, StockDisponible = 35, Icono = "🥥" }
         };
 
-        // Carrito inicial de muestra
+        ClientesRegistrados = new ObservableCollection<ClienteRegistradoItem>
+        {
+            new() { Id = 1, Nombre = "Consumidor", Apellido = "Final", Dni = "00000000", Email = "-" },
+            new() { Id = 2, Nombre = "Juan", Apellido = "Pérez", Dni = "35849120", Email = "juan.perez@gmail.com" },
+            new() { Id = 3, Nombre = "María", Apellido = "González", Dni = "28114902", Email = "maria.gonzalez@hotmail.com" },
+            new() { Id = 4, Nombre = "Carlos", Apellido = "Rossi", Dni = "18234567", Email = "carlos.rossi@yahoo.com" },
+            new() { Id = 5, Nombre = "Lucía", Apellido = "Benítez", Dni = "40512890", Email = "lucia.benitez@gmail.com" },
+            new() { Id = 6, Nombre = "Martín", Apellido = "Fernández", Dni = "33445566", Email = "mfernandez@outlook.com" }
+        };
+        ClientesFiltrados = new ObservableCollection<ClienteRegistradoItem>(ClientesRegistrados);
+
+        // Carrito inicial
         Carrito = new ObservableCollection<DetalleVentaItem>
         {
             new() { ProductoId = 1, Nombre = "Alfajor Clásico DDL", PrecioUnitario = 1800.00m, Cantidad = 2 },
@@ -131,11 +169,27 @@ public partial class VentasViewModel : ObservableObject
 
         HistorialVentas = new ObservableCollection<VentaHistoricaItem>
         {
-            new() { NumeroVenta = "VTA-2026-0089", Fecha = DateTime.Now.AddHours(-1), ClienteNombre = "Juan Pérez (DNI: 35.849.120)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 4, Total = 7400.00m, Estado = "CONFIRMADA" },
-            new() { NumeroVenta = "VTA-2026-0088", Fecha = DateTime.Now.AddHours(-3), ClienteNombre = "María González (DNI: 28.114.902)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 2, Total = 4200.00m, Estado = "CONFIRMADA" },
+            new() { NumeroVenta = "VTA-2026-0089", Fecha = DateTime.Now.AddHours(-1), ClienteNombre = "Juan Pérez (DNI: 35849120)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 4, Total = 7400.00m, Estado = "CONFIRMADA" },
+            new() { NumeroVenta = "VTA-2026-0088", Fecha = DateTime.Now.AddHours(-3), ClienteNombre = "María González (DNI: 28114902)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 2, Total = 4200.00m, Estado = "CONFIRMADA" },
             new() { NumeroVenta = "VTA-2026-0087", Fecha = DateTime.Now.AddHours(-5), ClienteNombre = "Consumidor Final", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 6, Total = 11200.00m, Estado = "ANULADA" },
-            new() { NumeroVenta = "VTA-2026-0086", Fecha = DateTime.Now.AddDays(-1), ClienteNombre = "Carlos Rossi (DNI: 18.234.567)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 1, Total = 3500.00m, Estado = "CONFIRMADA" }
+            new() { NumeroVenta = "VTA-2026-0086", Fecha = DateTime.Now.AddDays(-1), ClienteNombre = "Carlos Rossi (DNI: 18234567)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 1, Total = 3500.00m, Estado = "CONFIRMADA" }
         };
+    }
+
+    partial void OnBusquedaClienteTextoChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ClientesFiltrados = new ObservableCollection<ClienteRegistradoItem>(ClientesRegistrados);
+        }
+        else
+        {
+            var f = ClientesRegistrados.Where(c => 
+                c.NombreCompleto.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+                c.Dni.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+                c.Email.Contains(value, StringComparison.OrdinalIgnoreCase)).ToList();
+            ClientesFiltrados = new ObservableCollection<ClienteRegistradoItem>(f);
+        }
     }
 
     [RelayCommand]
@@ -223,7 +277,7 @@ public partial class VentasViewModel : ObservableObject
     {
         Carrito.Clear();
         ClienteNombre = "Consumidor Final";
-        ClienteDni = string.Empty;
+        ClienteDni = "00000000";
         OnPropertyChanged(nameof(TotalVenta));
         OnPropertyChanged(nameof(CantidadTotalItems));
     }
@@ -237,7 +291,7 @@ public partial class VentasViewModel : ObservableObject
         {
             NumeroVenta = $"VTA-2026-00{HistorialVentas.Count + 90}",
             Fecha = DateTime.Now,
-            ClienteNombre = string.IsNullOrWhiteSpace(ClienteDni) ? ClienteNombre : $"{ClienteNombre} (DNI: {ClienteDni})",
+            ClienteNombre = string.IsNullOrWhiteSpace(ClienteDni) || ClienteDni == "00000000" ? ClienteNombre : $"{ClienteNombre} (DNI: {ClienteDni})",
             Vendedor = VendedorActual,
             Sucursal = SucursalActual,
             CantidadArticulos = CantidadTotalItems,
@@ -249,9 +303,37 @@ public partial class VentasViewModel : ObservableObject
         CancelarVenta();
     }
 
+    // Modal Selección / Asociación de Cliente
+    [RelayCommand]
+    private void AbrirSeleccionarClienteModal()
+    {
+        BusquedaClienteTexto = string.Empty;
+        ClientesFiltrados = new ObservableCollection<ClienteRegistradoItem>(ClientesRegistrados);
+        MostrarDialogoSeleccionarCliente = true;
+    }
+
+    [RelayCommand]
+    private void AsociarClienteSeleccionado(ClienteRegistradoItem? cliente)
+    {
+        if (cliente != null)
+        {
+            ClienteNombre = cliente.NombreCompleto;
+            ClienteDni = cliente.Dni;
+        }
+        MostrarDialogoSeleccionarCliente = false;
+    }
+
+    [RelayCommand]
+    private void CerrarSeleccionarClienteModal()
+    {
+        MostrarDialogoSeleccionarCliente = false;
+    }
+
+    // Modal Nuevo Cliente
     [RelayCommand]
     private void AbrirNuevoClienteModal()
     {
+        MostrarDialogoSeleccionarCliente = false;
         NuevoClienteNombre = string.Empty;
         NuevoClienteApellido = string.Empty;
         NuevoClienteDni = string.Empty;
@@ -264,8 +346,18 @@ public partial class VentasViewModel : ObservableObject
     {
         if (!string.IsNullOrWhiteSpace(NuevoClienteNombre) && !string.IsNullOrWhiteSpace(NuevoClienteDni))
         {
-            ClienteNombre = $"{NuevoClienteNombre} {NuevoClienteApellido}".Trim();
-            ClienteDni = NuevoClienteDni.Trim();
+            var nuevo = new ClienteRegistradoItem
+            {
+                Id = ClientesRegistrados.Count + 1,
+                Nombre = NuevoClienteNombre.Trim(),
+                Apellido = NuevoClienteApellido.Trim(),
+                Dni = NuevoClienteDni.Trim(),
+                Email = NuevoClienteEmail.Trim()
+            };
+            ClientesRegistrados.Add(nuevo);
+
+            ClienteNombre = nuevo.NombreCompleto;
+            ClienteDni = nuevo.Dni;
         }
         MostrarDialogoNuevoCliente = false;
     }

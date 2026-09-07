@@ -8,6 +8,7 @@
         xmlns:vm="clr-namespace:Presentacion.ViewModels"
         xmlns:vistas="clr-namespace:Presentacion.Vistas"
         mc:Ignorable="d"
+        x:Name="RootWindow"
         Title="Maie - Sistema de Gestión" Height="750" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
@@ -235,19 +236,19 @@
             <!-- Main Content Area -->
             <Grid Grid.Column="1" Margin="24">
                 <!-- Productos View -->
-                <vistas:ProductosView Visibility="{Binding CurrentSection, ConverterParameter=Productos, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:ProductosView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Productos, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
                 
                 <!-- Ventas View -->
-                <vistas:VentasView Visibility="{Binding CurrentSection, ConverterParameter=Ventas, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:VentasView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Ventas, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Stock View -->
-                <vistas:StockView Visibility="{Binding CurrentSection, ConverterParameter=Stock, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:StockView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Stock, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Cocina View -->
-                <vistas:CocinaView Visibility="{Binding CurrentSection, ConverterParameter=Cocina, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:CocinaView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Cocina, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Reportes View -->
-                <vistas:ReportesView Visibility="{Binding CurrentSection, ConverterParameter=Reportes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:ReportesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Reportes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
             </Grid>
         </Grid>
     </Grid>

@@ -12,54 +12,48 @@
         <vm:ReportesViewModel />
     </UserControl.DataContext>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Margin="0,0,10,20">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,20,0">
+        <Grid Margin="0,0,10,24">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Header Section & Period Filter (RF-23) -->
-            <Grid Grid.Row="0" Margin="0,0,0,20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <!-- Row 0: Header Section -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                <TextBlock Text="Reportes y Estadísticas de Gestión" Style="{StaticResource HeaderTitleStyle}"/>
+                <TextBlock Text="Métricas consolidadas de ventas por mostrador y producción en cocina" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+            </StackPanel>
 
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Reportes y Estadísticas de Gestión" Style="{StaticResource HeaderTitleStyle}"/>
-                    <TextBlock Text="Métricas consolidadas de ventas por mostrador y producción en cocina" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
-                </StackPanel>
+            <!-- Row 1: Filters Bar -->
+            <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,24" Padding="16,14">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                        <TextBlock Text="Filtrar por:" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="13"/>
+                        
+                        <TextBlock Text="Período:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox ItemsSource="{Binding Periodos}" 
+                                  SelectedItem="{Binding PeriodoSeleccionado}"
+                                  Padding="10,6"
+                                  Width="260"
+                                  Margin="0,0,28,0"
+                                  BorderBrush="{StaticResource SecondaryBrush}"/>
 
-                <!-- Filters & Export -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <ComboBox ItemsSource="{Binding Periodos}" 
-                              SelectedItem="{Binding PeriodoSeleccionado}"
-                              Padding="8,6"
-                              Margin="0,0,10,0"
-                              BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox ItemsSource="{Binding Sucursales}" 
+                                  SelectedItem="{Binding SucursalFiltro}"
+                                  Padding="10,6"
+                                  Width="230"
+                                  BorderBrush="{StaticResource SecondaryBrush}"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
 
-                    <ComboBox ItemsSource="{Binding Sucursales}" 
-                              SelectedItem="{Binding SucursalFiltro}"
-                              Padding="8,6"
-                              Margin="0,0,12,0"
-                              BorderBrush="{StaticResource SecondaryBrush}"/>
-
-                    <Button Content="📥 Exportar Informe"
-                            Command="{Binding ExportarReporteCommand}"
-                            Background="{StaticResource PrimaryBrush}"
-                            Foreground="White"
-                            FontWeight="SemiBold"
-                            Padding="14,8"
-                            BorderThickness="0"
-                            Cursor="Hand"/>
-                </StackPanel>
-            </Grid>
-
-            <!-- KPI Cards Row -->
-            <Grid Grid.Row="1" Margin="0,0,0,20">
+            <!-- Row 2: KPI Cards Row -->
+            <Grid Grid.Row="2" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -124,8 +118,8 @@
                 </Border>
             </Grid>
 
-            <!-- Mid Row: Top Products Ranking & Branch Distribution -->
-            <Grid Grid.Row="2" Margin="0,0,0,20">
+            <!-- Row 3: Mid Row: Top Products Ranking & Branch Distribution -->
+            <Grid Grid.Row="3" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.4*" />
                     <ColumnDefinition Width="*" />
@@ -195,8 +189,8 @@
                 </Border>
             </Grid>
 
-            <!-- Bottom Table: Consolidated Detail -->
-            <Border Grid.Row="3" Style="{StaticResource MaieCardStyle}" Padding="0">
+            <!-- Row 4: Bottom Table: Consolidated Detail -->
+            <Border Grid.Row="4" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

@@ -73,8 +73,24 @@ public partial class StockViewModel : ObservableObject
     [ObservableProperty]
     private decimal _cantidadIngresoInsumo;
 
+    // Modal Nuevo Tipo de Insumo
     [ObservableProperty]
-    private string _comprobanteInsumo = string.Empty;
+    private bool _mostrarDialogoNuevoInsumo;
+
+    [ObservableProperty]
+    private string _nuevoInsumoCodigo = string.Empty;
+
+    [ObservableProperty]
+    private string _nuevoInsumoNombre = string.Empty;
+
+    [ObservableProperty]
+    private string _nuevoInsumoUnidad = "kg";
+
+    [ObservableProperty]
+    private decimal _nuevoInsumoStockInicial = 0;
+
+    [ObservableProperty]
+    private decimal _nuevoInsumoStockMinimo = 10;
 
     public ObservableCollection<string> Sucursales { get; } = new()
     {
@@ -84,6 +100,11 @@ public partial class StockViewModel : ObservableObject
     public ObservableCollection<string> Categorias { get; } = new()
     {
         "Todas", "Alfajores", "Conitos", "Tabletas", "Tortas"
+    };
+
+    public ObservableCollection<string> UnidadesMedida { get; } = new()
+    {
+        "kg", "gr", "lt", "ml", "un."
     };
 
     public ObservableCollection<string> MotivosAjuste { get; } = new()
@@ -165,7 +186,6 @@ public partial class StockViewModel : ObservableObject
     {
         InsumoSeleccionado = insumo ?? InsumosGlobales.FirstOrDefault();
         CantidadIngresoInsumo = 10;
-        ComprobanteInsumo = string.Empty;
         MostrarDialogoIngresoInsumo = true;
     }
 
@@ -188,5 +208,41 @@ public partial class StockViewModel : ObservableObject
     private void CerrarIngresoInsumo()
     {
         MostrarDialogoIngresoInsumo = false;
+    }
+
+    [RelayCommand]
+    private void AbrirNuevoInsumo()
+    {
+        NuevoInsumoCodigo = $"INS-00{InsumosGlobales.Count + 1}";
+        NuevoInsumoNombre = string.Empty;
+        NuevoInsumoUnidad = "kg";
+        NuevoInsumoStockInicial = 10;
+        NuevoInsumoStockMinimo = 10;
+        MostrarDialogoNuevoInsumo = true;
+    }
+
+    [RelayCommand]
+    private void GuardarNuevoInsumo()
+    {
+        if (!string.IsNullOrWhiteSpace(NuevoInsumoNombre))
+        {
+            var nuevo = new InsumoGlobalItem
+            {
+                InsumoId = InsumosGlobales.Count + 1,
+                Codigo = NuevoInsumoCodigo,
+                Nombre = NuevoInsumoNombre,
+                UnidadMedida = NuevoInsumoUnidad,
+                StockActual = NuevoInsumoStockInicial,
+                StockMinimo = NuevoInsumoStockMinimo
+            };
+            InsumosGlobales.Add(nuevo);
+        }
+        MostrarDialogoNuevoInsumo = false;
+    }
+
+    [RelayCommand]
+    private void CerrarNuevoInsumo()
+    {
+        MostrarDialogoNuevoInsumo = false;
     }
 }

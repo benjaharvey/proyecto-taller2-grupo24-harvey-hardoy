@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -16,11 +17,22 @@ public class ProductoItem
     public string RecetaResumen { get; set; } = string.Empty;
 }
 
-public class InsumoRecetaItem
+public partial class InsumoRecetaItem : ObservableObject
 {
-    public string InsumoNombre { get; set; } = string.Empty;
-    public decimal Cantidad { get; set; }
-    public string UnidadMedida { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string _insumoNombre = string.Empty;
+
+    [ObservableProperty]
+    private decimal _cantidad = 10;
+
+    [ObservableProperty]
+    private string _unidadMedida = "gr";
+}
+
+public class InsumoOpcionItem
+{
+    public string Nombre { get; set; } = string.Empty;
+    public string UnidadMedida { get; set; } = "gr";
 }
 
 public partial class ProductosViewModel : ObservableObject
@@ -36,9 +48,6 @@ public partial class ProductosViewModel : ObservableObject
 
     [ObservableProperty]
     private string _filtroCategoria = "Todas";
-
-    [ObservableProperty]
-    private bool _mostrarFormulario;
 
     [ObservableProperty]
     private string _formTitulo = "Nuevo Producto";
@@ -62,14 +71,39 @@ public partial class ProductosViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<InsumoRecetaItem> _formRecetaInsumos = new();
 
+    // Dialogo agregar insumo a receta
+    [ObservableProperty]
+    private bool _mostrarModalAgregarInsumo;
+
+    [ObservableProperty]
+    private InsumoOpcionItem? _insumoSeleccionadoParaReceta;
+
+    [ObservableProperty]
+    private decimal _nuevoInsumoCantidad = 50;
+
     public ObservableCollection<string> Categorias { get; } = new()
     {
         "Todas", "Alfajores", "Conitos", "Tabletas", "Tortas", "Especiales"
     };
 
+    public ObservableCollection<InsumoOpcionItem> InsumosDisponibles { get; } = new()
+    {
+        new() { Nombre = "Dulce de Leche Repostero", UnidadMedida = "gr" },
+        new() { Nombre = "Harina de Trigo 0000", UnidadMedida = "gr" },
+        new() { Nombre = "Chocolate Cobertura Semiamargo", UnidadMedida = "gr" },
+        new() { Nombre = "Chocolate Cobertura Blanco", UnidadMedida = "gr" },
+        new() { Nombre = "Nueces Mariposa Peladas", UnidadMedida = "gr" },
+        new() { Nombre = "Manteca de Primera", UnidadMedida = "gr" },
+        new() { Nombre = "Pasta de Maní Tostado", UnidadMedida = "gr" },
+        new() { Nombre = "Coco Rallado Fino", UnidadMedida = "gr" },
+        new() { Nombre = "Almidón de Maíz (Maicena)", UnidadMedida = "gr" },
+        new() { Nombre = "Galleta Base para Conito", UnidadMedida = "un." }
+    };
+
     public ProductosViewModel()
     {
         CargarDatosMock();
+        LimpiarFormulario();
     }
 
     private void CargarDatosMock()
@@ -90,8 +124,7 @@ public partial class ProductosViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void NuevoProducto()
+    private void LimpiarFormulario()
     {
         FormTitulo = "Nuevo Producto";
         FormCodigo = $"PROD-00{Productos.Count + 1}";
@@ -99,12 +132,7 @@ public partial class ProductosViewModel : ObservableObject
         FormCategoria = "Alfajores";
         FormPrecio = 0;
         FormDescripcion = string.Empty;
-        FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>
-        {
-            new() { InsumoNombre = "Dulce de Leche Repostero", Cantidad = 60, UnidadMedida = "gr" },
-            new() { InsumoNombre = "Harina 0000", Cantidad = 50, UnidadMedida = "gr" }
-        };
-        MostrarFormulario = true;
+        FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
     }
 
     [RelayCommand]
@@ -122,19 +150,80 @@ public partial class ProductosViewModel : ObservableObject
             new() { InsumoNombre = "Dulce de Leche Repostero", Cantidad = 60, UnidadMedida = "gr" },
             new() { InsumoNombre = "Chocolate Cobertura Semiamargo", Cantidad = 35, UnidadMedida = "gr" }
         };
-        MostrarFormulario = true;
+    }
+
+    [RelayCommand]
+    private void AbrirModalAgregarInsumo()
+    {
+        InsumoSeleccionadoParaReceta = InsumosDisponibles.FirstOrDefault();
+        NuevoInsumoCantidad = 30;
+        MostrarModalAgregarInsumo = true;
+    }
+
+    [RelayCommand]
+    private void ConfirmarAgregarInsumo()
+    {
+        if (InsumoSeleccionadoParaReceta != null && NuevoInsumoCantidad > 0)
+        {
+            var existe = FormRecetaInsumos.FirstOrDefault(i => i.InsumoNombre.Equals(InsumoSeleccionadoParaReceta.Nombre, System.StringComparison.OrdinalIgnoreCase));
+            if (existe != null)
+            {
+                existe.Cantidad += NuevoInsumoCantidad;
+            }
+            else
+            {
+                FormRecetaInsumos.Add(new InsumoRecetaItem
+                {
+                    InsumoNombre = InsumoSeleccionadoParaReceta.Nombre,
+                    Cantidad = NuevoInsumoCantidad,
+                    UnidadMedida = InsumoSeleccionadoParaReceta.UnidadMedida
+                });
+            }
+        }
+        MostrarModalAgregarInsumo = false;
+    }
+
+    [RelayCommand]
+    private void CerrarModalAgregarInsumo()
+    {
+        MostrarModalAgregarInsumo = false;
+    }
+
+    [RelayCommand]
+    private void QuitarInsumoReceta(InsumoRecetaItem? item)
+    {
+        if (item != null)
+        {
+            FormRecetaInsumos.Remove(item);
+        }
     }
 
     [RelayCommand]
     private void GuardarFormulario()
     {
-        MostrarFormulario = false;
+        if (!string.IsNullOrWhiteSpace(FormNombre))
+        {
+            var p = new ProductoItem
+            {
+                Id = Productos.Count + 1,
+                Codigo = FormCodigo,
+                Nombre = FormNombre,
+                Categoria = FormCategoria,
+                Precio = FormPrecio,
+                Descripcion = FormDescripcion,
+                Activo = true,
+                RecetaResumen = string.Join(", ", FormRecetaInsumos.Select(i => $"{i.InsumoNombre} ({i.Cantidad}{i.UnidadMedida})"))
+            };
+            Productos.Insert(0, p);
+            SelectedProducto = p;
+        }
+        LimpiarFormulario();
     }
 
     [RelayCommand]
     private void CancelarFormulario()
     {
-        MostrarFormulario = false;
+        LimpiarFormulario();
     }
 
     [RelayCommand]
@@ -143,7 +232,6 @@ public partial class ProductosViewModel : ObservableObject
         if (prod != null)
         {
             prod.Activo = !prod.Activo;
-            // Trigger refresh
             var index = Productos.IndexOf(prod);
             if (index >= 0)
             {

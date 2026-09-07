@@ -47,13 +47,16 @@
                                     <Setter.Value>
                                         <ControlTemplate TargetType="RadioButton">
                                             <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                <TextBlock Text="{TemplateBinding Content}" Foreground="{StaticResource PrimaryBrush}" FontWeight="Medium"/>
+                                                <TextBlock x:Name="txt" Text="{TemplateBinding Content}" Foreground="{StaticResource PrimaryBrush}" FontWeight="Medium"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#E5DFD7"/>
+                                                </Trigger>
                                                 <Trigger Property="IsChecked" Value="True">
                                                     <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                                    <Setter Property="Foreground" Value="White"/>
-                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter TargetName="txt" Property="Foreground" Value="White"/>
+                                                    <Setter TargetName="txt" Property="FontWeight" Value="Bold"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -75,13 +78,16 @@
                                     <Setter.Value>
                                         <ControlTemplate TargetType="RadioButton">
                                             <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                <TextBlock Text="{TemplateBinding Content}" Foreground="{StaticResource PrimaryBrush}" FontWeight="Medium"/>
+                                                <TextBlock x:Name="txt" Text="{TemplateBinding Content}" Foreground="{StaticResource PrimaryBrush}" FontWeight="Medium"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#E5DFD7"/>
+                                                </Trigger>
                                                 <Trigger Property="IsChecked" Value="True">
                                                     <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryBrush}"/>
-                                                    <Setter Property="Foreground" Value="White"/>
-                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter TargetName="txt" Property="Foreground" Value="White"/>
+                                                    <Setter TargetName="txt" Property="FontWeight" Value="Bold"/>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -99,22 +105,22 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="200" />
                     <ColumnDefinition Width="180" />
+                    <ColumnDefinition Width="160" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Search -->
                 <TextBox Grid.Column="0" 
                          Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}"
-                         Padding="8,6"
+                         Padding="12,8"
                          Margin="0,0,10,0"
                          BorderBrush="{StaticResource SecondaryBrush}"
                          FontSize="13">
                     <TextBox.Resources>
-                        <VisualBrush x:Key="HintBrush" TileMode="None" Opacity="0.5" Stretch="None" AlignmentX="Left">
+                        <VisualBrush x:Key="HintBrush" TileMode="None" Opacity="0.6" Stretch="None" AlignmentX="Left">
                             <VisualBrush.Visual>
-                                <TextBlock Text="🔍 Buscar por nombre o código..." Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="4,0,0,0"/>
+                                <TextBlock Text="🔍  Buscar por nombre o código..." Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="18,0,0,0"/>
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </TextBox.Resources>
@@ -145,18 +151,10 @@
                           Padding="8,6"
                           BorderBrush="{StaticResource SecondaryBrush}"/>
 
-                <!-- Insumo Action Button (visible in Insumos tab) -->
-                <Button Grid.Column="3" 
-                        Content="+ Ingreso de Insumos"
-                        Command="{Binding AbrirIngresoInsumoCommand}"
-                        Background="{StaticResource PrimaryBrush}"
-                        Foreground="White"
-                        FontWeight="SemiBold"
-                        Padding="14,6"
-                        BorderThickness="0"
-                        Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
+                <!-- Insumo Action Buttons (visible in Insumos tab) -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding TabActivo}" Value="Insumos">
@@ -164,8 +162,19 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </Button.Style>
-                </Button>
+                    </StackPanel.Style>
+
+                    <Button Content="➕ Nuevo Insumo"
+                            Command="{Binding AbrirNuevoInsumoCommand}"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Padding="12,6"
+                            Margin="0,0,8,0"/>
+
+                    <Button Content="📥 Ingreso de Stock"
+                            Command="{Binding AbrirIngresoInsumoCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Padding="12,6"/>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -257,12 +266,10 @@
                                 <Button Content="⚙️ Ajustar" 
                                         Command="{Binding DataContext.AbrirAjusteProductoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}"
-                                        Background="Transparent"
+                                        Style="{StaticResource GhostIconButton}"
                                         Foreground="{StaticResource PrimaryBrush}"
                                         FontWeight="SemiBold"
-                                        FontSize="11"
-                                        BorderThickness="0"
-                                        Cursor="Hand"/>
+                                        FontSize="11"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -348,15 +355,13 @@
                     <DataGridTemplateColumn Header="Acciones" Width="120">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="➕ Ingreso" 
+                                <Button Content="➕ Sumar Stock" 
                                         Command="{Binding DataContext.AbrirIngresoInsumoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}"
-                                        Background="Transparent"
+                                        Style="{StaticResource GhostIconButton}"
                                         Foreground="{StaticResource AccentBrush}"
                                         FontWeight="SemiBold"
-                                        FontSize="11"
-                                        BorderThickness="0"
-                                        Cursor="Hand"/>
+                                        FontSize="11"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -404,21 +409,13 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" 
                                 Command="{Binding CerrarAjusteProductoCommand}"
-                                Background="Transparent" 
-                                Foreground="{StaticResource TextBodyBrush}"
-                                BorderBrush="{StaticResource SecondaryBrush}"
-                                BorderThickness="1"
+                                Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
-                                Margin="0,0,8,0"
-                                Cursor="Hand"/>
+                                Margin="0,0,8,0"/>
                         <Button Content="Confirmar Ajuste" 
                                 Command="{Binding GuardarAjusteProductoCommand}"
-                                Background="{StaticResource PrimaryBrush}" 
-                                Foreground="White" 
-                                FontWeight="SemiBold"
-                                Padding="14,6"
-                                BorderThickness="0"
-                                Cursor="Hand"/>
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Padding="14,6"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -439,8 +436,8 @@
 
             <Border Width="420" Background="White" CornerRadius="8" Padding="24" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel>
-                    <TextBlock Text="Registrar Ingreso de Insumos" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Incrementa el stock de cocina central por compra/recepción" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
+                    <TextBlock Text="Registrar Ingreso de Stock de Insumo" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Incrementa la existencia de cocina central por compra o entrega" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
 
                     <TextBlock Text="Insumo Seleccionado (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <ComboBox ItemsSource="{Binding InsumosGlobales}" 
@@ -450,7 +447,7 @@
                               Margin="0,0,0,12" 
                               BorderBrush="{StaticResource SecondaryBrush}"/>
 
-                    <Grid Margin="0,0,0,12">
+                    <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
@@ -464,27 +461,82 @@
                         </StackPanel>
                     </Grid>
 
-                    <TextBlock Text="Comprobante / N° Factura / Proveedor (Opcional)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding ComprobanteInsumo}" Padding="6,4" Margin="0,0,0,20" BorderBrush="{StaticResource SecondaryBrush}"/>
-
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" 
                                 Command="{Binding CerrarIngresoInsumoCommand}"
-                                Background="Transparent" 
-                                Foreground="{StaticResource TextBodyBrush}"
-                                BorderBrush="{StaticResource SecondaryBrush}"
-                                BorderThickness="1"
+                                Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
-                                Margin="0,0,8,0"
-                                Cursor="Hand"/>
+                                Margin="0,0,8,0"/>
                         <Button Content="Registrar Ingreso" 
                                 Command="{Binding GuardarIngresoInsumoCommand}"
-                                Background="{StaticResource AccentBrush}" 
-                                Foreground="White" 
-                                FontWeight="SemiBold"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Padding="14,6"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- MODAL: Registrar Nuevo Tipo de Insumo -->
+        <Grid Grid.RowSpan="3" Background="#70000000">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding MostrarDialogoNuevoInsumo}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Border Width="420" Background="White" CornerRadius="8" Padding="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="Nuevo Tipo de Insumo" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Dar de alta un nuevo ingrediente o insumo para cocina" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                            <TextBlock Text="Código (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding NuevoInsumoCodigo}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Unidad de Medida (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <ComboBox ItemsSource="{Binding UnidadesMedida}" SelectedItem="{Binding NuevoInsumoUnidad}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Nombre del Insumo (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NuevoInsumoNombre}" Padding="6,4" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                            <TextBlock Text="Stock Inicial" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding NuevoInsumoStockInicial}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                            <TextBlock Text="Stock Mínimo (Alerta)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding NuevoInsumoStockMinimo}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" 
+                                Command="{Binding CerrarNuevoInsumoCommand}"
+                                Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
-                                BorderThickness="0"
-                                Cursor="Hand"/>
+                                Margin="0,0,8,0"/>
+                        <Button Content="Crear Insumo" 
+                                Command="{Binding GuardarNuevoInsumoCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Padding="14,6"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
