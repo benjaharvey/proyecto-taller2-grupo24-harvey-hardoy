@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="Aplicacion/Aplicacion.csproj" />
+  <Project Path="Datos/Datos.csproj" />
+  <Project Path="Dominio/Dominio.csproj" />
   <Project Path="Presentacion/Presentacion.csproj" />
 </Solution>
