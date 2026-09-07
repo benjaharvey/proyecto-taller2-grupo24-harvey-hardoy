@@ -3,9 +3,258 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:Presentacion.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="900">
+             d:DesignHeight="750" d:DesignWidth="1000">
+
+    <UserControl.DataContext>
+        <vm:CocinaViewModel />
+    </UserControl.DataContext>
+
     <Grid>
-        <TextBlock Text="Módulo Cocina" Style="{StaticResource HeaderTitleStyle}"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="Cocina y Elaboración Central" Style="{StaticResource HeaderTitleStyle}"/>
+                <TextBlock Text="Consumo de stock global de insumos por receta y reposición a sucursales" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Active Production Box (RF-09 / RF-10) -->
+        <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,16" Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="340" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Inputs: Product, Quantity, Target Branch -->
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Registrar Elaboración" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,12"/>
+
+                    <!-- Select Product -->
+                    <TextBlock Text="Producto a Elaborar (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding ProductosDisponibles}" 
+                              SelectedItem="{Binding ProductoSeleccionado}"
+                              DisplayMemberPath="Nombre"
+                              Padding="8,6" 
+                              Margin="0,0,0,12" 
+                              BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <!-- Quantity to produce -->
+                    <TextBlock Text="Cantidad a Producir (unidades) (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding CantidadAElaborar, UpdateSourceTrigger=PropertyChanged}" 
+                             Padding="8,6" 
+                             Margin="0,0,0,12" 
+                             BorderBrush="{StaticResource SecondaryBrush}"
+                             FontSize="14"
+                             FontWeight="SemiBold"/>
+
+                    <!-- Target Branch to restock -->
+                    <TextBlock Text="Sucursal de Destino (para reponer stock) (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding Sucursales}" 
+                              SelectedItem="{Binding SucursalDestino}"
+                              Padding="8,6" 
+                              Margin="0,0,0,16" 
+                              BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <!-- Submit Button (RF-10) -->
+                    <Button Content="🧑‍🍳 Elaborar y Despachar" 
+                            Command="{Binding RegistrarProduccionYEnvioCommand}"
+                            Background="{StaticResource PrimaryBrush}" 
+                            Foreground="White" 
+                            FontWeight="Bold"
+                            FontSize="13"
+                            Padding="16,10"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            HorizontalAlignment="Stretch">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="IsEnabled" Value="True"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding EsProduccionFactible}" Value="False">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                        <Setter Property="Opacity" Value="0.6"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+
+                <Rectangle Grid.Column="1" Fill="#E2DCD5" Width="1" HorizontalAlignment="Center"/>
+
+                <!-- Right: Feasibility Analysis (RF-09) -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock Text="Cálculo de Insumos según Receta" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontSize="13" VerticalAlignment="Center"/>
+                        <TextBlock Text="Stock Global Cocina" DockPanel.Dock="Right" HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <!-- Feasibility List -->
+                    <Border Grid.Row="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="8" Margin="0,0,0,8">
+                        <ItemsControl ItemsSource="{Binding CalculoConsumos}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#E5DFD7" BorderThickness="0,0,0,1" Padding="4,6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="130" />
+                                                <ColumnDefinition Width="140" />
+                                                <ColumnDefinition Width="100" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="{Binding InsumoNombre}" FontSize="12" FontWeight="Medium" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+
+                                            <!-- Required -->
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="Requerido: " FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                                                <TextBlock Text="{Binding TotalRequerido, StringFormat='{}{0:N2}'}" FontSize="11" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding UnidadMedida, StringFormat='{} {0}'}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                                            </StackPanel>
+
+                                            <!-- Available in global stock -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="Disponible: " FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                                                <TextBlock Text="{Binding StockGlobalDisponible, StringFormat='{}{0:N1}'}" FontSize="11" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding UnidadMedida, StringFormat='{} {0}'}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                                            </StackPanel>
+
+                                            <!-- Status badge -->
+                                            <Border Grid.Column="3" CornerRadius="4" Padding="6,2" HorizontalAlignment="Right">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#E6F4EA" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding EsSuficiente}" Value="False">
+                                                                <Setter Property="Background" Value="#FCE8E6" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock FontSize="10" FontWeight="SemiBold">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="Suficiente" />
+                                                            <Setter Property="Foreground" Value="#137333" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding EsSuficiente}" Value="False">
+                                                                    <Setter Property="Text" Value="Faltante" />
+                                                                    <Setter Property="Foreground" Value="#C5221F" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
+
+                    <!-- Feasibility Status Banner -->
+                    <Border Grid.Row="2" CornerRadius="6" Padding="10">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#E6F4EA" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding EsProduccionFactible}" Value="False">
+                                        <Setter Property="Background" Value="#FEF7E0" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding MensajeFactibilidad}" FontWeight="SemiBold" FontSize="12">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#137333" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding EsProduccionFactible}" Value="False">
+                                            <Setter Property="Foreground" Value="#B06000" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Production History Table (RF-11) -->
+        <Border Grid.Row="2" Style="{StaticResource MaieCardStyle}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="{StaticResource SurfaceAltBrush}" Padding="14,10" BorderBrush="#E2DCD5" BorderThickness="0,0,0,1">
+                    <TextBlock Text="Historial de Producciones y Envíos a Sucursal" Style="{StaticResource SubheaderTitleStyle}" FontSize="15"/>
+                </Border>
+
+                <DataGrid Grid.Row="1"
+                          ItemsSource="{Binding HistorialProduccion}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#EFECE6"
+                          Background="White"
+                          BorderThickness="0"
+                          RowHeight="44"
+                          SelectionMode="Single">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter Property="FontFamily" Value="Noto Serif" />
+                            <Setter Property="Padding" Value="12,8" />
+                            <Setter Property="BorderThickness" Value="0,0,0,1" />
+                            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                        </Style>
+                    </DataGrid.Resources>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Lote N°" Binding="{Binding CodigoLote}" Width="120" />
+                        <DataGridTextColumn Header="Fecha / Hora" Binding="{Binding FechaHora, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="135" />
+                        <DataGridTextColumn Header="Producto Elaborado" Binding="{Binding ProductoNombre}" Width="2*" />
+                        <DataGridTextColumn Header="Cantidad" Binding="{Binding CantidadElaborada, StringFormat='{}{0} un.'}" Width="90" />
+                        <DataGridTextColumn Header="Sucursal Destino" Binding="{Binding SucursalDestino}" Width="1.4*" />
+                        <DataGridTextColumn Header="Insumos Descontados" Binding="{Binding InsumosResumen}" Width="2.5*" />
+
+                        <!-- Status Badge -->
+                        <DataGridTemplateColumn Header="Estado" Width="170">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="#E6F4EA" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding Estado}" FontSize="10" FontWeight="SemiBold" Foreground="#137333"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
