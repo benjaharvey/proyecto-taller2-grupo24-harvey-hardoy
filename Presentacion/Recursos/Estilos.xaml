@@ -1,0 +1,52 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Brand Color Palette from design.md -->
+    <Color x:Key="PrimaryColor">#622B16</Color>
+    <Color x:Key="AccentColor">#9A4600</Color>
+    <Color x:Key="SecondaryColor">#BE8E75</Color>
+    <Color x:Key="BackgroundColor">#FCF9F4</Color>
+    <Color x:Key="SurfaceAltColor">#F6F3EE</Color>
+    <Color x:Key="PrimaryHoverColor">#4A2011</Color>
+    <Color x:Key="TextBodyColor">#555555</Color>
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>
+
+    <!-- SolidColorBrushes -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource SurfaceAltColor}" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
+    <SolidColorBrush x:Key="TextBodyBrush" Color="{StaticResource TextBodyColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+
+    <!-- Typography Styles -->
+    <Style x:Key="HeaderTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Noto Serif, Georgia, Times New Roman, Segoe UI" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="SubheaderTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Noto Serif, Georgia, Times New Roman, Segoe UI" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style x:Key="BodyTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI, Be Vietnam Pro" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource TextBodyBrush}" />
+    </Style>
+
+    <!-- Card Style -->
+    <Style x:Key="MaieCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="#E2DCD5" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+</ResourceDictionary>
