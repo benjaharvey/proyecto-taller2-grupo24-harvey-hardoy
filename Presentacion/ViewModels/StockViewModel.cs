@@ -114,34 +114,6 @@ public partial class StockViewModel : ObservableObject
 
     public StockViewModel()
     {
-        CargarDatosMock();
-    }
-
-    private void CargarDatosMock()
-    {
-        StockProductos = new ObservableCollection<StockProductoItem>
-        {
-            new() { ProductoId = 1, Codigo = "ALF-001", Nombre = "Alfajor Clásico DDL", Categoria = "Alfajores", Sucursal = "Sucursal Centro", StockActual = 45, StockMinimo = 20 },
-            new() { ProductoId = 1, Codigo = "ALF-001", Nombre = "Alfajor Clásico DDL", Categoria = "Alfajores", Sucursal = "Sucursal Norte", StockActual = 12, StockMinimo = 20 },
-            new() { ProductoId = 2, Codigo = "ALF-002", Nombre = "Alfajor Nuez y Choc Blanco", Categoria = "Alfajores", Sucursal = "Sucursal Centro", StockActual = 22, StockMinimo = 15 },
-            new() { ProductoId = 2, Codigo = "ALF-002", Nombre = "Alfajor Nuez y Choc Blanco", Categoria = "Alfajores", Sucursal = "Sucursal Sur", StockActual = 5, StockMinimo = 15 },
-            new() { ProductoId = 3, Codigo = "CON-001", Nombre = "Conito Dulce de Leche", Categoria = "Conitos", Sucursal = "Sucursal Centro", StockActual = 18, StockMinimo = 15 },
-            new() { ProductoId = 4, Codigo = "TAB-001", Nombre = "Tableta Marroc Artesanal", Categoria = "Tabletas", Sucursal = "Sucursal Norte", StockActual = 0, StockMinimo = 10 },
-            new() { ProductoId = 5, Codigo = "TOR-001", Nombre = "Mini Torta Rogel", Categoria = "Tortas", Sucursal = "Sucursal Centro", StockActual = 8, StockMinimo = 10 },
-            new() { ProductoId = 6, Codigo = "ALF-003", Nombre = "Alfajor Maicena Tradicional", Categoria = "Alfajores", Sucursal = "Sucursal Sur", StockActual = 35, StockMinimo = 15 }
-        };
-
-        InsumosGlobales = new ObservableCollection<InsumoGlobalItem>
-        {
-            new() { InsumoId = 1, Codigo = "INS-001", Nombre = "Dulce de Leche Repostero Especial", StockActual = 185.5m, UnidadMedida = "kg", StockMinimo = 50m },
-            new() { InsumoId = 2, Codigo = "INS-002", Nombre = "Harina de Trigo 0000", StockActual = 240.0m, UnidadMedida = "kg", StockMinimo = 80m },
-            new() { InsumoId = 3, Codigo = "INS-003", Nombre = "Chocolate Cobertura Semiamargo 70%", StockActual = 64.0m, UnidadMedida = "kg", StockMinimo = 25m },
-            new() { InsumoId = 4, Codigo = "INS-004", Nombre = "Chocolate Cobertura Blanco", StockActual = 32.5m, UnidadMedida = "kg", StockMinimo = 20m },
-            new() { InsumoId = 5, Codigo = "INS-005", Nombre = "Nueces Mariposa Peladas", StockActual = 8.5m, UnidadMedida = "kg", StockMinimo = 15m },
-            new() { InsumoId = 6, Codigo = "INS-006", Nombre = "Manteca de Primera Calidad", StockActual = 45.0m, UnidadMedida = "kg", StockMinimo = 20m },
-            new() { InsumoId = 7, Codigo = "INS-007", Nombre = "Pasta de Maní Tostado", StockActual = 19.0m, UnidadMedida = "kg", StockMinimo = 15m },
-            new() { InsumoId = 8, Codigo = "INS-008", Nombre = "Coco Rallado Fino", StockActual = 14.0m, UnidadMedida = "kg", StockMinimo = 10m }
-        };
     }
 
     [RelayCommand]

@@ -130,49 +130,9 @@ public partial class VentasViewModel : ObservableObject
 
     public VentasViewModel()
     {
-        CargarDatosMock();
-    }
-
-    private void CargarDatosMock()
-    {
-        Catalogo = new ObservableCollection<CatalogoVentaItem>
-        {
-            new() { Id = 1, Codigo = "ALF-001", Nombre = "Alfajor Clásico DDL", Categoria = "Alfajores", Precio = 1800.00m, StockDisponible = 45, Icono = "🍫" },
-            new() { Id = 2, Codigo = "ALF-002", Nombre = "Alfajor Nuez y Choc Blanco", Categoria = "Alfajores", Precio = 2100.00m, StockDisponible = 22, Icono = "🌰" },
-            new() { Id = 3, Codigo = "CON-001", Nombre = "Conito Dulce de Leche", Categoria = "Conitos", Precio = 1600.00m, StockDisponible = 18, Icono = "🍦" },
-            new() { Id = 4, Codigo = "TAB-001", Nombre = "Tableta Marroc Artesanal", Categoria = "Tabletas", Precio = 2400.00m, StockDisponible = 30, Icono = "🥜" },
-            new() { Id = 5, Codigo = "TOR-001", Nombre = "Mini Torta Rogel", Categoria = "Tortas", Precio = 3500.00m, StockDisponible = 8, Icono = "🎂" },
-            new() { Id = 6, Codigo = "ALF-003", Nombre = "Alfajor Maicena Tradicional", Categoria = "Alfajores", Precio = 1500.00m, StockDisponible = 35, Icono = "🥥" }
-        };
-
-        ClientesRegistrados = new ObservableCollection<ClienteRegistradoItem>
-        {
-            new() { Id = 1, Nombre = "Consumidor", Apellido = "Final", Dni = "00000000", Email = "-" },
-            new() { Id = 2, Nombre = "Juan", Apellido = "Pérez", Dni = "35849120", Email = "juan.perez@gmail.com" },
-            new() { Id = 3, Nombre = "María", Apellido = "González", Dni = "28114902", Email = "maria.gonzalez@hotmail.com" },
-            new() { Id = 4, Nombre = "Carlos", Apellido = "Rossi", Dni = "18234567", Email = "carlos.rossi@yahoo.com" },
-            new() { Id = 5, Nombre = "Lucía", Apellido = "Benítez", Dni = "40512890", Email = "lucia.benitez@gmail.com" },
-            new() { Id = 6, Nombre = "Martín", Apellido = "Fernández", Dni = "33445566", Email = "mfernandez@outlook.com" }
-        };
-        ClientesFiltrados = new ObservableCollection<ClienteRegistradoItem>(ClientesRegistrados);
-
-        // Carrito inicial
-        Carrito = new ObservableCollection<DetalleVentaItem>
-        {
-            new() { ProductoId = 1, Nombre = "Alfajor Clásico DDL", PrecioUnitario = 1800.00m, Cantidad = 2 },
-            new() { ProductoId = 3, Nombre = "Conito Dulce de Leche", PrecioUnitario = 1600.00m, Cantidad = 1 }
-        };
         Carrito.CollectionChanged += (s, e) => {
             OnPropertyChanged(nameof(TotalVenta));
             OnPropertyChanged(nameof(CantidadTotalItems));
-        };
-
-        HistorialVentas = new ObservableCollection<VentaHistoricaItem>
-        {
-            new() { NumeroVenta = "VTA-2026-0089", Fecha = DateTime.Now.AddHours(-1), ClienteNombre = "Juan Pérez (DNI: 35849120)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 4, Total = 7400.00m, Estado = "CONFIRMADA" },
-            new() { NumeroVenta = "VTA-2026-0088", Fecha = DateTime.Now.AddHours(-3), ClienteNombre = "María González (DNI: 28114902)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 2, Total = 4200.00m, Estado = "CONFIRMADA" },
-            new() { NumeroVenta = "VTA-2026-0087", Fecha = DateTime.Now.AddHours(-5), ClienteNombre = "Consumidor Final", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 6, Total = 11200.00m, Estado = "ANULADA" },
-            new() { NumeroVenta = "VTA-2026-0086", Fecha = DateTime.Now.AddDays(-1), ClienteNombre = "Carlos Rossi (DNI: 18234567)", Vendedor = "Segundo Hardoy", Sucursal = "Sucursal Centro", CantidadArticulos = 1, Total = 3500.00m, Estado = "CONFIRMADA" }
         };
     }
 

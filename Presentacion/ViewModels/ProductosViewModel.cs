@@ -86,42 +86,11 @@ public partial class ProductosViewModel : ObservableObject
         "Todas", "Alfajores", "Conitos", "Tabletas", "Tortas", "Especiales"
     };
 
-    public ObservableCollection<InsumoOpcionItem> InsumosDisponibles { get; } = new()
-    {
-        new() { Nombre = "Dulce de Leche Repostero", UnidadMedida = "gr" },
-        new() { Nombre = "Harina de Trigo 0000", UnidadMedida = "gr" },
-        new() { Nombre = "Chocolate Cobertura Semiamargo", UnidadMedida = "gr" },
-        new() { Nombre = "Chocolate Cobertura Blanco", UnidadMedida = "gr" },
-        new() { Nombre = "Nueces Mariposa Peladas", UnidadMedida = "gr" },
-        new() { Nombre = "Manteca de Primera", UnidadMedida = "gr" },
-        new() { Nombre = "Pasta de Maní Tostado", UnidadMedida = "gr" },
-        new() { Nombre = "Coco Rallado Fino", UnidadMedida = "gr" },
-        new() { Nombre = "Almidón de Maíz (Maicena)", UnidadMedida = "gr" },
-        new() { Nombre = "Galleta Base para Conito", UnidadMedida = "un." }
-    };
+    public ObservableCollection<InsumoOpcionItem> InsumosDisponibles { get; } = new();
 
     public ProductosViewModel()
     {
-        CargarDatosMock();
         LimpiarFormulario();
-    }
-
-    private void CargarDatosMock()
-    {
-        Productos = new ObservableCollection<ProductoItem>
-        {
-            new() { Id = 1, Codigo = "ALF-001", Nombre = "Alfajor Clásico Dulce de Leche", Categoria = "Alfajores", Precio = 1800.00m, Descripcion = "Masa de cacao artesanal con dulce de leche repostero", Activo = true, RecetaResumen = "Harina (50g), DDL (60g), Chocolate (30g)" },
-            new() { Id = 2, Codigo = "ALF-002", Nombre = "Alfajor de Nuez y Chocolate Blanco", Categoria = "Alfajores", Precio = 2100.00m, Descripcion = "Tapas de nuez con cobertura de chocolate blanco", Activo = true, RecetaResumen = "Nuez (40g), DDL (55g), Choc. Blanco (35g)" },
-            new() { Id = 3, Codigo = "CON-001", Nombre = "Conito de Dulce de Leche", Categoria = "Conitos", Precio = 1600.00m, Descripcion = "Base de galleta artesanal y corazón de dulce de leche", Activo = true, RecetaResumen = "Galleta base (1u), DDL (80g), Choc. Negro (25g)" },
-            new() { Id = 4, Codigo = "TAB-001", Nombre = "Tableta Marroc Artesanal", Categoria = "Tabletas", Precio = 2400.00m, Descripcion = "Praliné de maní y capas de chocolate con leche", Activo = true, RecetaResumen = "Pasta de Maní (70g), Choc. Leche (60g)" },
-            new() { Id = 5, Codigo = "TOR-001", Nombre = "Mini Torta Rogel", Categoria = "Tortas", Precio = 3500.00m, Descripcion = "Capas crocantes de masa hojaldrada y merengue italiano", Activo = true, RecetaResumen = "Masa Hojaldre (4u), DDL (120g), Merengue (50g)" },
-            new() { Id = 6, Codigo = "ALF-003", Nombre = "Alfajor Maicena Tradicional", Categoria = "Alfajores", Precio = 1500.00m, Descripcion = "Masa suave con coco rallado y dulce de leche", Activo = false, RecetaResumen = "Almidón maíz (60g), DDL (50g), Coco (15g)" }
-        };
-
-        if (Productos.Count > 0)
-        {
-            SelectedProducto = Productos[0];
-        }
     }
 
     private void LimpiarFormulario()
@@ -145,11 +114,7 @@ public partial class ProductosViewModel : ObservableObject
         FormCategoria = prod.Categoria;
         FormPrecio = prod.Precio;
         FormDescripcion = prod.Descripcion;
-        FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>
-        {
-            new() { InsumoNombre = "Dulce de Leche Repostero", Cantidad = 60, UnidadMedida = "gr" },
-            new() { InsumoNombre = "Chocolate Cobertura Semiamargo", Cantidad = 35, UnidadMedida = "gr" }
-        };
+        FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
     }
 
     [RelayCommand]
