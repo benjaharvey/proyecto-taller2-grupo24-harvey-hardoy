@@ -1,0 +1,651 @@
+<UserControl x:Class="Presentacion.Vistas.VentasView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:vm="clr-namespace:Presentacion.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="1000">
+
+    <UserControl.DataContext>
+        <vm:VentasViewModel />
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header and Tabs -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Punto de Venta (Caja)" Style="{StaticResource HeaderTitleStyle}"/>
+                <TextBlock Text="Terminal de cobro y registro de operaciones por mostrador" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Mode Switcher Tabs -->
+            <Border Grid.Column="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="8" Padding="4">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton Content="🛒 Nueva Venta" 
+                                 GroupName="VentasTabs"
+                                 IsChecked="True"
+                                 Command="{Binding CambiarTabCommand}"
+                                 CommandParameter="Caja"
+                                 Padding="14,8"
+                                 Cursor="Hand">
+                        <RadioButton.Style>
+                            <Style TargetType="RadioButton">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="RadioButton">
+                                            <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <TextBlock x:Name="txt" Text="{TemplateBinding Content}" Foreground="{StaticResource PrimaryBrush}" FontWeight="Medium"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#E5DFD7"/>
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                                    <Setter TargetName="txt" Property="Foreground" Value="White"/>
+                                                    <Setter TargetName="txt" Property="FontWeight" Value="Bold"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </RadioButton.Style>
+                    </RadioButton>
+
+                    <RadioButton Content="📋 Historial de Ventas" 
+                                 GroupName="VentasTabs"
+                                 Command="{Binding CambiarTabCommand}"
+                                 CommandParameter="Historial"
+                                 Padding="14,8"
+                                 Cursor="Hand">
+                        <RadioButton.Style>
+                            <Style TargetType="RadioButton">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="RadioButton">
+                                            <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                <TextBlock x:Name="txt" Text="{TemplateBinding Content}" Foreground="{StaticResource PrimaryBrush}" FontWeight="Medium"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#E5DFD7"/>
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                                    <Setter TargetName="txt" Property="Foreground" Value="White"/>
+                                                    <Setter TargetName="txt" Property="FontWeight" Value="Bold"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </RadioButton.Style>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Main Body: Punto de Venta Mode -->
+        <Grid Grid.Row="1">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding VistaActiva}" Value="Caja">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.5*" />
+                <ColumnDefinition Width="*" MinWidth="380" />
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT: Product Quick Selection -->
+            <Grid Grid.Column="0" Margin="0,0,16,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Search and Categories -->
+                <Border Grid.Row="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,12" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="150" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" 
+                                 Text="{Binding BusquedaCatalogo, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="12,8"
+                                 Margin="0,0,10,0"
+                                 BorderBrush="{StaticResource SecondaryBrush}"
+                                 FontSize="13">
+                            <TextBox.Resources>
+                                <VisualBrush x:Key="HintBrush" TileMode="None" Opacity="0.6" Stretch="None" AlignmentX="Left">
+                                    <VisualBrush.Visual>
+                                        <TextBlock Text="🔍  Buscar producto por nombre o código..." Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="18,0,0,0"/>
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </TextBox.Resources>
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background" Value="{StaticResource HintBrush}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <ComboBox Grid.Column="1" 
+                                  ItemsSource="{Binding Categorias}" 
+                                  SelectedItem="{Binding CategoriaFiltro}"
+                                  Padding="8,6"
+                                  BorderBrush="{StaticResource SecondaryBrush}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Product Items List (Single Line Rows) -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
+                    <ItemsControl ItemsSource="{Binding Catalogo}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8" 
+                                        Background="White" 
+                                        CornerRadius="8" 
+                                        BorderBrush="#E2DCD5" 
+                                        BorderThickness="1"
+                                        Padding="14,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Icon -->
+                                        <TextBlock Grid.Column="0" Text="{Binding Icono}" FontSize="22" VerticalAlignment="Center" Margin="0,0,12,0"/>
+
+                                        <!-- Product Name & Category -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource PrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Categoria}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Stock Badge -->
+                                        <Border Grid.Column="2" VerticalAlignment="Center" Background="#E8F0FE" CornerRadius="4" Padding="8,3" Margin="0,0,14,0">
+                                            <TextBlock Text="{Binding StockDisponible, StringFormat='{}Stock: {0}'}" FontSize="11" FontWeight="SemiBold" Foreground="#1A73E8"/>
+                                        </Border>
+
+                                        <!-- Price -->
+                                        <TextBlock Grid.Column="3" 
+                                                   Text="{Binding Precio, StringFormat='${0:N2}'}" 
+                                                   FontFamily="Noto Serif" 
+                                                   FontSize="15" 
+                                                   FontWeight="Bold" 
+                                                   Foreground="{StaticResource AccentBrush}"
+                                                   HorizontalAlignment="Right"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,14,0"/>
+
+                                        <!-- Add Button -->
+                                         <Button Grid.Column="4" 
+                                                 Content="+ Agregar"
+                                                 Command="{Binding DataContext.AgregarAlCarritoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                 CommandParameter="{Binding}"
+                                                 Style="{StaticResource PrimaryButtonStyle}"
+                                                 FontSize="12"
+                                                 Padding="14,6"/>
+                                     </Grid>
+                                 </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- RIGHT: Sale Ticket / Cart Summary -->
+            <Border Grid.Column="1" Style="{StaticResource MaieCardStyle}" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Ticket Header -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Orden de Venta" Style="{StaticResource SubheaderTitleStyle}"/>
+                            <TextBlock Text="{Binding SucursalActual}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                        </StackPanel>
+                        <Border DockPanel.Dock="Right" HorizontalAlignment="Right" Background="#FEF7E0" CornerRadius="4" Padding="6,3" VerticalAlignment="Center">
+                            <TextBlock Text="PENDIENTE" FontSize="11" FontWeight="Bold" Foreground="#B06000"/>
+                        </Border>
+                    </DockPanel>
+
+                    <!-- Customer Info Bar (Asociar / Cambiar / Registrar Cliente) -->
+                    <Border Grid.Row="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Cliente Asociado:" FontSize="10" Foreground="{StaticResource TextBodyBrush}"/>
+                                <TextBlock Text="{Binding ClienteNombre}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource PrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding ClienteDni, StringFormat='{}DNI: {0}'}" FontSize="11" Foreground="{StaticResource TextBodyBrush}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="Text" Value="DNI: ">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="🔍 Asociar Cliente"
+                                        Command="{Binding AbrirSeleccionarClienteModalCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        FontSize="11"
+                                        Padding="8,5"
+                                        Margin="0,0,6,0"/>
+                                <Button Content="➕"
+                                        ToolTip="Registrar Nuevo Cliente"
+                                        Command="{Binding AbrirNuevoClienteModalCommand}"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        FontSize="11"
+                                        Padding="8,5"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Cart Items List (RF-18 / RF-19) -->
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,12">
+                        <ItemsControl ItemsSource="{Binding Carrito}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="#EFECE6" BorderThickness="0,0,0,1" Padding="0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="70" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Item Details -->
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Nombre}" FontWeight="Medium" FontSize="12" Foreground="{StaticResource PrimaryBrush}"/>
+                                                <TextBlock Text="{Binding PrecioUnitario, StringFormat='${0:N2} c/u'}" FontSize="10" Foreground="{StaticResource TextBodyBrush}"/>
+                                            </StackPanel>
+
+                                            <!-- Quantity Controls -->
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
+                                                <Button Content="-" 
+                                                        Command="{Binding DataContext.DecrementarCantidadCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource SecondaryButtonStyle}"
+                                                        Width="24" Height="24" Padding="0"/>
+                                                <TextBlock Text="{Binding Cantidad}" FontWeight="Bold" FontSize="12" Margin="8,0" VerticalAlignment="Center"/>
+                                                <Button Content="+" 
+                                                        Command="{Binding DataContext.IncrementarCantidadCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource SecondaryButtonStyle}"
+                                                        Width="24" Height="24" Padding="0"/>
+                                            </StackPanel>
+
+                                            <!-- Subtotal -->
+                                            <TextBlock Grid.Column="2" 
+                                                       Text="{Binding Subtotal, StringFormat='${0:N2}'}" 
+                                                       FontWeight="SemiBold" 
+                                                       FontSize="12" 
+                                                       HorizontalAlignment="Right" 
+                                                       VerticalAlignment="Center"/>
+
+                                            <!-- Delete Button -->
+                                            <Button Grid.Column="3" 
+                                                    Content="✖" 
+                                                    Command="{Binding DataContext.QuitarDelCarritoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource GhostIconButton}"
+                                                    Foreground="#C5221F"
+                                                    Margin="6,0,0,0"
+                                                    FontSize="11"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Total & Confirmation Actions -->
+                    <StackPanel Grid.Row="3">
+                        <Separator Margin="0,0,0,12" Background="#E2DCD5"/>
+                        <DockPanel Margin="0,0,0,4">
+                            <TextBlock Text="Cantidad de artículos:" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                            <TextBlock Text="{Binding CantidadTotalItems}" DockPanel.Dock="Right" HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="12"/>
+                        </DockPanel>
+                        <DockPanel Margin="0,0,0,16">
+                            <TextBlock Text="TOTAL:" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalVenta, StringFormat='${0:N2}'}" 
+                                       DockPanel.Dock="Right" 
+                                       HorizontalAlignment="Right" 
+                                       FontFamily="Noto Serif" 
+                                       FontSize="22" 
+                                       FontWeight="Bold" 
+                                       Foreground="{StaticResource AccentBrush}"/>
+                        </DockPanel>
+
+                        <!-- Action Buttons (RF-20 / RF-21) -->
+                        <Button Command="{Binding ConfirmarVentaCommand}"
+                                Margin="0,0,0,8"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bdr" Background="{StaticResource PrimaryBrush}" CornerRadius="6" Padding="16,12">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <TextBlock Text="💳" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Confirmar Venta (Cobrar)" Foreground="White" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="bdr" Property="Background" Value="#35160A"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Content="Cancelar Venta Actual" 
+                                Command="{Binding CancelarVentaCommand}"
+                                Style="{StaticResource OutlineButtonStyle}"
+                                Padding="10,8"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Historial de Ventas Mode -->
+        <Border Grid.Row="1" Padding="0">
+            <Border.Style>
+                <Style TargetType="Border" BasedOn="{StaticResource MaieCardStyle}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding VistaActiva}" Value="Historial">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+
+            <DataGrid ItemsSource="{Binding HistorialVentas}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#EFECE6"
+                      Background="White"
+                      BorderThickness="0"
+                      RowHeight="46"
+                      SelectionMode="Single">
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="FontFamily" Value="Noto Serif" />
+                        <Setter Property="Padding" Value="12,10" />
+                        <Setter Property="BorderThickness" Value="0,0,0,1" />
+                        <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                    </Style>
+                </DataGrid.Resources>
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="N° Venta" Binding="{Binding NumeroVenta}" Width="130" />
+                    <DataGridTextColumn Header="Fecha / Hora" Binding="{Binding Fecha, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="140" />
+                    <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="2*" />
+                    <DataGridTextColumn Header="Vendedor" Binding="{Binding Vendedor}" Width="*" />
+                    <DataGridTextColumn Header="Artículos" Binding="{Binding CantidadArticulos}" Width="80" />
+                    <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat='${0:N2}'}" Width="110" />
+
+                    <!-- Status -->
+                    <DataGridTemplateColumn Header="Estado" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="4" Padding="6,3" HorizontalAlignment="Left">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="#E6F4EA" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Estado}" Value="ANULADA">
+                                                    <Setter Property="Background" Value="#FCE8E6" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Estado}" Value="CANCELADA">
+                                                    <Setter Property="Background" Value="#FEF7E0" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding Estado}" FontSize="11" FontWeight="SemiBold">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#137333" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Estado}" Value="ANULADA">
+                                                        <Setter Property="Foreground" Value="#C5221F" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Estado}" Value="CANCELADA">
+                                                        <Setter Property="Foreground" Value="#B06000" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Actions (RF-22 Anular Venta Confirmada) -->
+                    <DataGridTemplateColumn Header="Acciones" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Anular"
+                                        Command="{Binding DataContext.AnularVentaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Foreground="#C5221F"
+                                        FontWeight="SemiBold">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource GhostIconButton}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Estado}" Value="ANULADA">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- MODAL: Buscar y Asociar Cliente Existente (RF-16) -->
+        <Grid Grid.RowSpan="2" Background="#70000000">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding MostrarDialogoSeleccionarCliente}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Border Width="480" Background="White" CornerRadius="8" Padding="20" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="220" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Modal Header -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                        <TextBlock Text="Asociar Cliente a la Venta" Style="{StaticResource SubheaderTitleStyle}"/>
+                        <TextBlock Text="Busque por nombre o DNI, o registre un nuevo cliente" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Search Input -->
+                    <TextBox Grid.Row="1" 
+                             Text="{Binding BusquedaClienteTexto, UpdateSourceTrigger=PropertyChanged}"
+                             Padding="12,8"
+                             Margin="0,0,0,12"
+                             BorderBrush="{StaticResource SecondaryBrush}"
+                             FontSize="13">
+                        <TextBox.Resources>
+                            <VisualBrush x:Key="HintBrushCliente" TileMode="None" Opacity="0.6" Stretch="None" AlignmentX="Left">
+                                <VisualBrush.Visual>
+                                    <TextBlock Text="🔍  Buscar por nombre, apellido o DNI..." Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="18,0,0,0"/>
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </TextBox.Resources>
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background" Value="{StaticResource HintBrushCliente}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+
+                    <!-- Registered Clients List -->
+                    <Border Grid.Row="2" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="6" Margin="0,0,0,16">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding ClientesFiltrados}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="White" CornerRadius="6" BorderBrush="#E2DCD5" BorderThickness="1" Padding="10,8" Margin="0,0,0,6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding NombreCompleto}" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource PrimaryBrush}"/>
+                                                    <TextBlock Text="{Binding Dni, StringFormat='{}DNI: {0}'}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" 
+                                                        Content="Asociar"
+                                                        Command="{Binding DataContext.AsociarClienteSeleccionadoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Style="{StaticResource AccentButtonStyle}"
+                                                        FontSize="11"
+                                                        Padding="12,5"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Modal Actions -->
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cerrar" 
+                                Command="{Binding CerrarSeleccionarClienteModalCommand}"
+                                Style="{StaticResource OutlineButtonStyle}"
+                                Padding="14,6"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- New Customer Modal Overlay (RF-15) -->
+        <Grid Grid.RowSpan="2" Background="#70000000">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding MostrarDialogoNuevoCliente}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Border Width="400" 
+                    Background="White" 
+                    CornerRadius="8" 
+                    Padding="24" 
+                    VerticalAlignment="Center" 
+                    HorizontalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="Registrar Cliente en Mostrador" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Ingrese los datos para asociarlo a la venta actual" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
+
+                    <TextBlock Text="Nombre (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NuevoClienteNombre}" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <TextBlock Text="Apellido (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NuevoClienteApellido}" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <TextBlock Text="Documento (DNI) (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NuevoClienteDni}" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <TextBlock Text="Correo Electrónico (Opcional)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NuevoClienteEmail}" Padding="8,6" Margin="0,0,0,20" BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancelar" 
+                                Command="{Binding CerrarNuevoClienteModalCommand}"
+                                Style="{StaticResource OutlineButtonStyle}"
+                                Padding="14,6"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Registrar y Asociar" 
+                                Command="{Binding GuardarNuevoClienteCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Padding="14,6"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -5,25 +5,251 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Presentacion"
+        xmlns:vm="clr-namespace:Presentacion.ViewModels"
+        xmlns:vistas="clr-namespace:Presentacion.Vistas"
         mc:Ignorable="d"
-        Title="Sistema de Gestión" Height="600" Width="1000"
-        WindowStartupLocation="CenterScreen">
+        x:Name="RootWindow"
+        Title="Maie - Sistema de Gestión" Height="750" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="Sistema de Gestión" />
+        <!-- Custom TitleBar -->
+        <ui:TitleBar Grid.Row="0" Title="Maie · Dulces Artesanales — Panel de Gestión" />
 
-        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <ui:TextBlock Text="Maie Dulces Artesanales"
-                          FontTypography="Title"
-                          HorizontalAlignment="Center"
-                          Margin="0,0,0,16" />
-            <ui:Button Content="Testeando" 
-                       Appearance="Primary" 
-                       HorizontalAlignment="Center" />
-        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar Navigation -->
+            <Border Grid.Column="0" 
+                    Background="{StaticResource PrimaryBrush}" 
+                    BorderThickness="0,0,1,0"
+                    BorderBrush="{StaticResource SecondaryBrush}">
+                <DockPanel LastChildFill="False">
+                    <!-- Brand Header -->
+                    <StackPanel DockPanel.Dock="Top" Margin="20,24,20,24">
+                        <TextBlock Text="MAIE" 
+                                   Foreground="White" 
+                                   FontFamily="Noto Serif" 
+                                   FontSize="22" 
+                                   FontWeight="Bold" 
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Dulces Artesanales" 
+                                   Foreground="{StaticResource SecondaryBrush}" 
+                                   FontSize="12" 
+                                   HorizontalAlignment="Center" 
+                                   Margin="0,2,0,0"/>
+                        <Separator Margin="0,16,0,0" Background="#80BE8E75"/>
+                    </StackPanel>
+
+                    <!-- Nav Buttons -->
+                    <StackPanel DockPanel.Dock="Top" Margin="10,0">
+                        <RadioButton Content="🛒  Productos" 
+                                     GroupName="NavMenu"
+                                     IsChecked="True"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Productos"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
+                        <RadioButton Content="💳  Punto de Venta" 
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Ventas"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
+                        <RadioButton Content="📦  Stock e Insumos" 
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Stock"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
+                        <RadioButton Content="👨‍🍳  Cocina (Producción)" 
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Cocina"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
+                        <RadioButton Content="📊  Reportes" 
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Reportes"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+                    </StackPanel>
+
+                    <!-- Active Session Footer -->
+                    <Border DockPanel.Dock="Bottom" Margin="12,20" Padding="12" Background="#20000000" CornerRadius="6">
+                        <StackPanel>
+                            <TextBlock Text="👤 Sesión activa:" FontSize="11" Foreground="{StaticResource SecondaryBrush}"/>
+                            <TextBlock Text="Admin / Sucursal Centro" FontSize="12" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+                </DockPanel>
+            </Border>
+
+            <!-- Main Content Area -->
+            <Grid Grid.Column="1" Margin="24">
+                <!-- Productos View -->
+                <vistas:ProductosView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Productos, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                
+                <!-- Ventas View -->
+                <vistas:VentasView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Ventas, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Stock View -->
+                <vistas:StockView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Stock, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Cocina View -->
+                <vistas:CocinaView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Cocina, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Reportes View -->
+                <vistas:ReportesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Reportes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+            </Grid>
+        </Grid>
     </Grid>
 </ui:FluentWindow>
