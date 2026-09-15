@@ -13,9 +13,9 @@
                 <TextBlock TextWrapping="Wrap" Text="Sistema de Gestión de Maie Alfajores" Margin="0,0,0,20"/>
 
                 <ui:TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
-                    <Run Language="es-ar" Text="Usuario"/>
+                    <Run Language="es-ar" Text="E-mail"/>
                 </ui:TextBlock>
-                <ui:TextBox PlaceholderText="Usuario" Margin="0,0,0,16"/>
+                <ui:TextBox PlaceholderText="E-mail" Margin="0,0,0,16"/>
 
                 <ui:TextBlock TextWrapping="Wrap" Margin="0,0,0,4">
                     <Run Language="es-ar" Text="Contraseña"/>
