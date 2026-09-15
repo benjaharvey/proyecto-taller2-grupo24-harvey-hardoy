@@ -25,6 +25,8 @@ namespace Aplicacion.CasosDeUso
                 {
                     Id = usuario.Id,
                     Email = usuario.Email,
+                    FechaNacimiento = usuario.FechaNacimiento,
+                    Direccion = usuario.Direccion,
                     RolId = usuario.RolId,
                     NombreRol = rol?.Nombre ?? "Sin rol",
                     SucursalId = usuario.SucursalId

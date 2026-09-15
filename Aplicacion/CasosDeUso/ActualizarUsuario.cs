@@ -16,6 +16,8 @@ namespace Aplicacion.CasosDeUso
                 Id = id,
                 Email = dto.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                FechaNacimiento = dto.FechaNacimiento,
+                Direccion = dto.Direccion,
                 RolId = dto.RolId,
                 SucursalId = dto.SucursalId
             };

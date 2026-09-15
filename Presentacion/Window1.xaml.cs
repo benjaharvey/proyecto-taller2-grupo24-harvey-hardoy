@@ -91,10 +91,18 @@ namespace Presentacion
                 return false;
             }
 
+            if (dtpFechaNacimiento.SelectedDate is not DateTime fechaNacimiento)
+            {
+                MessageBox.Show("Seleccioná una fecha de nacimiento.");
+                return false;
+            }
+
             dto = new UsuarioCrearDTO
             {
                 Email = txtEmail.Text,
                 Password = txtPassword.Password,
+                FechaNacimiento = fechaNacimiento,
+                Direccion = txtDireccion.Text,
                 RolId = rolId,
                 SucursalId = sucursalId
             };

@@ -48,6 +48,8 @@ namespace Datos.Repositorios
             {
                 existente.Email = usuario.Email;
                 existente.Password = usuario.Password;
+                existente.FechaNacimiento = usuario.FechaNacimiento;
+                existente.Direccion = usuario.Direccion;
                 existente.RolId = usuario.RolId;
                 existente.SucursalId = usuario.SucursalId;
                 existente.UpdatedAt = DateTime.Now;
