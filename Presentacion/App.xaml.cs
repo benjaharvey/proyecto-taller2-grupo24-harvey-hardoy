@@ -39,9 +39,14 @@ public partial class App : Application
 
         services.AddTransient<RolWindow>();
         services.AddTransient<UsuarioWindow>();
+        services.AddTransient<MainWindow>();
+        services.AddTransient<MenuPrincipal>();
+        services.AddTransient<VistaLogin>();
+        services.AddTransient<IniciarSesion>();
+
 
         Services = services.BuildServiceProvider();
 
-        Services.GetRequiredService<RolWindow>().Show();
+        Services.GetRequiredService<VistaLogin>().Show();
     }
 }

@@ -9,7 +9,7 @@
         xmlns:vistas="clr-namespace:Presentacion.Vistas"
         mc:Ignorable="d"
         x:Name="RootWindow"
-        Title="Maie - Sistema de Gestión" Height="750" Width="1200"
+        Title="Maie - Sistema de Gestión" Height="900" Width="1440"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
 
@@ -221,6 +221,39 @@
                                 </Style>
                             </RadioButton.Style>
                         </RadioButton>
+
+                        <RadioButton Content="👤  Alta de Usuario"
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="AltaUsuario"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
                     </StackPanel>
 
                     <!-- Active Session Footer -->
@@ -249,6 +282,9 @@
 
                 <!-- Reportes View -->
                 <vistas:ReportesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Reportes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Alta de Usuario View -->
+                <vistas:AltaUsuarioView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=AltaUsuario, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
             </Grid>
         </Grid>
     </Grid>
