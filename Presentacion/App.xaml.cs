@@ -42,10 +42,11 @@ public partial class App : Application
         services.AddTransient<MainWindow>();
         services.AddTransient<MenuPrincipal>();
         services.AddTransient<VistaLogin>();
-        services.AddTransient<AltaUsuario>();
+        services.AddTransient<IniciarSesion>();
+
 
         Services = services.BuildServiceProvider();
 
-        Services.GetRequiredService<MenuPrincipal>().Show();
+        Services.GetRequiredService<VistaLogin>().Show();
     }
 }

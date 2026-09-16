@@ -31,18 +31,22 @@
                 <TextBlock Text="Iniciar Sesión" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,20"/>
 
                 <TextBlock Text="E-mail" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                <TextBox Padding="8,6"
+                <TextBox x:Name="txtEmail"
+                         Padding="8,6"
                          Margin="0,0,0,16"
                          BorderBrush="{StaticResource SecondaryBrush}"
                          FontSize="13"/>
 
                 <TextBlock Text="Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                <PasswordBox Padding="8,6"
+                <PasswordBox x:Name="txtPassword"
+                             Padding="8,6"
                              Margin="0,0,0,24"
                              BorderBrush="{StaticResource SecondaryBrush}"
                              FontSize="13"/>
 
-                <Button Content="Ingresar"
+                <Button x:Name="btnIngresar"
+                        Content="Ingresar"
+                        Click="btnIngresar_Click"
                         Style="{StaticResource PrimaryButtonStyle}"
                         HorizontalAlignment="Stretch"
                         FontSize="13"
