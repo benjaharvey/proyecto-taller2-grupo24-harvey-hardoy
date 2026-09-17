@@ -17,6 +17,9 @@ namespace Aplicacion.CasosDeUso
         {
             var pUsuario = new Usuario
             {
+                Nombre = dto.Nombre,
+                Apellido = dto.Apellido,
+                Dni = dto.Dni,
                 Email = dto.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 FechaNacimiento = dto.FechaNacimiento,

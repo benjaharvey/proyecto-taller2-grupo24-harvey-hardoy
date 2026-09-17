@@ -47,6 +47,6 @@ public partial class App : Application
 
         Services = services.BuildServiceProvider();
 
-        Services.GetRequiredService<VistaLogin>().Show();
+        Services.GetRequiredService <VistaLogin>().Show();
     }
 }

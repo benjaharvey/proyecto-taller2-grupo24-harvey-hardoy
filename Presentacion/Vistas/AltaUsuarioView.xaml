@@ -18,17 +18,40 @@
             <TextBlock Text="Complete los datos para registrar un nuevo usuario" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
 
-        <!-- Form -->
-        <Border Grid.Row="1"
-                Style="{StaticResource MaieCardStyle}"
-                Padding="24"
-                Width="600"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="420" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Form -->
+            <Border Grid.Column="0"
+                    Style="{StaticResource MaieCardStyle}"
+                    Padding="24"
+                    VerticalAlignment="Top">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                            <TextBlock Text="Nombre" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtNombre" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                            <TextBlock Text="Apellido" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtApellido" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="DNI" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox x:Name="txtDni" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+
                     <TextBlock Text="Email" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox x:Name="txtEmail" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
@@ -37,19 +60,19 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <PasswordBox Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <PasswordBox x:Name="txtPassword" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Confirmar Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <PasswordBox Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <PasswordBox x:Name="txtConfirmarPassword" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
 
                     <TextBlock Text="Fecha de Nacimiento" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <DatePicker Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
+                    <DatePicker x:Name="dtpFechaNacimiento" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
 
                     <TextBlock Text="Dirección" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox x:Name="txtDireccion" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
@@ -58,17 +81,12 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Rol" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <ComboBox Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch">
-                                <ComboBoxItem Content="Administrador"/>
-                                <ComboBoxItem Content="Vendedor"/>
-                                <ComboBoxItem Content="Cocinero"/>
-                            </ComboBox>
+                            <ComboBox x:Name="cmbRol" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                            <TextBlock Text="Sucursal" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <ComboBox Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch">
-                                <!-- Se completa con las sucursales cuando conectes la lógica -->
-                            </ComboBox>
+                            <TextBlock Text="Sucursal Id" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <TextBox x:Name="txtSucursalId" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
 
@@ -76,13 +94,79 @@
                         <Button Content="Cancelar"
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
-                                Margin="0,0,8,0"/>
+                                Margin="0,0,8,0"
+                                Click="BtnCancelar_Click"/>
                         <Button Content="Guardar Usuario"
                                 Style="{StaticResource AccentButtonStyle}"
-                                Padding="14,6"/>
+                                Padding="14,6"
+                                Click="BtnGuardar_Click"/>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
-        </Border>
+            </Border>
+
+            <!-- Usuarios Registrados -->
+            <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="20,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Usuarios Registrados" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Actualizar" Style="{StaticResource OutlineButtonStyle}" Padding="14,6" Click="BtnActualizarLista_Click"/>
+                    </Grid>
+
+                    <DataGrid Grid.Row="1"
+                              x:Name="dataGridUsuarios"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#EFECE6"
+                              Background="White"
+                              BorderThickness="0"
+                              RowHeight="38"
+                              SelectionMode="Single">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="FontFamily" Value="Noto Serif" />
+                                <Setter Property="Padding" Value="12,10" />
+                                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                            </Style>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="White" />
+                                <Setter Property="Margin" Value="0" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*" />
+                            <DataGridTextColumn Header="Apellido" Binding="{Binding Apellido}" Width="*" />
+                            <DataGridTextColumn Header="DNI" Binding="{Binding Dni}" Width="90" />
+                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*" />
+                            <DataGridTextColumn Header="Rol" Binding="{Binding NombreRol}" Width="*" />
+                            <DataGridTextColumn Header="Sucursal" Binding="{Binding SucursalId}" Width="70" />
+                            <DataGridTextColumn Header="Fecha Nac." Binding="{Binding FechaNacimiento, StringFormat='{}{0:dd/MM/yyyy}'}" Width="100" />
+                            <DataGridTextColumn Header="Dirección" Binding="{Binding Direccion}" Width="2*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

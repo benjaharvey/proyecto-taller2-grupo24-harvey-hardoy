@@ -19,7 +19,7 @@
                            FontWeight="Bold"
                            Foreground="{StaticResource PrimaryBrush}"
                            HorizontalAlignment="Center"/>
-                <TextBlock Text="Dulces Artesanales"
+                <TextBlock Text="Sistema de Gestión de Operaciones"
                            Style="{StaticResource BodyTextStyle}"
                            FontSize="12"
                            Foreground="{StaticResource SecondaryBrush}"
