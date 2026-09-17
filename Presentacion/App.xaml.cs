@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Aplicacion.CasosDeUso;
 using Datos.Conexion;
 using Datos.Repositorios;
+using Datos.Seeder;
 using Dominio.Interfaces;
 
 namespace Presentacion;
@@ -47,6 +48,11 @@ public partial class App : Application
 
         Services = services.BuildServiceProvider();
 
-        Services.GetRequiredService <VistaLogin>().Show();
+        using (var dbContext = Services.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext())
+        {
+            DatabaseSeeder.Inicializar(dbContext);
+        }
+
+        Services.GetRequiredService<VistaLogin>().Show();
     }
 }
