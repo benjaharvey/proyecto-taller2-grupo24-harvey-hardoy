@@ -37,6 +37,9 @@ namespace Aplicacion.CasosDeUso
             return new UsuarioDTO
             {
                 Id = usuario.Id,
+                Nombre = usuario.Nombre,
+                Apellido = usuario.Apellido,
+                Dni = usuario.Dni,
                 Email = usuario.Email,
                 FechaNacimiento = usuario.FechaNacimiento,
                 Direccion = usuario.Direccion,

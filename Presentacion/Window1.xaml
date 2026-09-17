@@ -10,6 +10,15 @@
         </Grid.RowDefinitions>
 
         <WrapPanel Grid.Row="0" Margin="0,0,0,10">
+            <Label Content="Nombre:" VerticalAlignment="Center"/>
+            <TextBox x:Name="txtNombre" Width="120" Margin="5,3"/>
+
+            <Label Content="Apellido:" VerticalAlignment="Center"/>
+            <TextBox x:Name="txtApellido" Width="120" Margin="5,3"/>
+
+            <Label Content="DNI:" VerticalAlignment="Center"/>
+            <TextBox x:Name="txtDni" Width="100" Margin="5,3"/>
+
             <Label Content="Email:" VerticalAlignment="Center"/>
             <TextBox x:Name="txtEmail" Width="150" Margin="5,3"/>
 

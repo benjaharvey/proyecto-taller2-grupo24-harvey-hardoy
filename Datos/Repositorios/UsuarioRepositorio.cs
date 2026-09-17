@@ -46,6 +46,9 @@ namespace Datos.Repositorios
             var existente = context.Usuarios.FirstOrDefault(u => u.Id == usuario.Id && u.DeletedAt == null);
             if (existente != null)
             {
+                existente.Nombre = usuario.Nombre;
+                existente.Apellido = usuario.Apellido;
+                existente.Dni = usuario.Dni;
                 existente.Email = usuario.Email;
                 existente.Password = usuario.Password;
                 existente.FechaNacimiento = usuario.FechaNacimiento;

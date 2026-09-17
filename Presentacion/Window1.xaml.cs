@@ -99,6 +99,9 @@ namespace Presentacion
 
             dto = new UsuarioCrearDTO
             {
+                Nombre = txtNombre.Text,
+                Apellido = txtApellido.Text,
+                Dni = txtDni.Text,
                 Email = txtEmail.Text,
                 Password = txtPassword.Password,
                 FechaNacimiento = fechaNacimiento,
