@@ -56,7 +56,8 @@
 
                     <!-- Nav Buttons -->
                     <StackPanel DockPanel.Dock="Top" Margin="10,0">
-                        <RadioButton Content="🛒  Productos" 
+                        <RadioButton x:Name="RbProductos"
+                                     Content="🛒  Productos"
                                      GroupName="NavMenu"
                                      IsChecked="True"
                                      Command="{Binding NavigateCommand}"
@@ -90,7 +91,8 @@
                             </RadioButton.Style>
                         </RadioButton>
 
-                        <RadioButton Content="💳  Punto de Venta" 
+                        <RadioButton x:Name="RbVentas"
+                                     Content="💳  Punto de Venta"
                                      GroupName="NavMenu"
                                      Command="{Binding NavigateCommand}"
                                      CommandParameter="Ventas"
@@ -123,7 +125,8 @@
                             </RadioButton.Style>
                         </RadioButton>
 
-                        <RadioButton Content="📦  Stock e Insumos" 
+                        <RadioButton x:Name="RbStock"
+                                     Content="📦  Stock e Insumos"
                                      GroupName="NavMenu"
                                      Command="{Binding NavigateCommand}"
                                      CommandParameter="Stock"
@@ -156,7 +159,8 @@
                             </RadioButton.Style>
                         </RadioButton>
 
-                        <RadioButton Content="👨‍🍳  Cocina (Producción)" 
+                        <RadioButton x:Name="RbCocina"
+                                     Content="👨‍🍳  Cocina (Producción)"
                                      GroupName="NavMenu"
                                      Command="{Binding NavigateCommand}"
                                      CommandParameter="Cocina"
@@ -189,7 +193,8 @@
                             </RadioButton.Style>
                         </RadioButton>
 
-                        <RadioButton Content="📊  Reportes" 
+                        <RadioButton x:Name="RbReportes"
+                                     Content="📊  Reportes"
                                      GroupName="NavMenu"
                                      Command="{Binding NavigateCommand}"
                                      CommandParameter="Reportes"
@@ -222,7 +227,8 @@
                             </RadioButton.Style>
                         </RadioButton>
 
-                        <RadioButton Content="👤  Alta de Usuario"
+                        <RadioButton x:Name="RbAltaUsuario"
+                                     Content="👤 Usuarios"
                                      GroupName="NavMenu"
                                      Command="{Binding NavigateCommand}"
                                      CommandParameter="AltaUsuario"

@@ -12,10 +12,12 @@ namespace Aplicacion.CasosDeUso
     public class IniciarSesion
     {
         private readonly IUsuarioRepositorio _repositorio;
+        private readonly IRolRepositorio _repositorioRol;
 
-        public IniciarSesion(IUsuarioRepositorio repositorio)
+        public IniciarSesion(IUsuarioRepositorio repositorio, IRolRepositorio repositorioRol)
         {
             _repositorio = repositorio;
+            _repositorioRol = repositorioRol;
         }
 
         public UsuarioDTO Ejecutar(string email, string contraseñaPlana)
@@ -34,6 +36,8 @@ namespace Aplicacion.CasosDeUso
                 throw new InvalidOperationException("Contraseña incorrecta");
             }
 
+            var rol = _repositorioRol.ObtenerPorId(usuario.RolId);
+
             return new UsuarioDTO
             {
                 Id = usuario.Id,
@@ -44,6 +48,7 @@ namespace Aplicacion.CasosDeUso
                 FechaNacimiento = usuario.FechaNacimiento,
                 Direccion = usuario.Direccion,
                 RolId = usuario.RolId,
+                NombreRol = rol?.Nombre ?? "",
                 SucursalId = usuario.SucursalId
             };
         }

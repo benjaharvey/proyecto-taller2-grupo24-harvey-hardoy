@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,8 @@ namespace Presentacion.Vistas;
 public partial class AltaUsuarioView : UserControl
 {
     private readonly CrearUsuario _crearUsuario;
+    private readonly ActualizarUsuario _actualizarUsuario;
+    private readonly EliminarUsuario _eliminarUsuario;
     private readonly ListarRoles _listarRoles;
     private readonly ListarUsuarios _listarUsuarios;
 
@@ -18,6 +21,8 @@ public partial class AltaUsuarioView : UserControl
         InitializeComponent();
 
         _crearUsuario = App.Services.GetRequiredService<CrearUsuario>();
+        _actualizarUsuario = App.Services.GetRequiredService<ActualizarUsuario>();
+        _eliminarUsuario = App.Services.GetRequiredService<EliminarUsuario>();
         _listarRoles = App.Services.GetRequiredService<ListarRoles>();
         _listarUsuarios = App.Services.GetRequiredService<ListarUsuarios>();
 
@@ -28,7 +33,7 @@ public partial class AltaUsuarioView : UserControl
     private void CargarComboRoles()
     {
         cmbRol.ItemsSource = null;
-        cmbRol.ItemsSource = _listarRoles.Ejecutar();
+        cmbRol.ItemsSource = _listarRoles.Ejecutar().Where(r => r.Nombre != "Admin").ToList();
     }
 
     private void CargarGrilla()
@@ -42,9 +47,36 @@ public partial class AltaUsuarioView : UserControl
         CargarGrilla();
     }
 
+    private void DataGridUsuarios_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        bool hayUsuarioSeleccionado = dataGridUsuarios.SelectedItem is UsuarioDTO;
+        btnGuardarUsuario.IsEnabled = !hayUsuarioSeleccionado;
+        btnActualizarUsuario.IsEnabled = hayUsuarioSeleccionado;
+        btnEliminarUsuario.IsEnabled = hayUsuarioSeleccionado;
+
+        if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
+        {
+            cmbRol.IsEnabled = true;
+            return;
+        }
+
+        cmbRol.IsEnabled = seleccionado.NombreRol != "Admin";
+
+        txtNombre.Text = seleccionado.Nombre;
+        txtApellido.Text = seleccionado.Apellido;
+        txtDni.Text = seleccionado.Dni;
+        txtEmail.Text = seleccionado.Email;
+        txtPassword.Clear();
+        txtConfirmarPassword.Clear();
+        dtpFechaNacimiento.SelectedDate = seleccionado.FechaNacimiento;
+        txtDireccion.Text = seleccionado.Direccion;
+        cmbRol.SelectedValue = seleccionado.RolId;
+        txtSucursalId.Text = seleccionado.SucursalId.ToString();
+    }
+
     private void BtnGuardar_Click(object sender, RoutedEventArgs e)
     {
-        if (!TryLeerFormulario(out var dto)) return;
+        if (!TryLeerFormulario(esEdicion: false, out var dto)) return;
 
         try
         {
@@ -59,12 +91,63 @@ public partial class AltaUsuarioView : UserControl
         }
     }
 
+    private void BtnActualizar_Click(object sender, RoutedEventArgs e)
+    {
+        if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
+        {
+            MessageBox.Show("Seleccioná un usuario de la lista para actualizar.");
+            return;
+        }
+
+        if (!TryLeerFormulario(esEdicion: true, out var dto)) return;
+
+        try
+        {
+            _actualizarUsuario.Ejecutar(seleccionado.Id, dto);
+            MessageBox.Show("Usuario actualizado correctamente.");
+            LimpiarFormulario();
+            CargarGrilla();
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+    }
+
+    private void BtnEliminar_Click(object sender, RoutedEventArgs e)
+    {
+        if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
+        {
+            MessageBox.Show("Seleccioná un usuario de la lista para eliminar.");
+            return;
+        }
+
+        if (seleccionado.Id == SesionActual.UsuarioLogueado?.Id)
+        {
+            MessageBox.Show("No podés eliminar el usuario con el que iniciaste sesión.");
+            return;
+        }
+
+        var confirmacion = MessageBox.Show(
+            Window.GetWindow(this),
+            $"¿Seguro que querés eliminar a {seleccionado.Nombre} {seleccionado.Apellido} ({seleccionado.Email})?",
+            "Confirmar eliminación",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+        if (confirmacion != MessageBoxResult.Yes) return;
+
+        _eliminarUsuario.Ejecutar(seleccionado.Id);
+        LimpiarFormulario();
+        CargarGrilla();
+    }
+
     private void BtnCancelar_Click(object sender, RoutedEventArgs e)
     {
+        dataGridUsuarios.SelectedItem = null;
         LimpiarFormulario();
     }
 
-    private bool TryLeerFormulario(out UsuarioCrearDTO dto)
+    private bool TryLeerFormulario(bool esEdicion, out UsuarioCrearDTO dto)
     {
         dto = new UsuarioCrearDTO();
 
@@ -92,7 +175,7 @@ public partial class AltaUsuarioView : UserControl
             return false;
         }
 
-        if (string.IsNullOrEmpty(txtPassword.Password))
+        if (!esEdicion && string.IsNullOrEmpty(txtPassword.Password))
         {
             MessageBox.Show("Ingresá una contraseña.");
             return false;
@@ -110,7 +193,16 @@ public partial class AltaUsuarioView : UserControl
             return false;
         }
 
-        if (cmbRol.SelectedValue is not int rolId)
+        int rolId;
+        if (cmbRol.SelectedValue is int rolElegido)
+        {
+            rolId = rolElegido;
+        }
+        else if (esEdicion && dataGridUsuarios.SelectedItem is UsuarioDTO { NombreRol: "Admin" } admin)
+        {
+            rolId = admin.RolId;
+        }
+        else
         {
             MessageBox.Show("Seleccioná un rol.");
             return false;

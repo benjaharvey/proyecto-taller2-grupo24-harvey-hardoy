@@ -9,6 +9,11 @@ namespace Presentacion
         public MenuPrincipal()
         {
             InitializeComponent();
+
+            if (SesionActual.UsuarioLogueado?.NombreRol != "Admin")
+            {
+                BtnRegistrarUsuario.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void AbrirMainWindowEnSeccion(string seccion)

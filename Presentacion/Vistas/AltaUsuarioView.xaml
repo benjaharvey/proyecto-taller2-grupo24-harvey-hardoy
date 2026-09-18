@@ -53,7 +53,7 @@
                     <TextBlock Text="Email" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <TextBox x:Name="txtEmail" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
-                    <Grid Margin="0,0,0,14">
+                    <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -67,6 +67,7 @@
                             <PasswordBox x:Name="txtConfirmarPassword" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
+                    <TextBlock Text="Al actualizar un usuario, dejar en blanco para no cambiar la contraseña." FontSize="11" FontStyle="Italic" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
                     <TextBlock Text="Fecha de Nacimiento" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <DatePicker x:Name="dtpFechaNacimiento" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
@@ -96,7 +97,15 @@
                                 Padding="14,6"
                                 Margin="0,0,8,0"
                                 Click="BtnCancelar_Click"/>
-                        <Button Content="Guardar Usuario"
+                        <Button x:Name="btnActualizarUsuario"
+                                Content="Actualizar Usuario"
+                                Style="{StaticResource OutlineButtonStyle}"
+                                Padding="14,6"
+                                Margin="0,0,8,0"
+                                IsEnabled="False"
+                                Click="BtnActualizar_Click"/>
+                        <Button x:Name="btnGuardarUsuario"
+                                Content="Guardar Usuario"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Padding="14,6"
                                 Click="BtnGuardar_Click"/>
@@ -119,7 +128,16 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Usuarios Registrados" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
-                        <Button Grid.Column="1" Content="Actualizar" Style="{StaticResource OutlineButtonStyle}" Padding="14,6" Click="BtnActualizarLista_Click"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button x:Name="btnEliminarUsuario"
+                                    Content="Eliminar Usuario"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Padding="14,6"
+                                    Margin="0,0,8,0"
+                                    IsEnabled="False"
+                                    Click="BtnEliminar_Click"/>
+                            <Button Content="Recargar lista" Style="{StaticResource OutlineButtonStyle}" Padding="14,6" Click="BtnActualizarLista_Click"/>
+                        </StackPanel>
                     </Grid>
 
                     <DataGrid Grid.Row="1"
@@ -132,7 +150,8 @@
                               Background="White"
                               BorderThickness="0"
                               RowHeight="38"
-                              SelectionMode="Single">
+                              SelectionMode="Single"
+                              SelectionChanged="DataGridUsuarios_SelectionChanged">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
