@@ -37,6 +37,9 @@ namespace Datos.Seeder
             {
                 new
                 {
+                    Nombre = "Admin",
+                    Apellido = "Sistema",
+                    Dni = "00000001",
                     Email = "admin@test.com",
                     PasswordPlana = "admin123",
                     RolId = adminRol.Id,
@@ -46,6 +49,9 @@ namespace Datos.Seeder
                 },
                 new
                 {
+                    Nombre = "Carlos",
+                    Apellido = "Cocinero",
+                    Dni = "00000002",
                     Email = "cocinero@test.com",
                     PasswordPlana = "cocina123",
                     RolId = cocineroRol.Id,
@@ -55,6 +61,9 @@ namespace Datos.Seeder
                 },
                 new
                 {
+                    Nombre = "Vanina",
+                    Apellido = "Vendedor",
+                    Dni = "00000003",
                     Email = "vendedor@test.com",
                     PasswordPlana = "vendedor123",
                     RolId = vendedorRol.Id,
@@ -70,6 +79,9 @@ namespace Datos.Seeder
                 {
                     context.Usuarios.Add(new Usuario
                     {
+                        Nombre = u.Nombre,
+                        Apellido = u.Apellido,
+                        Dni = u.Dni,
                         Email = u.Email,
                         Password = BCrypt.Net.BCrypt.HashPassword(u.PasswordPlana),
                         RolId = u.RolId,

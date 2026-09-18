@@ -50,7 +50,10 @@ namespace Datos.Repositorios
                 existente.Apellido = usuario.Apellido;
                 existente.Dni = usuario.Dni;
                 existente.Email = usuario.Email;
-                existente.Password = usuario.Password;
+                if (!string.IsNullOrEmpty(usuario.Password))
+                {
+                    existente.Password = usuario.Password;
+                }
                 existente.FechaNacimiento = usuario.FechaNacimiento;
                 existente.Direccion = usuario.Direccion;
                 existente.RolId = usuario.RolId;

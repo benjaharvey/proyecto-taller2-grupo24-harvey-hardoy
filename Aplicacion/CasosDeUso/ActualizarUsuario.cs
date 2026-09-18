@@ -18,7 +18,7 @@ namespace Aplicacion.CasosDeUso
                 Apellido = dto.Apellido,
                 Dni = dto.Dni,
                 Email = dto.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Password = string.IsNullOrEmpty(dto.Password) ? "" : BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 FechaNacimiento = dto.FechaNacimiento,
                 Direccion = dto.Direccion,
                 RolId = dto.RolId,

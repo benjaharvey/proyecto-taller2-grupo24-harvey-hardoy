@@ -32,6 +32,7 @@ namespace Presentacion
             try
             {
                 var usuario = _iniciarSesion.Ejecutar(txtEmail.Text, txtPassword.Password);
+                SesionActual.UsuarioLogueado = usuario;
 
                 var siguienteVentana = App.Services.GetRequiredService<MenuPrincipal>();
                 siguienteVentana.Show();
