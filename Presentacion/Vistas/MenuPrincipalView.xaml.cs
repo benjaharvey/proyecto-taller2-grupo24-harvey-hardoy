@@ -20,6 +20,7 @@ namespace Presentacion
             {
                 BtnPuntoDeVenta.Visibility = Visibility.Collapsed;
                 BtnCocina.Visibility = Visibility.Collapsed;
+                BtnClientes.Visibility = Visibility.Collapsed;
             }
             else if (rol == "Cocinero")
             {
@@ -38,6 +39,7 @@ namespace Presentacion
                 BtnCocina.Visibility = Visibility.Collapsed;
                 BtnReportes.Visibility = Visibility.Collapsed;
                 BtnBackup.Visibility = Visibility.Collapsed;
+                BtnClientes.Visibility = Visibility.Visible;
             }
             else
             {
@@ -46,6 +48,7 @@ namespace Presentacion
                 BtnReportes.Visibility = Visibility.Collapsed;
                 BtnPuntoDeVenta.Visibility = Visibility.Collapsed;
                 BtnCocina.Visibility = Visibility.Collapsed;
+                BtnClientes.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -83,5 +86,11 @@ namespace Presentacion
 
         private void BtnReportes_Click(object sender, RoutedEventArgs e)
             => AbrirMainWindowEnSeccion("Reportes");
+
+        private void BtnClientes_Click(object sender, RoutedEventArgs e)
+            => AbrirMainWindowEnSeccion("Clientes");
+
+        private void BtnBackup_Click(object sender, RoutedEventArgs e)
+            => AbrirMainWindowEnSeccion("Backup");
     }
 }
