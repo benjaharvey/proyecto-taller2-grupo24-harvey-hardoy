@@ -59,9 +59,42 @@
                         <RadioButton x:Name="RbProductos"
                                      Content="🛒  Productos"
                                      GroupName="NavMenu"
-                                     IsChecked="True"
                                      Command="{Binding NavigateCommand}"
                                      CommandParameter="Productos"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
+                        <RadioButton x:Name="RbAltaUsuario"
+                                     Content="👤 Usuarios"
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="AltaUsuario"
                                      Margin="0,4"
                                      Padding="12,10"
                                      Foreground="White"
@@ -226,47 +259,13 @@
                                 </Style>
                             </RadioButton.Style>
                         </RadioButton>
-
-                        <RadioButton x:Name="RbAltaUsuario"
-                                     Content="👤 Usuarios"
-                                     GroupName="NavMenu"
-                                     Command="{Binding NavigateCommand}"
-                                     CommandParameter="AltaUsuario"
-                                     Margin="0,4"
-                                     Padding="12,10"
-                                     Foreground="White"
-                                     FontSize="14"
-                                     Cursor="Hand">
-                            <RadioButton.Style>
-                                <Style TargetType="RadioButton">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="RadioButton">
-                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                    <ContentPresenter VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
-                                                    </Trigger>
-                                                    <Trigger Property="IsChecked" Value="True">
-                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
-                                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </RadioButton.Style>
-                        </RadioButton>
                     </StackPanel>
 
                     <!-- Active Session Footer -->
                     <Border DockPanel.Dock="Bottom" Margin="12,20" Padding="12" Background="#20000000" CornerRadius="6">
                         <StackPanel>
                             <TextBlock Text="👤 Sesión activa:" FontSize="11" Foreground="{StaticResource SecondaryBrush}"/>
-                            <TextBlock Text="Admin / Sucursal Centro" FontSize="12" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="TxtInfoSesion" Text="Admin / Sucursal Centro" FontSize="12" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </Border>
                 </DockPanel>
