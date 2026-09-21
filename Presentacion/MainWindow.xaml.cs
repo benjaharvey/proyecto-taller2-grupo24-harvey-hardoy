@@ -37,6 +37,8 @@ public partial class MainWindow : FluentWindow
         {
             RbVentas.Visibility = Visibility.Collapsed;
             RbCocina.Visibility = Visibility.Collapsed;
+            RbClientes.Visibility = Visibility.Collapsed;
+            RbBackup.Visibility = Visibility.Visible;
         }
         else if (rol == "Cocinero")
         {
@@ -44,6 +46,8 @@ public partial class MainWindow : FluentWindow
             RbVentas.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbAltaUsuario.Visibility = Visibility.Collapsed;
+            RbClientes.Visibility = Visibility.Collapsed;
+            RbBackup.Visibility = Visibility.Collapsed;
 
             if (DataContext is MainViewModel vm)
             {
@@ -57,6 +61,8 @@ public partial class MainWindow : FluentWindow
             RbCocina.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbAltaUsuario.Visibility = Visibility.Collapsed;
+            RbClientes.Visibility = Visibility.Visible;
+            RbBackup.Visibility = Visibility.Collapsed;
 
             if (DataContext is MainViewModel vm)
             {
@@ -69,6 +75,8 @@ public partial class MainWindow : FluentWindow
             RbReportes.Visibility = Visibility.Collapsed;
             RbVentas.Visibility = Visibility.Collapsed;
             RbCocina.Visibility = Visibility.Collapsed;
+            RbClientes.Visibility = Visibility.Collapsed;
+            RbBackup.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -85,9 +93,11 @@ public partial class MainWindow : FluentWindow
     {
         RbProductos.IsChecked = section == "Productos";
         RbVentas.IsChecked = section == "Ventas";
+        RbClientes.IsChecked = section == "Clientes";
         RbStock.IsChecked = section == "Stock";
         RbCocina.IsChecked = section == "Cocina";
         RbReportes.IsChecked = section == "Reportes";
         RbAltaUsuario.IsChecked = section == "AltaUsuario";
+        RbBackup.IsChecked = section == "Backup";
     }
 }

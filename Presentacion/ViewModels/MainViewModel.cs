@@ -23,9 +23,9 @@ public partial class MainViewModel : ObservableObject
 
         return rol switch
         {
-            "Admin" => section is not "Ventas" and not "Cocina",
+            "Admin" => section is not "Ventas" and not "Cocina" and not "Clientes",
             "Cocinero" => section is "Cocina" or "Stock",
-            "Vendedor" => section is "Ventas",
+            "Vendedor" => section is "Ventas" or "Clientes",
             _ => false
         };
     }

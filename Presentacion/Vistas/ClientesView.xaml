@@ -1,0 +1,179 @@
+<UserControl x:Class="Presentacion.Vistas.ClientesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:Presentacion.ViewModels"
+             xmlns:local="clr-namespace:Presentacion"
+             mc:Ignorable="d"
+             SnapsToDevicePixels="True"
+             UseLayoutRounding="True"
+             d:DesignHeight="700" d:DesignWidth="950">
+
+    <UserControl.DataContext>
+        <vm:ClientesViewModel />
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Gestión de Clientes" Style="{StaticResource HeaderTitleStyle}"/>
+            <TextBlock Text="Registro y administración de clientes para la atención en mostrador" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="420" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Form -->
+            <Border Grid.Column="0"
+                    Style="{StaticResource MaieCardStyle}"
+                    Padding="24"
+                    VerticalAlignment="Top">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Datos del Cliente" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" Margin="0,0,0,16"/>
+
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                <TextBlock Text="Nombre *" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding FormNombre, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                <TextBlock Text="Apellido *" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding FormApellido, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="DNI / Documento *" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+
+                        <TextBlock Text="Correo Electrónico" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+
+                        <TextBlock Text="Fecha de Nacimiento" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                        <DatePicker SelectedDate="{Binding FormFechaNacimiento, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,20" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
+
+                        <TextBlock Text="* Campos obligatorios para agilizar la atención en mostrador." FontSize="11" FontStyle="Italic" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,16" TextWrapping="Wrap"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                            <Button Content="Cancelar"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Padding="12,6"
+                                    Margin="0,2,6,2"
+                                    Command="{Binding CancelarCommand}"/>
+                            <Button Content="Actualizar"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Padding="12,6"
+                                    Margin="0,2,6,2"
+                                    IsEnabled="{Binding EsEdicion}"
+                                    Command="{Binding ActualizarCommand}"/>
+                            <Button Content="Guardar"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    Padding="14,6"
+                                    Margin="0,2,0,2"
+                                    IsEnabled="{Binding EsEdicion, Converter={x:Static local:InverseBooleanConverter.Instance}}"
+                                    Command="{Binding GuardarCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Clientes Registrados -->
+            <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Header with Actions -->
+                    <Grid Grid.Row="0" Margin="20,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Clientes Registrados" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Content="Eliminar Cliente"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Padding="14,6"
+                                    IsEnabled="{Binding EsEdicion}"
+                                    Command="{Binding EliminarCommand}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Search Box -->
+                    <Grid Grid.Row="1" Margin="20,0,20,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}" 
+                                 Padding="8,6" 
+                                 FontSize="13" 
+                                 BorderBrush="{StaticResource SecondaryBrush}"
+                                 ToolTip="Buscar por DNI, Apellido o Nombre"/>
+                    </Grid>
+
+                    <!-- DataGrid -->
+                    <DataGrid Grid.Row="2"
+                              ItemsSource="{Binding ClientesFiltrados}"
+                              SelectedItem="{Binding SelectedCliente, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#EFECE6"
+                              Background="White"
+                              BorderThickness="0"
+                              RowHeight="38"
+                              SelectionMode="Single">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="FontFamily" Value="Noto Serif" />
+                                <Setter Property="Padding" Value="12,10" />
+                                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                            </Style>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="White" />
+                                <Setter Property="Margin" Value="0" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="DNI" Binding="{Binding Dni}" Width="100" />
+                            <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*" />
+                            <DataGridTextColumn Header="Apellido" Binding="{Binding Apellido}" Width="*" />
+                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="1.5*" />
+                            <DataGridTextColumn Header="Fecha Nac." Binding="{Binding FechaNacimiento, StringFormat='{}{0:dd/MM/yyyy}'}" Width="100" />
+                            <DataGridTextColumn Header="Registrado Por" Binding="{Binding RegistradoPor}" Width="1.2*" />
+                            <DataGridTextColumn Header="Fecha Registro" Binding="{Binding FechaRegistro, StringFormat='{}{0:dd/MM/yyyy}'}" Width="110" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

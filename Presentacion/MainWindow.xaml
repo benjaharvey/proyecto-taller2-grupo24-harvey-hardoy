@@ -158,6 +158,40 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <RadioButton x:Name="RbClientes"
+                                     Content="🤝  Clientes"
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Clientes"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
                         <RadioButton x:Name="RbStock"
                                      Content="📦  Stock e Insumos"
                                      GroupName="NavMenu"
@@ -259,6 +293,39 @@
                                 </Style>
                             </RadioButton.Style>
                         </RadioButton>
+                        <RadioButton x:Name="RbBackup"
+                                     Content="🗄️  Backup"
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Backup"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
                     </StackPanel>
 
                     <!-- Active Session Footer -->
@@ -290,6 +357,12 @@
 
                 <!-- Alta de Usuario View -->
                 <vistas:AltaUsuarioView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=AltaUsuario, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Clientes View -->
+                <vistas:ClientesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Clientes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Backup View -->
+                <vistas:BackupView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Backup, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
             </Grid>
         </Grid>
     </Grid>
