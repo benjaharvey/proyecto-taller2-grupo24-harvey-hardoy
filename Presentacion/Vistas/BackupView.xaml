@@ -1,0 +1,144 @@
+<UserControl x:Class="Presentacion.Vistas.BackupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:Presentacion.ViewModels"
+             mc:Ignorable="d"
+             SnapsToDevicePixels="True"
+             UseLayoutRounding="True"
+             d:DesignHeight="700" d:DesignWidth="950">
+
+    <UserControl.DataContext>
+        <vm:BackupViewModel />
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Copias de Seguridad (Backup)" Style="{StaticResource HeaderTitleStyle}"/>
+            <TextBlock Text="Generación manual y restauración de copias de seguridad de la base de datos" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="380" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Panel de Generación -->
+            <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Padding="20" VerticalAlignment="Top">
+                <StackPanel>
+                    <TextBlock Text="Generar Copia de Seguridad" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" Margin="0,0,0,14"/>
+
+                    <TextBlock Text="Tipo de Backup" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding TiposBackupDisponibles}"
+                              SelectedItem="{Binding TipoBackupSeleccionado}"
+                              Padding="8,6"
+                              Margin="0,0,0,14"
+                              BorderBrush="{StaticResource SecondaryBrush}"
+                              HorizontalAlignment="Stretch"/>
+
+                    <TextBlock Text="Directorio de Destino" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding RutaDestino, Mode=TwoWay}"
+                                 Padding="8,6"
+                                 IsReadOnly="True"
+                                 BorderBrush="{StaticResource SecondaryBrush}"
+                                 FontSize="12"
+                                 Background="#FBF9F6"/>
+                        <Button Grid.Column="1"
+                                Content="📁"
+                                ToolTip="Examinar / Configurar ruta"
+                                Style="{StaticResource OutlineButtonStyle}"
+                                Padding="10,6"
+                                Margin="6,0,0,0"
+                                Command="{Binding CambiarRutaDestinoCommand}"/>
+                    </Grid>
+
+                    <TextBlock Text="Motivo / Descripción (Opcional)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding DescripcionOpcional, UpdateSourceTrigger=PropertyChanged}"
+                             Padding="8,6"
+                             Margin="0,0,0,20"
+                             BorderBrush="{StaticResource SecondaryBrush}"
+                             FontSize="13"/>
+
+                    <Button Content="💾  Generar Backup Ahora"
+                            Style="{StaticResource AccentButtonStyle}"
+                            Padding="16,10"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding GenerarBackupCommand}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Historial de Backups Realizados -->
+            <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Padding="0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="20,16">
+                        <TextBlock Text="Historial de Copias de Seguridad" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding HistorialBackups}"
+                              SelectedItem="{Binding SelectedBackup, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              HeadersVisibility="Column"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#EFECE6"
+                              Background="White"
+                              BorderThickness="0"
+                              RowHeight="40"
+                              SelectionMode="Single">
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                                <Setter Property="FontFamily" Value="Noto Serif" />
+                                <Setter Property="Padding" Value="12,10" />
+                                <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                            </Style>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="White" />
+                                <Setter Property="Margin" Value="0" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Archivo" Binding="{Binding NombreArchivo}" Width="2*" />
+                            <DataGridTextColumn Header="Tipo" Binding="{Binding Tipo}" Width="90" />
+                            <DataGridTextColumn Header="Tamaño" Binding="{Binding Tamano}" Width="75" />
+                            <DataGridTextColumn Header="Fecha y Hora" Binding="{Binding FechaCreacion, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="125" />
+                            <DataGridTextColumn Header="Generado Por" Binding="{Binding CreadoPor}" Width="1.2*" />
+                            <DataGridTextColumn Header="Motivo / Descripción" Binding="{Binding Descripcion}" Width="1.5*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
