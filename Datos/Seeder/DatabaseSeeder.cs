@@ -17,21 +17,27 @@ namespace Datos.Seeder
             var rolesRequeridos = new[] { "Admin", "Cocinero", "Vendedor" };
             foreach (var nombreRol in rolesRequeridos)
             {
-                // La búsqueda incluye los borrados lógicamente: si no, el rol eliminado no se recrea
-                // (el seeder lo ve) pero los repositorios lo ignoran, y sus usuarios quedan sin permisos.
-                var existente = context.Roles.FirstOrDefault(r => r.Nombre == nombreRol);
-                if (existente == null)
+                // Si ya hay uno activo no se toca nada: buscar sin filtrar DeletedAt podría
+                // "restaurar" una fila duplicada y dejar el rol repetido en los combos.
+                if (context.Roles.Any(r => r.Nombre == nombreRol && r.DeletedAt == null))
+                    continue;
+
+                // No hay ninguno activo. Si existe borrado lógicamente se restaura: si solo se
+                // mirara el estado activo, el rol nunca se recrearía (el seeder no lo ve) pero
+                // los repositorios lo ignoran, y sus usuarios se quedarían sin permisos.
+                var borrado = context.Roles.FirstOrDefault(r => r.Nombre == nombreRol);
+                if (borrado != null)
+                {
+                    borrado.DeletedAt = null;
+                    borrado.UpdatedAt = DateTime.UtcNow;
+                }
+                else
                 {
                     context.Roles.Add(new Rol
                     {
                         Nombre = nombreRol,
                         CreatedAt = DateTime.UtcNow
                     });
-                }
-                else if (existente.DeletedAt != null)
-                {
-                    existente.DeletedAt = null;
-                    existente.UpdatedAt = DateTime.UtcNow;
                 }
             }
             context.SaveChanges();

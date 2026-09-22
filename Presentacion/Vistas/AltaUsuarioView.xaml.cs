@@ -35,8 +35,23 @@ public partial class AltaUsuarioView : UserControl
         _listarRoles = App.Services.GetRequiredService<ListarRoles>();
         _listarUsuarios = App.Services.GetRequiredService<ListarUsuarios>();
 
+        dtpFechaNacimiento.DisplayDateEnd = DateTime.Today;
+
         CargarCombos();
         CargarGrilla();
+    }
+
+    private static bool EsSoloDigitos(string? texto) => !string.IsNullOrEmpty(texto) && texto.All(char.IsAsciiDigit);
+
+    private void SoloDigitos_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
+    {
+        e.Handled = !EsSoloDigitos(e.Text);
+    }
+
+    private void SoloDigitos_Pasting(object sender, DataObjectPastingEventArgs e)
+    {
+        if (!e.DataObject.GetDataPresent(typeof(string)) || !EsSoloDigitos((string)e.DataObject.GetData(typeof(string))))
+            e.CancelCommand();
     }
 
     private void CargarCombos()
