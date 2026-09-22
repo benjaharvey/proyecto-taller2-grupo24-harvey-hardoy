@@ -10,6 +10,8 @@ namespace Dominio.Interfaces
         Usuario? ObtenerPorEmail(string email);
         Usuario? ObtenerPorDni(string dni);
 
+        int ContarPorRol(int rolId);
+
         void Agregar(Usuario usuario);
         void Actualizar(Usuario usuario);
         void Eliminar(int id);

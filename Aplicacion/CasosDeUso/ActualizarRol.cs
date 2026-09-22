@@ -15,6 +15,8 @@ namespace Aplicacion.CasosDeUso
 
         public void Ejecutar(int id, RolDTO dto)
         {
+            ValidadorRol.Validar(dto, _repositorio, id);
+
             _repositorio.Actualizar(new Rol { Id = id, Nombre = dto.Nombre });
         }
     }

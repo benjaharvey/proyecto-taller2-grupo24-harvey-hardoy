@@ -43,24 +43,22 @@ namespace Datos.Repositorios
         public void Actualizar(Rol rol)
         {
             using var context = _contextFactory.CreateDbContext();
-            var existente = context.Roles.FirstOrDefault(r => r.Id == rol.Id && r.DeletedAt == null);
-            if (existente != null)
-            {
-                existente.Nombre = rol.Nombre;
-                existente.UpdatedAt = DateTime.Now;
-                context.SaveChanges();
-            }
+            var existente = context.Roles.FirstOrDefault(r => r.Id == rol.Id && r.DeletedAt == null)
+                ?? throw new InvalidOperationException("El rol que intentás modificar ya no existe. Recargá la lista.");
+
+            existente.Nombre = rol.Nombre;
+            existente.UpdatedAt = DateTime.Now;
+            context.SaveChanges();
         }
 
         public void Eliminar(int id)
         {
             using var context = _contextFactory.CreateDbContext();
-            var rol = context.Roles.FirstOrDefault(r => r.Id == id && r.DeletedAt == null);
-            if (rol != null)
-            {
-                rol.DeletedAt = DateTime.Now;
-                context.SaveChanges();
-            }
+            var rol = context.Roles.FirstOrDefault(r => r.Id == id && r.DeletedAt == null)
+                ?? throw new InvalidOperationException("El rol que intentás eliminar ya no existe. Recargá la lista.");
+
+            rol.DeletedAt = DateTime.Now;
+            context.SaveChanges();
         }
     }
 }

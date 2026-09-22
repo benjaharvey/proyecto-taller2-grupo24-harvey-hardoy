@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Aplicacion.DTOs;
 using Aplicacion.CasosDeUso;
@@ -31,6 +32,18 @@ namespace Presentacion
             dataGridRoles.ItemsSource = _listarRoles.Ejecutar();
         }
 
+        private void dataGridRoles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            bool haySeleccion = dataGridRoles.SelectedItem is RolDTO;
+            btnAgregar.IsEnabled = !haySeleccion;
+            btnActualizar.IsEnabled = haySeleccion;
+            btnEliminar.IsEnabled = haySeleccion;
+
+            // Sin esto el TextBox queda vacío y "Actualizar" renombraría el rol a cadena vacía.
+            if (dataGridRoles.SelectedItem is RolDTO seleccionado)
+                txtNombre.Text = seleccionado.Nombre;
+        }
+
         private void btnAgregar_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -48,19 +61,63 @@ namespace Presentacion
 
         private void btnActualizar_Click(object sender, RoutedEventArgs e)
         {
-            if (dataGridRoles.SelectedItem is not RolDTO seleccionado) return;
+            if (dataGridRoles.SelectedItem is not RolDTO seleccionado)
+            {
+                MessageBox.Show("Seleccioná un rol de la lista para actualizar.");
+                return;
+            }
 
-            var dto = new RolDTO { Nombre = txtNombre.Text };
-            _actualizarRol.Ejecutar(seleccionado.Id, dto);
-            CargarGrilla();
+            try
+            {
+                var dto = new RolDTO { Nombre = txtNombre.Text };
+                _actualizarRol.Ejecutar(seleccionado.Id, dto);
+                LimpiarFormulario();
+                CargarGrilla();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void btnEliminar_Click(object sender, RoutedEventArgs e)
         {
-            if (dataGridRoles.SelectedItem is not RolDTO seleccionado) return;
+            if (dataGridRoles.SelectedItem is not RolDTO seleccionado)
+            {
+                MessageBox.Show("Seleccioná un rol de la lista para eliminar.");
+                return;
+            }
 
-            _eliminarRol.Ejecutar(seleccionado.Id);
-            CargarGrilla();
+            var confirmacion = MessageBox.Show(
+                this,
+                $"¿Seguro que querés eliminar el rol \"{seleccionado.Nombre}\"?",
+                "Confirmar eliminación",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            if (confirmacion != MessageBoxResult.Yes) return;
+
+            try
+            {
+                _eliminarRol.Ejecutar(seleccionado.Id);
+                LimpiarFormulario();
+                CargarGrilla();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message);
+                CargarGrilla();
+            }
+        }
+
+        private void btnCancelar_Click(object sender, RoutedEventArgs e)
+        {
+            LimpiarFormulario();
+        }
+
+        private void LimpiarFormulario()
+        {
+            dataGridRoles.SelectedItem = null;
+            txtNombre.Clear();
         }
 
         private void btnGestionarUsuarios_Click(object sender, RoutedEventArgs e)

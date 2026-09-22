@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,7 +29,17 @@ namespace Aplicacion.CasosDeUso
                 throw new InvalidOperationException("El usuario no existe.");
             }
 
-            bool passwordValida = BCrypt.Net.BCrypt.Verify(contraseñaPlana, usuario.Password);
+            bool passwordValida;
+            try
+            {
+                passwordValida = BCrypt.Net.BCrypt.Verify(contraseñaPlana, usuario.Password);
+            }
+            catch (Exception ex) when (ex is BCrypt.Net.SaltParseException or ArgumentException or FormatException)
+            {
+                // El valor guardado no es un hash bcrypt válido (por ejemplo, un registro cargado a mano por SQL).
+                throw new InvalidOperationException(
+                    "La contraseña de este usuario está dañada. Pedile al administrador que la restablezca.");
+            }
 
             if (passwordValida == false)
             {

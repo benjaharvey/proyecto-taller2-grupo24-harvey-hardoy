@@ -116,7 +116,15 @@ namespace Presentacion
         {
             if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado) return;
 
-            _eliminarUsuario.Ejecutar(seleccionado.Id);
+            try
+            {
+                _eliminarUsuario.Ejecutar(seleccionado.Id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
             CargarGrilla();
         }
     }

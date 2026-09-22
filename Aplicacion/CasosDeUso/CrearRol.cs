@@ -15,6 +15,8 @@ namespace Aplicacion.CasosDeUso
 
         public void Ejecutar(RolDTO dto)
         {
+            ValidadorRol.Validar(dto, _repositorio);
+
             var rol = new Rol
             {
                 Nombre = dto.Nombre
@@ -22,4 +24,4 @@ namespace Aplicacion.CasosDeUso
             _repositorio.Agregar(rol);
         }
     }
-} 
+}
