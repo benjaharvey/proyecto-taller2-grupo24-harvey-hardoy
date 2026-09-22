@@ -176,7 +176,17 @@ public partial class AltaUsuarioView : UserControl
             MessageBoxImage.Question);
         if (confirmacion != MessageBoxResult.Yes) return;
 
-        _eliminarUsuario.Ejecutar(seleccionado.Id);
+        try
+        {
+            _eliminarUsuario.Ejecutar(seleccionado.Id);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message);
+            CargarGrilla();
+            return;
+        }
+
         LimpiarFormulario();
         CargarGrilla();
     }

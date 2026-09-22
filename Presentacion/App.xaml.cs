@@ -48,9 +48,22 @@ public partial class App : Application
 
         Services = services.BuildServiceProvider();
 
-        using (var dbContext = Services.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext())
+        try
         {
+            using var dbContext = Services.GetRequiredService<IDbContextFactory<AppDbContext>>().CreateDbContext();
             DatabaseSeeder.Inicializar(dbContext);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                "No se pudo preparar la base de datos.\n\n" +
+                "Verificá que el servicio SQL Server (SQLEXPRESS) esté iniciado.\n\n" +
+                $"Detalle: {ex.Message}",
+                "Error al iniciar",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            Shutdown(1);
+            return;
         }
 
         Services.GetRequiredService<VistaLogin>().Show();

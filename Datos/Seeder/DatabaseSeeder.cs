@@ -17,7 +17,10 @@ namespace Datos.Seeder
             var rolesRequeridos = new[] { "Admin", "Cocinero", "Vendedor" };
             foreach (var nombreRol in rolesRequeridos)
             {
-                if (!context.Roles.Any(r => r.Nombre == nombreRol))
+                // La búsqueda incluye los borrados lógicamente: si no, el rol eliminado no se recrea
+                // (el seeder lo ve) pero los repositorios lo ignoran, y sus usuarios quedan sin permisos.
+                var existente = context.Roles.FirstOrDefault(r => r.Nombre == nombreRol);
+                if (existente == null)
                 {
                     context.Roles.Add(new Rol
                     {
@@ -25,12 +28,17 @@ namespace Datos.Seeder
                         CreatedAt = DateTime.UtcNow
                     });
                 }
+                else if (existente.DeletedAt != null)
+                {
+                    existente.DeletedAt = null;
+                    existente.UpdatedAt = DateTime.UtcNow;
+                }
             }
             context.SaveChanges();
 
-            var adminRol = context.Roles.First(r => r.Nombre == "Admin");
-            var cocineroRol = context.Roles.First(r => r.Nombre == "Cocinero");
-            var vendedorRol = context.Roles.First(r => r.Nombre == "Vendedor");
+            var adminRol = context.Roles.First(r => r.Nombre == "Admin" && r.DeletedAt == null);
+            var cocineroRol = context.Roles.First(r => r.Nombre == "Cocinero" && r.DeletedAt == null);
+            var vendedorRol = context.Roles.First(r => r.Nombre == "Vendedor" && r.DeletedAt == null);
 
             // 2. Usuarios de prueba por rol
             var usuariosSeed = new[]
