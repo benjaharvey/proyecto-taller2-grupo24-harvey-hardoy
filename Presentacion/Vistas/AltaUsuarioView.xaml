@@ -41,19 +41,19 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Nombre" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtNombre" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <TextBox x:Name="txtNombre" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Apellido" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtApellido" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <TextBox x:Name="txtApellido" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
 
                     <TextBlock Text="DNI" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox x:Name="txtDni" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox x:Name="txtDni" MaxLength="8" PreviewTextInput="SoloDigitos_PreviewTextInput" DataObject.Pasting="SoloDigitos_Pasting" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <TextBlock Text="Email" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox x:Name="txtEmail" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox x:Name="txtEmail" MaxLength="100" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
@@ -62,11 +62,11 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <PasswordBox x:Name="txtPassword" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <PasswordBox x:Name="txtPassword" MaxLength="64" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Confirmar Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <PasswordBox x:Name="txtConfirmarPassword" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <PasswordBox x:Name="txtConfirmarPassword" MaxLength="64" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
                     <TextBlock Text="Al actualizar un usuario, dejar en blanco para no cambiar la contraseña." FontSize="11" FontStyle="Italic" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
@@ -75,7 +75,7 @@
                     <DatePicker x:Name="dtpFechaNacimiento" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
 
                     <TextBlock Text="Dirección" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox x:Name="txtDireccion" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox x:Name="txtDireccion" MaxLength="200" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>

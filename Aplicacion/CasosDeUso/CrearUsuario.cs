@@ -15,6 +15,8 @@ namespace Aplicacion.CasosDeUso
 
         public void Ejecutar(UsuarioCrearDTO dto)
         {
+            ValidadorUsuario.Validar(dto, _repositorio);
+
             var pUsuario = new Usuario
             {
                 Nombre = dto.Nombre,

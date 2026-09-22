@@ -8,6 +8,7 @@ namespace Dominio.Interfaces
 
         Usuario? ObtenerPorId(int id);
         Usuario? ObtenerPorEmail(string email);
+        Usuario? ObtenerPorDni(string dni);
 
         void Agregar(Usuario usuario);
         void Actualizar(Usuario usuario);

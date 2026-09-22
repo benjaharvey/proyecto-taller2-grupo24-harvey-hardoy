@@ -32,6 +32,12 @@ namespace Datos.Repositorios
             return context.Usuarios.FirstOrDefault(u => u.Email == email && u.DeletedAt == null);
         }
 
+        public Usuario? ObtenerPorDni(string dni)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            return context.Usuarios.FirstOrDefault(u => u.Dni == dni && u.DeletedAt == null);
+        }
+
         public void Agregar(Usuario usuario)
         {
             using var context = _contextFactory.CreateDbContext();
