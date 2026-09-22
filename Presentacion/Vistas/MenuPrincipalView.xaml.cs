@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Presentacion.ViewModels;
 
@@ -9,17 +9,62 @@ namespace Presentacion
         public MenuPrincipal()
         {
             InitializeComponent();
+            AplicarPermisosPorRol();
+        }
 
-            if (SesionActual.UsuarioLogueado?.NombreRol != "Admin")
+        private void AplicarPermisosPorRol()
+        {
+            string? rol = SesionActual.UsuarioLogueado?.NombreRol;
+
+            if (rol == "Admin")
+            {
+                BtnPuntoDeVenta.Visibility = Visibility.Collapsed;
+                BtnCocina.Visibility = Visibility.Collapsed;
+                BtnClientes.Visibility = Visibility.Collapsed;
+            }
+            else if (rol == "Cocinero")
             {
                 BtnRegistrarUsuario.Visibility = Visibility.Collapsed;
+                BtnProductos.Visibility = Visibility.Collapsed;
+                BtnPuntoDeVenta.Visibility = Visibility.Collapsed;
+                BtnReportes.Visibility = Visibility.Collapsed;
+                BtnBackup.Visibility = Visibility.Collapsed;
+                BtnClientes.Visibility = Visibility.Collapsed;
+            }
+            else if (rol == "Vendedor")
+            {
+                BtnRegistrarUsuario.Visibility = Visibility.Collapsed;
+                BtnProductos.Visibility = Visibility.Collapsed;
+                BtnStockInsumos.Visibility = Visibility.Collapsed;
+                BtnCocina.Visibility = Visibility.Collapsed;
+                BtnReportes.Visibility = Visibility.Collapsed;
+                BtnBackup.Visibility = Visibility.Collapsed;
+                BtnClientes.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                BtnRegistrarUsuario.Visibility = Visibility.Collapsed;
+                BtnBackup.Visibility = Visibility.Collapsed;
+                BtnReportes.Visibility = Visibility.Collapsed;
+                BtnPuntoDeVenta.Visibility = Visibility.Collapsed;
+                BtnCocina.Visibility = Visibility.Collapsed;
+                BtnClientes.Visibility = Visibility.Collapsed;
             }
         }
 
         private void AbrirMainWindowEnSeccion(string seccion)
         {
+            if (!MainViewModel.TienePermisoParaSeccion(seccion))
+            {
+                MessageBox.Show("No tenés permisos para acceder a esta sección.", "Acceso denegado", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var mainWindow = App.Services.GetRequiredService<MainWindow>();
-            ((MainViewModel)mainWindow.DataContext).CurrentSection = seccion;
+            if (mainWindow.DataContext is MainViewModel vm)
+            {
+                vm.CurrentSection = seccion;
+            }
             mainWindow.Show();
             this.Close();
         }
@@ -41,5 +86,11 @@ namespace Presentacion
 
         private void BtnReportes_Click(object sender, RoutedEventArgs e)
             => AbrirMainWindowEnSeccion("Reportes");
+
+        private void BtnClientes_Click(object sender, RoutedEventArgs e)
+            => AbrirMainWindowEnSeccion("Clientes");
+
+        private void BtnBackup_Click(object sender, RoutedEventArgs e)
+            => AbrirMainWindowEnSeccion("Backup");
     }
 }

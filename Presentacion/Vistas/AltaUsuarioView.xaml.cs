@@ -10,6 +10,15 @@ namespace Presentacion.Vistas;
 
 public partial class AltaUsuarioView : UserControl
 {
+    public record SucursalOpcion(int Id, string Nombre);
+
+    private readonly List<SucursalOpcion> _sucursales = new()
+    {
+        new SucursalOpcion(1, "Sucursal Centro"),
+        new SucursalOpcion(2, "Sucursal Norte"),
+        new SucursalOpcion(3, "Sucursal Sur")
+    };
+
     private readonly CrearUsuario _crearUsuario;
     private readonly ActualizarUsuario _actualizarUsuario;
     private readonly EliminarUsuario _eliminarUsuario;
@@ -26,29 +35,17 @@ public partial class AltaUsuarioView : UserControl
         _listarRoles = App.Services.GetRequiredService<ListarRoles>();
         _listarUsuarios = App.Services.GetRequiredService<ListarUsuarios>();
 
-        dtpFechaNacimiento.DisplayDateEnd = DateTime.Today;
-
-        CargarComboRoles();
+        CargarCombos();
         CargarGrilla();
     }
 
-    private static bool EsSoloDigitos(string? texto) => !string.IsNullOrEmpty(texto) && texto.All(char.IsAsciiDigit);
-
-    private void SoloDigitos_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e)
-    {
-        e.Handled = !EsSoloDigitos(e.Text);
-    }
-
-    private void SoloDigitos_Pasting(object sender, DataObjectPastingEventArgs e)
-    {
-        if (!e.DataObject.GetDataPresent(typeof(string)) || !EsSoloDigitos((string)e.DataObject.GetData(typeof(string))))
-            e.CancelCommand();
-    }
-
-    private void CargarComboRoles()
+    private void CargarCombos()
     {
         cmbRol.ItemsSource = null;
         cmbRol.ItemsSource = _listarRoles.Ejecutar().Where(r => r.Nombre != "Admin").ToList();
+
+        cmbSucursal.ItemsSource = null;
+        cmbSucursal.ItemsSource = _sucursales;
     }
 
     private void CargarGrilla()
@@ -57,9 +54,32 @@ public partial class AltaUsuarioView : UserControl
         dataGridUsuarios.ItemsSource = _listarUsuarios.Ejecutar();
     }
 
-    private void BtnActualizarLista_Click(object sender, RoutedEventArgs e)
+    private void CmbRol_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        CargarGrilla();
+        ActualizarVisibilidadSucursal();
+    }
+
+    private void ActualizarVisibilidadSucursal()
+    {
+        string? rolNombre = null;
+        if (cmbRol.SelectedItem is RolDTO rol)
+        {
+            rolNombre = rol.Nombre;
+        }
+        else if (dataGridUsuarios.SelectedItem is UsuarioDTO usuarioSel)
+        {
+            rolNombre = usuarioSel.NombreRol;
+        }
+
+        if (rolNombre == "Vendedor")
+        {
+            pnlSucursal.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            pnlSucursal.Visibility = Visibility.Collapsed;
+            cmbSucursal.SelectedIndex = -1;
+        }
     }
 
     private void DataGridUsuarios_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -86,7 +106,12 @@ public partial class AltaUsuarioView : UserControl
         dtpFechaNacimiento.SelectedDate = seleccionado.FechaNacimiento;
         txtDireccion.Text = seleccionado.Direccion;
         cmbRol.SelectedValue = seleccionado.RolId;
-        txtSucursalId.Text = seleccionado.SucursalId.ToString();
+
+        ActualizarVisibilidadSucursal();
+        if (seleccionado.NombreRol == "Vendedor")
+        {
+            cmbSucursal.SelectedValue = seleccionado.SucursalId;
+        }
     }
 
     private void BtnGuardar_Click(object sender, RoutedEventArgs e)
@@ -209,13 +234,16 @@ public partial class AltaUsuarioView : UserControl
         }
 
         int rolId;
-        if (cmbRol.SelectedValue is int rolElegido)
+        string? rolNombre = null;
+        if (cmbRol.SelectedItem is RolDTO rolElegido)
         {
-            rolId = rolElegido;
+            rolId = rolElegido.Id;
+            rolNombre = rolElegido.Nombre;
         }
         else if (esEdicion && dataGridUsuarios.SelectedItem is UsuarioDTO { NombreRol: "Admin" } admin)
         {
             rolId = admin.RolId;
+            rolNombre = admin.NombreRol;
         }
         else
         {
@@ -223,10 +251,22 @@ public partial class AltaUsuarioView : UserControl
             return false;
         }
 
-        if (!int.TryParse(txtSucursalId.Text, out var sucursalId))
+        int sucursalId = 1;
+        if (rolNombre == "Vendedor")
         {
-            MessageBox.Show("El ID de sucursal debe ser un número.");
-            return false;
+            if (cmbSucursal.SelectedValue is int sucursalElegida)
+            {
+                sucursalId = sucursalElegida;
+            }
+            else
+            {
+                MessageBox.Show("Seleccioná una sucursal para el vendedor.");
+                return false;
+            }
+        }
+        else if (rolNombre == "Cocinero")
+        {
+            sucursalId = 1; // Fábrica/Cocina principal
         }
 
         dto = new UsuarioCrearDTO
@@ -255,6 +295,7 @@ public partial class AltaUsuarioView : UserControl
         dtpFechaNacimiento.SelectedDate = null;
         txtDireccion.Clear();
         cmbRol.SelectedIndex = -1;
-        txtSucursalId.Clear();
+        cmbSucursal.SelectedIndex = -1;
+        pnlSucursal.Visibility = Visibility.Collapsed;
     }
 }

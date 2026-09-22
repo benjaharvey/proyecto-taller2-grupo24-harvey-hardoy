@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
+             SnapsToDevicePixels="True"
+             UseLayoutRounding="True"
              d:DesignHeight="700" d:DesignWidth="950">
 
     <Grid>
@@ -14,8 +16,8 @@
 
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Alta de Usuario" Style="{StaticResource HeaderTitleStyle}"/>
-            <TextBlock Text="Complete los datos para registrar un nuevo usuario" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+            <TextBlock Text="Gestión de Usuarios" Style="{StaticResource HeaderTitleStyle}"/>
+            <TextBlock Text="Administrá, registrá y modificá los usuarios del sistema" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
 
         <Grid Grid.Row="1">
@@ -83,31 +85,33 @@
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Rol" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                             <ComboBox x:Name="cmbRol" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"
-                                      DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                                      DisplayMemberPath="Nombre" SelectedValuePath="Id" SelectionChanged="CmbRol_SelectionChanged"/>
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Margin="6,0,0,0">
-                            <TextBlock Text="Sucursal Id" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtSucursalId" MaxLength="9" PreviewTextInput="SoloDigitos_PreviewTextInput" DataObject.Pasting="SoloDigitos_Pasting" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                        <StackPanel x:Name="pnlSucursal" Grid.Column="1" Margin="6,0,0,0" Visibility="Collapsed">
+                            <TextBlock Text="Sucursal" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                            <ComboBox x:Name="cmbSucursal" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
                         </StackPanel>
                     </Grid>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                         <Button Content="Cancelar"
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
-                                Margin="0,0,8,0"
+                                Margin="4,2,8,2"
                                 Click="BtnCancelar_Click"/>
                         <Button x:Name="btnActualizarUsuario"
                                 Content="Actualizar Usuario"
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
-                                Margin="0,0,8,0"
+                                Margin="0,2,8,2"
                                 IsEnabled="False"
                                 Click="BtnActualizar_Click"/>
                         <Button x:Name="btnGuardarUsuario"
                                 Content="Guardar Usuario"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Padding="14,6"
+                                Margin="0,2,0,2"
                                 Click="BtnGuardar_Click"/>
                     </StackPanel>
                 </StackPanel>
@@ -133,10 +137,8 @@
                                     Content="Eliminar Usuario"
                                     Style="{StaticResource OutlineButtonStyle}"
                                     Padding="14,6"
-                                    Margin="0,0,8,0"
                                     IsEnabled="False"
                                     Click="BtnEliminar_Click"/>
-                            <Button Content="Recargar lista" Style="{StaticResource OutlineButtonStyle}" Padding="14,6" Click="BtnActualizarLista_Click"/>
                         </StackPanel>
                     </Grid>
 
@@ -179,7 +181,7 @@
                             <DataGridTextColumn Header="DNI" Binding="{Binding Dni}" Width="90" />
                             <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*" />
                             <DataGridTextColumn Header="Rol" Binding="{Binding NombreRol}" Width="*" />
-                            <DataGridTextColumn Header="Sucursal" Binding="{Binding SucursalId}" Width="70" />
+                            <DataGridTextColumn Header="Sucursal" Binding="{Binding NombreSucursal}" Width="120" />
                             <DataGridTextColumn Header="Fecha Nac." Binding="{Binding FechaNacimiento, StringFormat='{}{0:dd/MM/yyyy}'}" Width="100" />
                             <DataGridTextColumn Header="Dirección" Binding="{Binding Direccion}" Width="2*" />
                         </DataGrid.Columns>
