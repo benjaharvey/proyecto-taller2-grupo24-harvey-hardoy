@@ -32,7 +32,9 @@ namespace Aplicacion.CasosDeUso
                     Direccion = usuario.Direccion,
                     RolId = usuario.RolId,
                     NombreRol = rol?.Nombre ?? "Sin rol",
-                    SucursalId = usuario.SucursalId
+                    SucursalId = usuario.SucursalId,
+                    Activo = usuario.DeletedAt == null,
+                    DeletedAt = usuario.DeletedAt
                 });
             }
             return resultado;

@@ -90,11 +90,11 @@
                             </RadioButton.Style>
                         </RadioButton>
 
-                        <RadioButton x:Name="RbAltaUsuario"
+                        <RadioButton x:Name="RbUsuario"
                                      Content="👤 Usuarios"
                                      GroupName="NavMenu"
                                      Command="{Binding NavigateCommand}"
-                                     CommandParameter="AltaUsuario"
+                                     CommandParameter="Usuario"
                                      Margin="0,4"
                                      Padding="12,10"
                                      Foreground="White"
@@ -332,7 +332,48 @@
                     <Border DockPanel.Dock="Bottom" Margin="12,20" Padding="12" Background="#20000000" CornerRadius="6">
                         <StackPanel>
                             <TextBlock Text="👤 Sesión activa:" FontSize="11" Foreground="{StaticResource SecondaryBrush}"/>
-                            <TextBlock x:Name="TxtInfoSesion" Text="Admin / Sucursal Centro" FontSize="12" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="TxtInfoSesion" Text="Admin / Sucursal Centro" FontSize="12" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis" Margin="0,2,0,10"/>
+                            <Button x:Name="BtnCerrarSesion"
+                                    Content="🚪 Cerrar Sesión"
+                                    Padding="10,6"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Cursor="Hand"
+                                    HorizontalAlignment="Stretch"
+                                    Click="BtnCerrarSesion_Click">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="#35000000" />
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                                        <Setter Property="BorderThickness" Value="1" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bdr"
+                                                            Background="{TemplateBinding Background}"
+                                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                                            CornerRadius="6"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bdr" Property="Background" Value="#C5221F" />
+                                                            <Setter TargetName="bdr" Property="BorderBrush" Value="#E05250" />
+                                                            <Setter Property="Foreground" Value="White" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                            <Setter TargetName="bdr" Property="Background" Value="#A01B18" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                         </StackPanel>
                     </Border>
                 </DockPanel>
@@ -355,8 +396,8 @@
                 <!-- Reportes View -->
                 <vistas:ReportesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Reportes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
-                <!-- Alta de Usuario View -->
-                <vistas:AltaUsuarioView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=AltaUsuario, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <!-- Usuario View -->
+                <vistas:UsuarioView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Usuario, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Clientes View -->
                 <vistas:ClientesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Clientes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />

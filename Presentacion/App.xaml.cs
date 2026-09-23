@@ -36,12 +36,10 @@ public partial class App : Application
         services.AddTransient<CrearUsuario>();
         services.AddTransient<ActualizarUsuario>();
         services.AddTransient<EliminarUsuario>();
+        services.AddTransient<ReactivarUsuario>();
         services.AddTransient<ListarUsuarios>();
 
-        services.AddTransient<RolWindow>();
-        services.AddTransient<UsuarioWindow>();
         services.AddTransient<MainWindow>();
-        services.AddTransient<MenuPrincipal>();
         services.AddTransient<VistaLogin>();
         services.AddTransient<IniciarSesion>();
 

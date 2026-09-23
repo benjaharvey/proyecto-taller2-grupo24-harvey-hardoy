@@ -1,4 +1,4 @@
-﻿using Aplicacion.CasosDeUso;
+using Aplicacion.CasosDeUso;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -34,8 +34,8 @@ namespace Presentacion
                 var usuario = _iniciarSesion.Ejecutar(txtEmail.Text, txtPassword.Password);
                 SesionActual.UsuarioLogueado = usuario;
 
-                var siguienteVentana = App.Services.GetRequiredService<MenuPrincipal>();
-                siguienteVentana.Show();
+                var mainWindow = App.Services.GetRequiredService<MainWindow>();
+                mainWindow.Show();
                 this.Close();
             }
             catch (InvalidOperationException ex)

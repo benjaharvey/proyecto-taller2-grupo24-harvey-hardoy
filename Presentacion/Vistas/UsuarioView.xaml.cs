@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,7 +9,7 @@ using Aplicacion.DTOs;
 
 namespace Presentacion.Vistas;
 
-public partial class AltaUsuarioView : UserControl
+public partial class UsuarioView : UserControl
 {
     public record SucursalOpcion(int Id, string Nombre);
 
@@ -22,16 +23,20 @@ public partial class AltaUsuarioView : UserControl
     private readonly CrearUsuario _crearUsuario;
     private readonly ActualizarUsuario _actualizarUsuario;
     private readonly EliminarUsuario _eliminarUsuario;
+    private readonly ReactivarUsuario _reactivarUsuario;
     private readonly ListarRoles _listarRoles;
     private readonly ListarUsuarios _listarUsuarios;
 
-    public AltaUsuarioView()
+    private List<UsuarioDTO> _usuariosCargados = new();
+
+    public UsuarioView()
     {
         InitializeComponent();
 
         _crearUsuario = App.Services.GetRequiredService<CrearUsuario>();
         _actualizarUsuario = App.Services.GetRequiredService<ActualizarUsuario>();
         _eliminarUsuario = App.Services.GetRequiredService<EliminarUsuario>();
+        _reactivarUsuario = App.Services.GetRequiredService<ReactivarUsuario>();
         _listarRoles = App.Services.GetRequiredService<ListarRoles>();
         _listarUsuarios = App.Services.GetRequiredService<ListarUsuarios>();
 
@@ -65,8 +70,49 @@ public partial class AltaUsuarioView : UserControl
 
     private void CargarGrilla()
     {
-        dataGridUsuarios.ItemsSource = null;
-        dataGridUsuarios.ItemsSource = _listarUsuarios.Ejecutar();
+        _usuariosCargados = _listarUsuarios.Ejecutar()
+            .OrderBy(u => !u.Activo)
+            .ThenBy(u => u.Nombre)
+            .ToList();
+
+        AplicarFiltro();
+    }
+
+    private void AplicarFiltro()
+    {
+        var filtro = txtBusqueda?.Text?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrEmpty(filtro))
+        {
+            dataGridUsuarios.ItemsSource = _usuariosCargados;
+        }
+        else
+        {
+            dataGridUsuarios.ItemsSource = _usuariosCargados
+                .Where(u =>
+                    (u.Nombre != null && u.Nombre.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.Apellido != null && u.Apellido.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.Dni != null && u.Dni.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.Email != null && u.Email.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.NombreRol != null && u.NombreRol.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.NombreSucursal != null && u.NombreSucursal.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.Direccion != null && u.Direccion.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
+                    (u.Activo ? "activo" : "inactivo").Contains(filtro, StringComparison.OrdinalIgnoreCase)
+                )
+                .OrderBy(u => !u.Activo)
+                .ThenBy(u => u.Nombre)
+                .ToList();
+        }
+    }
+
+    private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        AplicarFiltro();
+    }
+
+    private void BtnLimpiarBusqueda_Click(object sender, RoutedEventArgs e)
+    {
+        txtBusqueda.Clear();
     }
 
     private void CmbRol_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -102,13 +148,16 @@ public partial class AltaUsuarioView : UserControl
         bool hayUsuarioSeleccionado = dataGridUsuarios.SelectedItem is UsuarioDTO;
         btnGuardarUsuario.IsEnabled = !hayUsuarioSeleccionado;
         btnActualizarUsuario.IsEnabled = hayUsuarioSeleccionado;
-        btnEliminarUsuario.IsEnabled = hayUsuarioSeleccionado;
+        btnCambiarEstadoUsuario.IsEnabled = hayUsuarioSeleccionado;
 
         if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
         {
+            btnCambiarEstadoUsuario.Content = "Dar de Baja";
             cmbRol.IsEnabled = true;
             return;
         }
+
+        btnCambiarEstadoUsuario.Content = seleccionado.Activo ? "Dar de Baja" : "Reactivar";
 
         cmbRol.IsEnabled = seleccionado.NombreRol != "Admin";
 
@@ -169,37 +218,64 @@ public partial class AltaUsuarioView : UserControl
         }
     }
 
-    private void BtnEliminar_Click(object sender, RoutedEventArgs e)
+    private void BtnCambiarEstado_Click(object sender, RoutedEventArgs e)
     {
         if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
         {
-            MessageBox.Show("Seleccioná un usuario de la lista para eliminar.");
+            MessageBox.Show("Seleccioná un usuario de la lista para cambiar su estado.");
             return;
         }
 
-        if (seleccionado.Id == SesionActual.UsuarioLogueado?.Id)
-        {
-            MessageBox.Show("No podés eliminar el usuario con el que iniciaste sesión.");
-            return;
-        }
+        ToggleEstadoUsuario(seleccionado);
+    }
 
-        var confirmacion = MessageBox.Show(
-            Window.GetWindow(this),
-            $"¿Seguro que querés eliminar a {seleccionado.Nombre} {seleccionado.Apellido} ({seleccionado.Email})?",
-            "Confirmar eliminación",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-        if (confirmacion != MessageBoxResult.Yes) return;
+    private void ToggleEstadoUsuario(UsuarioDTO usuario)
+    {
+        if (usuario.Activo)
+        {
+            if (usuario.Id == SesionActual.UsuarioLogueado?.Id)
+            {
+                MessageBox.Show("No podés dar de baja el usuario con el que iniciaste sesión.");
+                return;
+            }
 
-        try
-        {
-            _eliminarUsuario.Ejecutar(seleccionado.Id);
+            var confirmacion = MessageBox.Show(
+                Window.GetWindow(this),
+                $"¿Seguro que querés dar de baja a {usuario.Nombre} {usuario.Apellido} ({usuario.Email})?",
+                "Confirmar baja",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            if (confirmacion != MessageBoxResult.Yes) return;
+
+            try
+            {
+                _eliminarUsuario.Ejecutar(usuario.Id);
+                MessageBox.Show("Usuario dado de baja correctamente.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
-        catch (InvalidOperationException ex)
+        else
         {
-            MessageBox.Show(ex.Message);
-            CargarGrilla();
-            return;
+            var confirmacion = MessageBox.Show(
+                Window.GetWindow(this),
+                $"¿Seguro que querés reactivar a {usuario.Nombre} {usuario.Apellido} ({usuario.Email})?",
+                "Confirmar reactivación",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+            if (confirmacion != MessageBoxResult.Yes) return;
+
+            try
+            {
+                _reactivarUsuario.Ejecutar(usuario.Id);
+                MessageBox.Show("Usuario reactivado correctamente.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         LimpiarFormulario();
@@ -322,5 +398,6 @@ public partial class AltaUsuarioView : UserControl
         cmbRol.SelectedIndex = -1;
         cmbSucursal.SelectedIndex = -1;
         pnlSucursal.Visibility = Visibility.Collapsed;
+        btnCambiarEstadoUsuario.Content = "Dar de Baja";
     }
 }

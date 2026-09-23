@@ -17,7 +17,7 @@ namespace Datos.Repositorios
         public List<Usuario> ObtenerTodos()
         {
             using var context = _contextFactory.CreateDbContext();
-            return context.Usuarios.Where(u => u.DeletedAt == null).ToList();
+            return context.Usuarios.OrderBy(u => u.DeletedAt != null).ThenBy(u => u.Nombre).ToList();
         }
 
         public Usuario? ObtenerPorId(int id)
@@ -81,6 +81,17 @@ namespace Datos.Repositorios
                 ?? throw new InvalidOperationException("El usuario que intentás eliminar ya no existe. Recargá la lista.");
 
             usuario.DeletedAt = DateTime.Now;
+            context.SaveChanges();
+        }
+
+        public void Reactivar(int id)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var usuario = context.Usuarios.FirstOrDefault(u => u.Id == id)
+                ?? throw new InvalidOperationException("El usuario que intentás reactivar no existe. Recargá la lista.");
+
+            usuario.DeletedAt = null;
+            usuario.UpdatedAt = DateTime.Now;
             context.SaveChanges();
         }
     }
