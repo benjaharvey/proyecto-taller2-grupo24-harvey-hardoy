@@ -1,49 +1,23 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using Aplicacion.CasosDeUso;
-using Aplicacion.DTOs;
+using Presentacion.ViewModels;
 
 namespace Presentacion.Vistas;
 
 public partial class UsuarioView : UserControl
 {
-    public record SucursalOpcion(int Id, string Nombre);
-
-    private readonly List<SucursalOpcion> _sucursales = new()
-    {
-        new SucursalOpcion(1, "Sucursal Centro"),
-        new SucursalOpcion(2, "Sucursal Norte"),
-        new SucursalOpcion(3, "Sucursal Sur")
-    };
-
-    private readonly CrearUsuario _crearUsuario;
-    private readonly ActualizarUsuario _actualizarUsuario;
-    private readonly EliminarUsuario _eliminarUsuario;
-    private readonly ReactivarUsuario _reactivarUsuario;
-    private readonly ListarRoles _listarRoles;
-    private readonly ListarUsuarios _listarUsuarios;
-
-    private List<UsuarioDTO> _usuariosCargados = new();
+    private UsuarioViewModel? ViewModel => DataContext as UsuarioViewModel;
 
     public UsuarioView()
     {
         InitializeComponent();
 
-        _crearUsuario = App.Services.GetRequiredService<CrearUsuario>();
-        _actualizarUsuario = App.Services.GetRequiredService<ActualizarUsuario>();
-        _eliminarUsuario = App.Services.GetRequiredService<EliminarUsuario>();
-        _reactivarUsuario = App.Services.GetRequiredService<ReactivarUsuario>();
-        _listarRoles = App.Services.GetRequiredService<ListarRoles>();
-        _listarUsuarios = App.Services.GetRequiredService<ListarUsuarios>();
-
-        dtpFechaNacimiento.DisplayDateEnd = DateTime.Today;
-
-        CargarCombos();
-        CargarGrilla();
+        if (!System.ComponentModel.DesignerProperties.GetIsInDesignMode(this))
+        {
+            DataContext = App.Services.GetRequiredService<UsuarioViewModel>();
+        }
     }
 
     private static bool EsSoloDigitos(string? texto) => !string.IsNullOrEmpty(texto) && texto.All(char.IsAsciiDigit);
@@ -59,345 +33,19 @@ public partial class UsuarioView : UserControl
             e.CancelCommand();
     }
 
-    private void CargarCombos()
+    private void TxtPassword_PasswordChanged(object sender, RoutedEventArgs e)
     {
-        cmbRol.ItemsSource = null;
-        cmbRol.ItemsSource = _listarRoles.Ejecutar().Where(r => r.Nombre != "Admin").ToList();
-
-        cmbSucursal.ItemsSource = null;
-        cmbSucursal.ItemsSource = _sucursales;
-    }
-
-    private void CargarGrilla()
-    {
-        _usuariosCargados = _listarUsuarios.Ejecutar()
-            .OrderBy(u => !u.Activo)
-            .ThenBy(u => u.Nombre)
-            .ToList();
-
-        AplicarFiltro();
-    }
-
-    private void AplicarFiltro()
-    {
-        var filtro = txtBusqueda?.Text?.Trim() ?? string.Empty;
-
-        if (string.IsNullOrEmpty(filtro))
+        if (ViewModel != null)
         {
-            dataGridUsuarios.ItemsSource = _usuariosCargados;
-        }
-        else
-        {
-            dataGridUsuarios.ItemsSource = _usuariosCargados
-                .Where(u =>
-                    (u.Nombre != null && u.Nombre.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
-                    (u.Apellido != null && u.Apellido.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
-                    (u.Dni != null && u.Dni.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
-                    (u.Email != null && u.Email.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
-                    (u.NombreRol != null && u.NombreRol.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
-                    (u.NombreSucursal != null && u.NombreSucursal.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
-                    (u.Direccion != null && u.Direccion.Contains(filtro, StringComparison.OrdinalIgnoreCase)) ||
-                    (u.Activo ? "activo" : "inactivo").Contains(filtro, StringComparison.OrdinalIgnoreCase)
-                )
-                .OrderBy(u => !u.Activo)
-                .ThenBy(u => u.Nombre)
-                .ToList();
+            ViewModel.FormPassword = txtPassword.Password;
         }
     }
 
-    private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+    private void TxtConfirmarPassword_PasswordChanged(object sender, RoutedEventArgs e)
     {
-        AplicarFiltro();
-    }
-
-    private void BtnLimpiarBusqueda_Click(object sender, RoutedEventArgs e)
-    {
-        txtBusqueda.Clear();
-    }
-
-    private void CmbRol_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        ActualizarVisibilidadSucursal();
-    }
-
-    private void ActualizarVisibilidadSucursal()
-    {
-        string? rolNombre = null;
-        if (cmbRol.SelectedItem is RolDTO rol)
+        if (ViewModel != null)
         {
-            rolNombre = rol.Nombre;
+            ViewModel.FormConfirmarPassword = txtConfirmarPassword.Password;
         }
-        else if (dataGridUsuarios.SelectedItem is UsuarioDTO usuarioSel)
-        {
-            rolNombre = usuarioSel.NombreRol;
-        }
-
-        if (rolNombre == "Vendedor")
-        {
-            pnlSucursal.Visibility = Visibility.Visible;
-        }
-        else
-        {
-            pnlSucursal.Visibility = Visibility.Collapsed;
-            cmbSucursal.SelectedIndex = -1;
-        }
-    }
-
-    private void DataGridUsuarios_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        bool hayUsuarioSeleccionado = dataGridUsuarios.SelectedItem is UsuarioDTO;
-        btnGuardarUsuario.IsEnabled = !hayUsuarioSeleccionado;
-        btnActualizarUsuario.IsEnabled = hayUsuarioSeleccionado;
-        btnCambiarEstadoUsuario.IsEnabled = hayUsuarioSeleccionado;
-
-        if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
-        {
-            btnCambiarEstadoUsuario.Content = "Dar de Baja";
-            cmbRol.IsEnabled = true;
-            return;
-        }
-
-        btnCambiarEstadoUsuario.Content = seleccionado.Activo ? "Dar de Baja" : "Reactivar";
-
-        cmbRol.IsEnabled = seleccionado.NombreRol != "Admin";
-
-        txtNombre.Text = seleccionado.Nombre;
-        txtApellido.Text = seleccionado.Apellido;
-        txtDni.Text = seleccionado.Dni;
-        txtEmail.Text = seleccionado.Email;
-        txtPassword.Clear();
-        txtConfirmarPassword.Clear();
-        dtpFechaNacimiento.SelectedDate = seleccionado.FechaNacimiento;
-        txtDireccion.Text = seleccionado.Direccion;
-        cmbRol.SelectedValue = seleccionado.RolId;
-
-        ActualizarVisibilidadSucursal();
-        if (seleccionado.NombreRol == "Vendedor")
-        {
-            cmbSucursal.SelectedValue = seleccionado.SucursalId;
-        }
-    }
-
-    private void BtnGuardar_Click(object sender, RoutedEventArgs e)
-    {
-        if (!TryLeerFormulario(esEdicion: false, out var dto)) return;
-
-        try
-        {
-            _crearUsuario.Ejecutar(dto);
-            MessageBox.Show("Usuario registrado correctamente.");
-            LimpiarFormulario();
-            CargarGrilla();
-        }
-        catch (InvalidOperationException ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
-    }
-
-    private void BtnActualizar_Click(object sender, RoutedEventArgs e)
-    {
-        if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
-        {
-            MessageBox.Show("Seleccioná un usuario de la lista para actualizar.");
-            return;
-        }
-
-        if (!TryLeerFormulario(esEdicion: true, out var dto)) return;
-
-        try
-        {
-            _actualizarUsuario.Ejecutar(seleccionado.Id, dto);
-            MessageBox.Show("Usuario actualizado correctamente.");
-            LimpiarFormulario();
-            CargarGrilla();
-        }
-        catch (InvalidOperationException ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
-    }
-
-    private void BtnCambiarEstado_Click(object sender, RoutedEventArgs e)
-    {
-        if (dataGridUsuarios.SelectedItem is not UsuarioDTO seleccionado)
-        {
-            MessageBox.Show("Seleccioná un usuario de la lista para cambiar su estado.");
-            return;
-        }
-
-        ToggleEstadoUsuario(seleccionado);
-    }
-
-    private void ToggleEstadoUsuario(UsuarioDTO usuario)
-    {
-        if (usuario.Activo)
-        {
-            if (usuario.Id == SesionActual.UsuarioLogueado?.Id)
-            {
-                MessageBox.Show("No podés dar de baja el usuario con el que iniciaste sesión.");
-                return;
-            }
-
-            var confirmacion = MessageBox.Show(
-                Window.GetWindow(this),
-                $"¿Seguro que querés dar de baja a {usuario.Nombre} {usuario.Apellido} ({usuario.Email})?",
-                "Confirmar baja",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-            if (confirmacion != MessageBoxResult.Yes) return;
-
-            try
-            {
-                _eliminarUsuario.Ejecutar(usuario.Id);
-                MessageBox.Show("Usuario dado de baja correctamente.");
-            }
-            catch (InvalidOperationException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-        else
-        {
-            var confirmacion = MessageBox.Show(
-                Window.GetWindow(this),
-                $"¿Seguro que querés reactivar a {usuario.Nombre} {usuario.Apellido} ({usuario.Email})?",
-                "Confirmar reactivación",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-            if (confirmacion != MessageBoxResult.Yes) return;
-
-            try
-            {
-                _reactivarUsuario.Ejecutar(usuario.Id);
-                MessageBox.Show("Usuario reactivado correctamente.");
-            }
-            catch (InvalidOperationException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        LimpiarFormulario();
-        CargarGrilla();
-    }
-
-    private void BtnCancelar_Click(object sender, RoutedEventArgs e)
-    {
-        dataGridUsuarios.SelectedItem = null;
-        LimpiarFormulario();
-    }
-
-    private bool TryLeerFormulario(bool esEdicion, out UsuarioCrearDTO dto)
-    {
-        dto = new UsuarioCrearDTO();
-
-        if (string.IsNullOrWhiteSpace(txtNombre.Text))
-        {
-            MessageBox.Show("Ingresá el nombre.");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(txtApellido.Text))
-        {
-            MessageBox.Show("Ingresá el apellido.");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(txtDni.Text))
-        {
-            MessageBox.Show("Ingresá el DNI.");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(txtEmail.Text))
-        {
-            MessageBox.Show("Ingresá el email.");
-            return false;
-        }
-
-        if (!esEdicion && string.IsNullOrEmpty(txtPassword.Password))
-        {
-            MessageBox.Show("Ingresá una contraseña.");
-            return false;
-        }
-
-        if (txtPassword.Password != txtConfirmarPassword.Password)
-        {
-            MessageBox.Show("Las contraseñas no coinciden.");
-            return false;
-        }
-
-        if (dtpFechaNacimiento.SelectedDate is not DateTime fechaNacimiento)
-        {
-            MessageBox.Show("Seleccioná una fecha de nacimiento.");
-            return false;
-        }
-
-        int rolId;
-        string? rolNombre = null;
-        if (cmbRol.SelectedItem is RolDTO rolElegido)
-        {
-            rolId = rolElegido.Id;
-            rolNombre = rolElegido.Nombre;
-        }
-        else if (esEdicion && dataGridUsuarios.SelectedItem is UsuarioDTO { NombreRol: "Admin" } admin)
-        {
-            rolId = admin.RolId;
-            rolNombre = admin.NombreRol;
-        }
-        else
-        {
-            MessageBox.Show("Seleccioná un rol.");
-            return false;
-        }
-
-        int sucursalId = 1;
-        if (rolNombre == "Vendedor")
-        {
-            if (cmbSucursal.SelectedValue is int sucursalElegida)
-            {
-                sucursalId = sucursalElegida;
-            }
-            else
-            {
-                MessageBox.Show("Seleccioná una sucursal para el vendedor.");
-                return false;
-            }
-        }
-        else if (rolNombre == "Cocinero")
-        {
-            sucursalId = 1; // Fábrica/Cocina principal
-        }
-
-        dto = new UsuarioCrearDTO
-        {
-            Nombre = txtNombre.Text,
-            Apellido = txtApellido.Text,
-            Dni = txtDni.Text,
-            Email = txtEmail.Text,
-            Password = txtPassword.Password,
-            FechaNacimiento = fechaNacimiento,
-            Direccion = txtDireccion.Text,
-            RolId = rolId,
-            SucursalId = sucursalId
-        };
-        return true;
-    }
-
-    private void LimpiarFormulario()
-    {
-        txtNombre.Clear();
-        txtApellido.Clear();
-        txtDni.Clear();
-        txtEmail.Clear();
-        txtPassword.Clear();
-        txtConfirmarPassword.Clear();
-        dtpFechaNacimiento.SelectedDate = null;
-        txtDireccion.Clear();
-        cmbRol.SelectedIndex = -1;
-        cmbSucursal.SelectedIndex = -1;
-        pnlSucursal.Visibility = Visibility.Collapsed;
-        btnCambiarEstadoUsuario.Content = "Dar de Baja";
     }
 }

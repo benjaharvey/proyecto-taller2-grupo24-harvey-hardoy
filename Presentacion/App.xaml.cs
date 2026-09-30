@@ -6,6 +6,7 @@ using Datos.Conexion;
 using Datos.Repositorios;
 using Datos.Seeder;
 using Dominio.Interfaces;
+using Presentacion.ViewModels;
 
 namespace Presentacion;
 
@@ -42,6 +43,7 @@ public partial class App : Application
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
         services.AddTransient<IniciarSesion>();
+        services.AddTransient<UsuarioViewModel>();
 
 
         Services = services.BuildServiceProvider();

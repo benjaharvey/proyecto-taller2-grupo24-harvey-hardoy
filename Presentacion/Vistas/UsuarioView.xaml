@@ -3,10 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:Presentacion.ViewModels"
              mc:Ignorable="d"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
+             d:DataContext="{d:DesignInstance Type=viewModels:UsuarioViewModel}"
              d:DesignHeight="700" d:DesignWidth="950">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -41,19 +47,19 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Nombre" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtNombre" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <TextBox Text="{Binding FormNombre, UpdateSourceTrigger=PropertyChanged}" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Apellido" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox x:Name="txtApellido" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <TextBox Text="{Binding FormApellido, UpdateSourceTrigger=PropertyChanged}" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
 
                     <TextBlock Text="DNI" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox x:Name="txtDni" MaxLength="8" PreviewTextInput="SoloDigitos_PreviewTextInput" DataObject.Pasting="SoloDigitos_Pasting" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" PreviewTextInput="SoloDigitos_PreviewTextInput" DataObject.Pasting="SoloDigitos_Pasting" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <TextBlock Text="Email" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox x:Name="txtEmail" MaxLength="100" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
@@ -62,20 +68,20 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <PasswordBox x:Name="txtPassword" MaxLength="64" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <PasswordBox x:Name="txtPassword" PasswordChanged="TxtPassword_PasswordChanged" MaxLength="64" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Confirmar Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <PasswordBox x:Name="txtConfirmarPassword" MaxLength="64" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                            <PasswordBox x:Name="txtConfirmarPassword" PasswordChanged="TxtConfirmarPassword_PasswordChanged" MaxLength="64" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                         </StackPanel>
                     </Grid>
                     <TextBlock Text="Al actualizar un usuario, dejar en blanco para no cambiar la contraseña." FontSize="11" FontStyle="Italic" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
                     <TextBlock Text="Fecha de Nacimiento" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <DatePicker x:Name="dtpFechaNacimiento" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
+                    <DatePicker SelectedDate="{Binding FormFechaNacimiento, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch" DisplayDateEnd="{x:Static sys:DateTime.Today}" xmlns:sys="clr-namespace:System;assembly=mscorlib"/>
 
                     <TextBlock Text="Dirección" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox x:Name="txtDireccion" MaxLength="200" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox Text="{Binding FormDireccion, UpdateSourceTrigger=PropertyChanged}" MaxLength="200" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
@@ -84,13 +90,18 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Rol" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <ComboBox x:Name="cmbRol" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"
-                                      DisplayMemberPath="Nombre" SelectedValuePath="Id" SelectionChanged="CmbRol_SelectionChanged"/>
+                            <ComboBox ItemsSource="{Binding RolesDisponibles}"
+                                      SelectedItem="{Binding FormRolSeleccionado}"
+                                      IsEnabled="{Binding PuedeEditarRol}"
+                                      Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Nombre"/>
                         </StackPanel>
-                        <StackPanel x:Name="pnlSucursal" Grid.Column="1" Margin="6,0,0,0" Visibility="Collapsed">
+                        <StackPanel Grid.Column="1" Margin="6,0,0,0" Visibility="{Binding MostrarSucursal, Converter={StaticResource BoolToVisConverter}}">
                             <TextBlock Text="Sucursal" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <ComboBox x:Name="cmbSucursal" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"
-                                      DisplayMemberPath="Nombre" SelectedValuePath="Id"/>
+                            <ComboBox ItemsSource="{Binding SucursalesDisponibles}"
+                                      SelectedItem="{Binding FormSucursalSeleccionada}"
+                                      Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Nombre"/>
                         </StackPanel>
                     </Grid>
 
@@ -99,20 +110,28 @@
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
                                 Margin="4,2,8,2"
-                                Click="BtnCancelar_Click"/>
-                        <Button x:Name="btnActualizarUsuario"
-                                Content="Actualizar Usuario"
+                                Command="{Binding CancelarCommand}"/>
+                        <Button Content="Actualizar Usuario"
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
                                 Margin="0,2,8,2"
-                                IsEnabled="False"
-                                Click="BtnActualizar_Click"/>
-                        <Button x:Name="btnGuardarUsuario"
-                                Content="Guardar Usuario"
-                                Style="{StaticResource AccentButtonStyle}"
+                                IsEnabled="{Binding EsEdicion}"
+                                Command="{Binding ActualizarCommand}"/>
+                        <Button Content="Guardar Usuario"
                                 Padding="14,6"
                                 Margin="0,2,0,2"
-                                Click="BtnGuardar_Click"/>
+                                Command="{Binding GuardarCommand}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                                    <Setter Property="IsEnabled" Value="True"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding EsEdicion}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
@@ -138,12 +157,11 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Usuarios Registrados" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                <Button x:Name="btnCambiarEstadoUsuario"
-                                        Content="Dar de Baja"
+                                <Button Content="{Binding TextoBotonEstado}"
                                         Style="{StaticResource OutlineButtonStyle}"
                                         Padding="14,6"
-                                        IsEnabled="False"
-                                        Click="BtnCambiarEstado_Click"/>
+                                        IsEnabled="{Binding EsEdicion}"
+                                        Command="{Binding CambiarEstadoCommand}"/>
                             </StackPanel>
                         </Grid>
 
@@ -153,12 +171,11 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtBusqueda"
+                            <TextBox Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}"
                                      Grid.Column="0"
                                      Padding="10,6"
                                      BorderBrush="{StaticResource SecondaryBrush}"
                                      FontSize="13"
-                                     TextChanged="TxtBusqueda_TextChanged"
                                      Margin="0,0,8,0">
                                 <TextBox.Resources>
                                     <VisualBrush x:Key="HintBrush" TileMode="None" Opacity="0.6" Stretch="None" AlignmentX="Left">
@@ -181,12 +198,13 @@
                                     Content="Limpiar"
                                     Style="{StaticResource SecondaryButtonStyle}"
                                     Padding="12,6"
-                                    Click="BtnLimpiarBusqueda_Click"/>
+                                    Command="{Binding LimpiarBusquedaCommand}"/>
                         </Grid>
                     </Grid>
 
                     <DataGrid Grid.Row="1"
-                              x:Name="dataGridUsuarios"
+                              ItemsSource="{Binding UsuariosFiltrados}"
+                              SelectedItem="{Binding SelectedUsuario}"
                               AutoGenerateColumns="False"
                               IsReadOnly="True"
                               HeadersVisibility="Column"
@@ -195,8 +213,7 @@
                               Background="White"
                               BorderThickness="0"
                               RowHeight="38"
-                              SelectionMode="Single"
-                              SelectionChanged="DataGridUsuarios_SelectionChanged">
+                              SelectionMode="Single">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
