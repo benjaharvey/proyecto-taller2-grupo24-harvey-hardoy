@@ -15,5 +15,6 @@ namespace Dominio.Interfaces
         void Agregar(Usuario usuario);
         void Actualizar(Usuario usuario);
         void Eliminar(int id);
+        void Reactivar(int id);
     }
 }

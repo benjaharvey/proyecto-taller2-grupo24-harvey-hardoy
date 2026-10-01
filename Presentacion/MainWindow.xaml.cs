@@ -1,4 +1,6 @@
+using System;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using Presentacion.ViewModels;
 using Wpf.Ui.Controls;
 
@@ -9,6 +11,8 @@ namespace Presentacion;
 /// </summary>
 public partial class MainWindow : FluentWindow
 {
+    private bool _cerrandoSesionVoluntariamente = false;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -29,6 +33,34 @@ public partial class MainWindow : FluentWindow
         }
     }
 
+    private void BtnCerrarSesion_Click(object sender, RoutedEventArgs e)
+    {
+        var confirmacion = System.Windows.MessageBox.Show(
+            this,
+            "¿Estás seguro de que deseás cerrar la sesión actual?",
+            "Cerrar Sesión",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Question);
+
+        if (confirmacion != System.Windows.MessageBoxResult.Yes) return;
+
+        _cerrandoSesionVoluntariamente = true;
+        SesionActual.UsuarioLogueado = null;
+
+        var login = App.Services.GetRequiredService<VistaLogin>();
+        login.Show();
+        this.Close();
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        if (!_cerrandoSesionVoluntariamente)
+        {
+            Application.Current.Shutdown();
+        }
+    }
+
     private void AplicarPermisosPorRol()
     {
         string? rol = SesionActual.UsuarioLogueado?.NombreRol;
@@ -45,7 +77,7 @@ public partial class MainWindow : FluentWindow
             RbProductos.Visibility = Visibility.Collapsed;
             RbVentas.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
-            RbAltaUsuario.Visibility = Visibility.Collapsed;
+            RbUsuario.Visibility = Visibility.Collapsed;
             RbClientes.Visibility = Visibility.Collapsed;
             RbBackup.Visibility = Visibility.Collapsed;
 
@@ -60,7 +92,7 @@ public partial class MainWindow : FluentWindow
             RbStock.Visibility = Visibility.Collapsed;
             RbCocina.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
-            RbAltaUsuario.Visibility = Visibility.Collapsed;
+            RbUsuario.Visibility = Visibility.Collapsed;
             RbClientes.Visibility = Visibility.Visible;
             RbBackup.Visibility = Visibility.Collapsed;
 
@@ -71,7 +103,7 @@ public partial class MainWindow : FluentWindow
         }
         else
         {
-            RbAltaUsuario.Visibility = Visibility.Collapsed;
+            RbUsuario.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbVentas.Visibility = Visibility.Collapsed;
             RbCocina.Visibility = Visibility.Collapsed;
@@ -97,7 +129,7 @@ public partial class MainWindow : FluentWindow
         RbStock.IsChecked = section == "Stock";
         RbCocina.IsChecked = section == "Cocina";
         RbReportes.IsChecked = section == "Reportes";
-        RbAltaUsuario.IsChecked = section == "AltaUsuario";
+        RbUsuario.IsChecked = section == "Usuario";
         RbBackup.IsChecked = section == "Backup";
     }
 }
