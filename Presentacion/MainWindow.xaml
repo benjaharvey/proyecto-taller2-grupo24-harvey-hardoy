@@ -124,6 +124,40 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <RadioButton x:Name="RbSucursales"
+                                     Content="🏢  Sucursales"
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Sucursales"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
                         <RadioButton x:Name="RbVentas"
                                      Content="💳  Punto de Venta"
                                      GroupName="NavMenu"
@@ -398,6 +432,9 @@
 
                 <!-- Usuario View -->
                 <vistas:UsuarioView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Usuario, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Sucursales View -->
+                <vistas:SucursalesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Sucursales, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Clientes View -->
                 <vistas:ClientesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Clientes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />

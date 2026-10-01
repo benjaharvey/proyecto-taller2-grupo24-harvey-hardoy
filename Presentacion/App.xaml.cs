@@ -51,8 +51,7 @@ public partial class App : Application
         services.AddTransient<VistaLogin>();
         services.AddTransient<IniciarSesion>();
         services.AddTransient<UsuarioViewModel>();
-
-
+        services.AddTransient<SucursalViewModel>();
         Services = services.BuildServiceProvider();
 
         try
