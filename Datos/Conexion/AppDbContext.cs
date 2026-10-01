@@ -10,6 +10,7 @@ namespace Datos.Conexion
 
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Rol> Roles { get; set; }
+        public DbSet<Sucursal> Sucursales { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
