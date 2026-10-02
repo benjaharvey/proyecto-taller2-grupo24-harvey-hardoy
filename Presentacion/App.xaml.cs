@@ -29,6 +29,7 @@ public partial class App : Application
         services.AddScoped<IRolRepositorio, RolRepositorio>();
         services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
         services.AddScoped<ISucursalRepositorio, SucursalRepositorio>();
+        services.AddScoped<IInsumoRepositorio, InsumoRepositorio>();
 
         services.AddTransient<CrearRol>();
         services.AddTransient<ActualizarRol>();
@@ -47,11 +48,19 @@ public partial class App : Application
         services.AddTransient<ListarSucursales>();
         services.AddTransient<ReactivarSucursal>();
 
+        services.AddTransient<CrearInsumo>();
+        services.AddTransient<ActualizarInsumo>();
+        services.AddTransient<EliminarInsumo>();
+        services.AddTransient<ReactivarInsumo>();
+        services.AddTransient<ListarInsumos>();
+
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
         services.AddTransient<IniciarSesion>();
         services.AddTransient<UsuarioViewModel>();
         services.AddTransient<SucursalViewModel>();
+        services.AddTransient<InsumoViewModel>();
+        services.AddTransient<StockViewModel>();
         Services = services.BuildServiceProvider();
 
         try

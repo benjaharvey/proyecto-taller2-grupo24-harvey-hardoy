@@ -18,17 +18,6 @@ public class StockProductoItem
     public string NivelAlerta => StockActual == 0 ? "Crítico (Sin Stock)" : StockActual <= StockMinimo ? "Bajo Stock" : "Óptimo";
 }
 
-public class InsumoGlobalItem
-{
-    public int InsumoId { get; set; }
-    public string Codigo { get; set; } = string.Empty;
-    public string Nombre { get; set; } = string.Empty;
-    public decimal StockActual { get; set; }
-    public string UnidadMedida { get; set; } = "kg";
-    public decimal StockMinimo { get; set; } = 10;
-    public string NivelAlerta => StockActual <= StockMinimo ? "Bajo Stock" : "Óptimo";
-}
-
 public partial class StockViewModel : ObservableObject
 {
     [ObservableProperty]
@@ -43,15 +32,11 @@ public partial class StockViewModel : ObservableObject
     [ObservableProperty]
     private string _busquedaTexto = string.Empty;
 
-    // Productos Stock
+    // Productos Stock (se conectará a casos de uso de stock de productos a futuro)
     [ObservableProperty]
     private ObservableCollection<StockProductoItem> _stockProductos = new();
 
-    // Insumos Globales
-    [ObservableProperty]
-    private ObservableCollection<InsumoGlobalItem> _insumosGlobales = new();
-
-    // Dialogs / Modals
+    // Dialogs / Modals de Productos (RF-13)
     [ObservableProperty]
     private bool _mostrarDialogoAjusteProducto;
 
@@ -64,34 +49,6 @@ public partial class StockViewModel : ObservableObject
     [ObservableProperty]
     private string _motivoAjusteProducto = "Recuento físico";
 
-    [ObservableProperty]
-    private bool _mostrarDialogoIngresoInsumo;
-
-    [ObservableProperty]
-    private InsumoGlobalItem? _insumoSeleccionado;
-
-    [ObservableProperty]
-    private decimal _cantidadIngresoInsumo;
-
-    // Modal Nuevo Tipo de Insumo
-    [ObservableProperty]
-    private bool _mostrarDialogoNuevoInsumo;
-
-    [ObservableProperty]
-    private string _nuevoInsumoCodigo = string.Empty;
-
-    [ObservableProperty]
-    private string _nuevoInsumoNombre = string.Empty;
-
-    [ObservableProperty]
-    private string _nuevoInsumoUnidad = "kg";
-
-    [ObservableProperty]
-    private decimal _nuevoInsumoStockInicial = 0;
-
-    [ObservableProperty]
-    private decimal _nuevoInsumoStockMinimo = 10;
-
     public ObservableCollection<string> Sucursales { get; } = new()
     {
         "Todas (Consolidado)", "Sucursal Centro", "Sucursal Norte", "Sucursal Sur"
@@ -102,18 +59,21 @@ public partial class StockViewModel : ObservableObject
         "Todas", "Alfajores", "Conitos", "Tabletas", "Tortas"
     };
 
-    public ObservableCollection<string> UnidadesMedida { get; } = new()
-    {
-        "kg", "gr", "lt", "ml", "un."
-    };
-
     public ObservableCollection<string> MotivosAjuste { get; } = new()
     {
         "Recuento físico", "Merma por vencimiento", "Rotura o daño en exhibición", "Devolución"
     };
 
-    public StockViewModel()
+    public InsumoViewModel InsumosVM { get; }
+
+    public StockViewModel(InsumoViewModel insumosVM)
     {
+        InsumosVM = insumosVM;
+    }
+
+    partial void OnBusquedaTextoChanged(string value)
+    {
+        InsumosVM.BusquedaTexto = value;
     }
 
     [RelayCommand]
@@ -151,70 +111,5 @@ public partial class StockViewModel : ObservableObject
     private void CerrarAjusteProducto()
     {
         MostrarDialogoAjusteProducto = false;
-    }
-
-    [RelayCommand]
-    private void AbrirIngresoInsumo(InsumoGlobalItem? insumo)
-    {
-        InsumoSeleccionado = insumo ?? InsumosGlobales.FirstOrDefault();
-        CantidadIngresoInsumo = 10;
-        MostrarDialogoIngresoInsumo = true;
-    }
-
-    [RelayCommand]
-    private void GuardarIngresoInsumo()
-    {
-        if (InsumoSeleccionado != null && CantidadIngresoInsumo > 0)
-        {
-            InsumoSeleccionado.StockActual += CantidadIngresoInsumo;
-            var index = InsumosGlobales.IndexOf(InsumoSeleccionado);
-            if (index >= 0)
-            {
-                InsumosGlobales[index] = InsumoSeleccionado;
-            }
-        }
-        MostrarDialogoIngresoInsumo = false;
-    }
-
-    [RelayCommand]
-    private void CerrarIngresoInsumo()
-    {
-        MostrarDialogoIngresoInsumo = false;
-    }
-
-    [RelayCommand]
-    private void AbrirNuevoInsumo()
-    {
-        NuevoInsumoCodigo = $"INS-00{InsumosGlobales.Count + 1}";
-        NuevoInsumoNombre = string.Empty;
-        NuevoInsumoUnidad = "kg";
-        NuevoInsumoStockInicial = 10;
-        NuevoInsumoStockMinimo = 10;
-        MostrarDialogoNuevoInsumo = true;
-    }
-
-    [RelayCommand]
-    private void GuardarNuevoInsumo()
-    {
-        if (!string.IsNullOrWhiteSpace(NuevoInsumoNombre))
-        {
-            var nuevo = new InsumoGlobalItem
-            {
-                InsumoId = InsumosGlobales.Count + 1,
-                Codigo = NuevoInsumoCodigo,
-                Nombre = NuevoInsumoNombre,
-                UnidadMedida = NuevoInsumoUnidad,
-                StockActual = NuevoInsumoStockInicial,
-                StockMinimo = NuevoInsumoStockMinimo
-            };
-            InsumosGlobales.Add(nuevo);
-        }
-        MostrarDialogoNuevoInsumo = false;
-    }
-
-    [RelayCommand]
-    private void CerrarNuevoInsumo()
-    {
-        MostrarDialogoNuevoInsumo = false;
     }
 }
