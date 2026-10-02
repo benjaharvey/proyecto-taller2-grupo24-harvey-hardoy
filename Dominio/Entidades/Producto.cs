@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Dominio.Entidades
+{
+    public class Producto
+    {
+        public int Id {get; set; }
+        public String Nombre {get; set; } = "";
+        /* PREGUNTAR SI GUARDAMOS CON INT O CON FLOAT/DECIMAL */
+        public int Precio {get; set; }
+        public string? RutaImagen { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
+        public int CategoriaId {get; set;}
+
+        public Categoria? Categoria { get; set; }
+
+    }
+}

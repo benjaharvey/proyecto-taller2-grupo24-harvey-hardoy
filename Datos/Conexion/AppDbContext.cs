@@ -11,6 +11,9 @@ namespace Datos.Conexion
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Rol> Roles { get; set; }
 
+        public DbSet<Producto> Productos {get; set;}
+        public DbSet<Categoria> Categorias {get; set;} 
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
