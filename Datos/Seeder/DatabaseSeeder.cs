@@ -146,6 +146,43 @@ namespace Datos.Seeder
             }
 
             context.SaveChanges();
+
+            // 4. Insumos iniciales de prueba
+            var insumosSeed = new[]
+            {
+                new { Nombre = "Harina 0000", Unidad = "kg", Stock = 45.0m, StockMinimo = 15.0m },
+                new { Nombre = "Dulce de Leche Repostero", Unidad = "kg", Stock = 8.5m, StockMinimo = 12.0m },
+                new { Nombre = "Chocolate Semiamargo", Unidad = "kg", Stock = 25.0m, StockMinimo = 10.0m }
+            };
+
+            foreach (var ins in insumosSeed)
+            {
+                if (context.Insumos.Any(x => x.Nombre == ins.Nombre && x.DeletedAt == null))
+                    continue;
+
+                var borrado = context.Insumos.FirstOrDefault(x => x.Nombre == ins.Nombre);
+                if (borrado != null)
+                {
+                    borrado.DeletedAt = null;
+                    borrado.Unidad = ins.Unidad;
+                    borrado.Stock = ins.Stock;
+                    borrado.StockMinimo = ins.StockMinimo;
+                    borrado.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    context.Insumos.Add(new Insumo
+                    {
+                        Nombre = ins.Nombre,
+                        Unidad = ins.Unidad,
+                        Stock = ins.Stock,
+                        StockMinimo = ins.StockMinimo,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            context.SaveChanges();
         }
     }
 }

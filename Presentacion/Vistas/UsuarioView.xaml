@@ -105,33 +105,35 @@
                         </StackPanel>
                     </Grid>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <StackPanel Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
+                            <Button Content="Actualizar Usuario"
+                                    Style="{StaticResource OutlineButtonStyle}"
+                                    Padding="14,6"
+                                    Margin="0,0,8,0"
+                                    IsEnabled="{Binding EsEdicion}"
+                                    Command="{Binding ActualizarCommand}"/>
+                            <Button Content="Guardar Usuario"
+                                    Padding="14,6"
+                                    Command="{Binding GuardarCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+                                        <Setter Property="IsEnabled" Value="True"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding EsEdicion}" Value="True">
+                                                <Setter Property="IsEnabled" Value="False"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+
                         <Button Content="Cancelar"
                                 Style="{StaticResource OutlineButtonStyle}"
+                                HorizontalAlignment="Right"
                                 Padding="14,6"
-                                Margin="4,2,8,2"
                                 Command="{Binding CancelarCommand}"/>
-                        <Button Content="Actualizar Usuario"
-                                Style="{StaticResource OutlineButtonStyle}"
-                                Padding="14,6"
-                                Margin="0,2,8,2"
-                                IsEnabled="{Binding EsEdicion}"
-                                Command="{Binding ActualizarCommand}"/>
-                        <Button Content="Guardar Usuario"
-                                Padding="14,6"
-                                Margin="0,2,0,2"
-                                Command="{Binding GuardarCommand}">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
-                                    <Setter Property="IsEnabled" Value="True"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding EsEdicion}" Value="True">
-                                            <Setter Property="IsEnabled" Value="False"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>

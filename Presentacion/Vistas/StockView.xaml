@@ -102,8 +102,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="180" />
-                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
@@ -132,24 +131,38 @@
                     </TextBox.Style>
                 </TextBox>
 
-                <!-- Branch Filter -->
-                <ComboBox Grid.Column="1" 
-                          ItemsSource="{Binding Sucursales}" 
-                          SelectedItem="{Binding FiltroSucursal}"
-                          Margin="0,0,10,0"
-                          Padding="8,6"
-                          BorderBrush="{StaticResource SecondaryBrush}"/>
+                <!-- Product Filters (visible only in Productos tab) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding TabActivo}" Value="Productos">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
 
-                <!-- Category Filter -->
-                <ComboBox Grid.Column="2" 
-                          ItemsSource="{Binding Categorias}" 
-                          SelectedItem="{Binding FiltroCategoria}"
-                          Margin="0,0,10,0"
-                          Padding="8,6"
-                          BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <!-- Branch Filter -->
+                    <ComboBox Width="180"
+                              ItemsSource="{Binding Sucursales}" 
+                              SelectedItem="{Binding FiltroSucursal}"
+                              Margin="0,0,10,0"
+                              Padding="8,6"
+                              BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <!-- Category Filter -->
+                    <ComboBox Width="160"
+                              ItemsSource="{Binding Categorias}" 
+                              SelectedItem="{Binding FiltroCategoria}"
+                              Margin="0,0,10,0"
+                              Padding="8,6"
+                              BorderBrush="{StaticResource SecondaryBrush}"/>
+                </StackPanel>
 
                 <!-- Insumo Action Buttons (visible in Insumos tab) -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
                             <Setter Property="Visibility" Value="Collapsed"/>
