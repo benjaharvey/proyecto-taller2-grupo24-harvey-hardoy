@@ -47,7 +47,39 @@ namespace Datos.Repositorios
             context.SaveChanges();
         }
 
-        
+        public void Actualizar(Categoria p_categoria)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var categoriaExistente = context.Categorias.FirstOrDefault(categoria => categoria.Id == p_categoria.Id && categoria.DeletedAt == null)
+                ?? throw new InvalidOperationException("La categoria que intentás modificar ya no existe. Recargá la lista.");
 
+            categoriaExistente.Nombre = p_categoria.Nombre;
+            categoriaExistente.UpdatedAt = DateTime.Now;
+            context.SaveChanges();
+        }
+
+        public void Eliminar(int id)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var categoria = context.Categorias.FirstOrDefault(categoria => categoria.Id == id && categoria.DeletedAt == null);
+            if(categoria == null)
+            {
+                throw new InvalidOperationException("La categoria que intentas eliminar no existe!. Reingrese el id");
+            } else
+            {
+                categoria.DeletedAt = DateTime.Now;
+                context.SaveChanges();
+            }
+        }
+
+        public void Reactivar(int id)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var categoria = context.Categorias.FirstOrDefault(p_categoria => p_categoria.Id == id);
+            if (categoria == null) return;
+            categoria.DeletedAt = null;
+            categoria.UpdatedAt = DateTime.Now;
+            context.SaveChanges();
+        }
     }
 }
