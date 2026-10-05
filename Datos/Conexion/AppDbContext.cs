@@ -10,9 +10,22 @@ namespace Datos.Conexion
 
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Rol> Roles { get; set; }
+        public DbSet<Sucursal> Sucursales { get; set; }
+        public DbSet<Insumo> Insumos { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Insumo>(entity =>
+            {
+                entity.Property(e => e.Stock).HasPrecision(18, 3);
+                entity.Property(e => e.StockMinimo).HasPrecision(18, 3);
+            });
         }
     }
 }

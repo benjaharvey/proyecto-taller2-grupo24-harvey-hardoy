@@ -71,6 +71,7 @@ public partial class MainWindow : FluentWindow
             RbCocina.Visibility = Visibility.Collapsed;
             RbClientes.Visibility = Visibility.Collapsed;
             RbBackup.Visibility = Visibility.Visible;
+            RbSucursales.Visibility = Visibility.Visible;
         }
         else if (rol == "Cocinero")
         {
@@ -78,6 +79,7 @@ public partial class MainWindow : FluentWindow
             RbVentas.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbUsuario.Visibility = Visibility.Collapsed;
+            RbSucursales.Visibility = Visibility.Collapsed;
             RbClientes.Visibility = Visibility.Collapsed;
             RbBackup.Visibility = Visibility.Collapsed;
 
@@ -93,6 +95,7 @@ public partial class MainWindow : FluentWindow
             RbCocina.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbUsuario.Visibility = Visibility.Collapsed;
+            RbSucursales.Visibility = Visibility.Collapsed;
             RbClientes.Visibility = Visibility.Visible;
             RbBackup.Visibility = Visibility.Collapsed;
 
@@ -104,6 +107,7 @@ public partial class MainWindow : FluentWindow
         else
         {
             RbUsuario.Visibility = Visibility.Collapsed;
+            RbSucursales.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbVentas.Visibility = Visibility.Collapsed;
             RbCocina.Visibility = Visibility.Collapsed;
@@ -130,6 +134,7 @@ public partial class MainWindow : FluentWindow
         RbCocina.IsChecked = section == "Cocina";
         RbReportes.IsChecked = section == "Reportes";
         RbUsuario.IsChecked = section == "Usuario";
+        RbSucursales.IsChecked = section == "Sucursales";
         RbBackup.IsChecked = section == "Backup";
     }
 }

@@ -4,15 +4,15 @@ using Presentacion.ViewModels;
 
 namespace Presentacion.Vistas;
 
-public partial class StockView : UserControl
+public partial class SucursalesView : UserControl
 {
-    public StockView()
+    public SucursalesView()
     {
         InitializeComponent();
 
         if (!System.ComponentModel.DesignerProperties.GetIsInDesignMode(this))
         {
-            DataContext = App.Services.GetRequiredService<StockViewModel>();
+            DataContext = App.Services.GetRequiredService<SucursalViewModel>();
         }
     }
 }
