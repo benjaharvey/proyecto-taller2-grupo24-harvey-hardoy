@@ -40,6 +40,12 @@ public partial class App : Application
         services.AddTransient<ReactivarUsuario>();
         services.AddTransient<ListarUsuarios>();
 
+        services.AddTransient<CrearProducto>();
+        services.AddTransient<ActualizarProducto>();
+        services.AddTransient<EliminarProducto>();
+        services.AddTransient<ListarProductos>();
+        services.AddTransient<ReactivarProducto>();
+
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
         services.AddTransient<IniciarSesion>();

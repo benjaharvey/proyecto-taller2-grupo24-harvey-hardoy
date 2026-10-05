@@ -56,8 +56,15 @@ namespace Datos.Repositorios
         public void Actualizar(Producto p_Producto)
         {
             using var context = _contextFactory.CreateDbContext();
-            var productoExistente = context.Productos.FirstOrDefault(producto => producto.Id == p_Producto.Id && producto.DeletedAt == null);
+            var productoExistente = context.Productos.FirstOrDefault(producto => producto.Id == p_Producto.Id && producto.DeletedAt == null)
+                ?? throw new InvalidOperationException("El producto que intentás modificar ya no existe. Recargá la lista.");
 
+            productoExistente.Nombre = p_Producto.Nombre;
+            productoExistente.Precio = p_Producto.Precio;
+            productoExistente.RutaImagen = p_Producto.RutaImagen;
+            productoExistente.CategoriaId = p_Producto.CategoriaId;
+            productoExistente.UpdatedAt = DateTime.Now;
+            context.SaveChanges();
         }
 
         public void Eliminar(int id)
