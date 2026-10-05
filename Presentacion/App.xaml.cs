@@ -46,6 +46,12 @@ public partial class App : Application
         services.AddTransient<ListarProductos>();
         services.AddTransient<ReactivarProducto>();
 
+        services.AddTransient<CrearCategoria>();
+        services.AddTransient<ActualizarCategoria>();
+        services.AddTransient<EliminarCategoria>();
+        services.AddTransient<ListarCategorias>();
+        services.AddTransient<ReactivarCategoria>();
+
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
         services.AddTransient<IniciarSesion>();
