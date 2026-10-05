@@ -6,11 +6,8 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:vm="clr-namespace:Presentacion.ViewModels"
              mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:StockViewModel}"
              d:DesignHeight="750" d:DesignWidth="1000">
-
-    <UserControl.DataContext>
-        <vm:StockViewModel />
-    </UserControl.DataContext>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -105,8 +102,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="180" />
-                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
@@ -135,24 +131,38 @@
                     </TextBox.Style>
                 </TextBox>
 
-                <!-- Branch Filter -->
-                <ComboBox Grid.Column="1" 
-                          ItemsSource="{Binding Sucursales}" 
-                          SelectedItem="{Binding FiltroSucursal}"
-                          Margin="0,0,10,0"
-                          Padding="8,6"
-                          BorderBrush="{StaticResource SecondaryBrush}"/>
+                <!-- Product Filters (visible only in Productos tab) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding TabActivo}" Value="Productos">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
 
-                <!-- Category Filter -->
-                <ComboBox Grid.Column="2" 
-                          ItemsSource="{Binding Categorias}" 
-                          SelectedItem="{Binding FiltroCategoria}"
-                          Margin="0,0,10,0"
-                          Padding="8,6"
-                          BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <!-- Branch Filter -->
+                    <ComboBox Width="180"
+                              ItemsSource="{Binding Sucursales}" 
+                              SelectedItem="{Binding FiltroSucursal}"
+                              Margin="0,0,10,0"
+                              Padding="8,6"
+                              BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <!-- Category Filter -->
+                    <ComboBox Width="160"
+                              ItemsSource="{Binding Categorias}" 
+                              SelectedItem="{Binding FiltroCategoria}"
+                              Margin="0,0,10,0"
+                              Padding="8,6"
+                              BorderBrush="{StaticResource SecondaryBrush}"/>
+                </StackPanel>
 
                 <!-- Insumo Action Buttons (visible in Insumos tab) -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -165,13 +175,13 @@
                     </StackPanel.Style>
 
                     <Button Content="➕ Nuevo Insumo"
-                            Command="{Binding AbrirNuevoInsumoCommand}"
+                            Command="{Binding InsumosVM.AbrirNuevoInsumoCommand}"
                             Style="{StaticResource AccentButtonStyle}"
                             Padding="12,6"
                             Margin="0,0,8,0"/>
 
                     <Button Content="📥 Ingreso de Stock"
-                            Command="{Binding AbrirIngresoInsumoCommand}"
+                            Command="{Binding InsumosVM.AbrirIngresoInsumoCommand}"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Padding="12,6"/>
                 </StackPanel>
@@ -290,7 +300,8 @@
                 </Style>
             </Border.Style>
 
-            <DataGrid ItemsSource="{Binding InsumosGlobales}"
+            <DataGrid ItemsSource="{Binding InsumosVM.InsumosFiltrados}"
+                      SelectedItem="{Binding InsumosVM.SelectedInsumo}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       HeadersVisibility="Column"
@@ -313,11 +324,11 @@
                 </DataGrid.Resources>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Código" Binding="{Binding Codigo}" Width="110" />
+                    <DataGridTextColumn Header="Código" Binding="{Binding Codigo}" Width="100" />
                     <DataGridTextColumn Header="Insumo (Cocina Central)" Binding="{Binding Nombre}" Width="3*" />
-                    <DataGridTextColumn Header="Existencia Actual" Binding="{Binding StockActual, StringFormat='{}{0:N1}'}" Width="130" />
-                    <DataGridTextColumn Header="Unidad" Binding="{Binding UnidadMedida}" Width="90" />
-                    <DataGridTextColumn Header="Stock Mínimo" Binding="{Binding StockMinimo, StringFormat='{}{0:N1}'}" Width="110" />
+                    <DataGridTextColumn Header="Existencia Actual" Binding="{Binding Stock, StringFormat='{}{0:N3}'}" Width="130" />
+                    <DataGridTextColumn Header="Unidad" Binding="{Binding Unidad}" Width="80" />
+                    <DataGridTextColumn Header="Stock Mínimo" Binding="{Binding StockMinimo, StringFormat='{}{0:N3}'}" Width="110" />
 
                     <!-- Status -->
                     <DataGridTemplateColumn Header="Estado" Width="130">
@@ -331,6 +342,12 @@
                                                 <DataTrigger Binding="{Binding NivelAlerta}" Value="Bajo Stock">
                                                     <Setter Property="Background" Value="#FEF7E0" />
                                                 </DataTrigger>
+                                                <DataTrigger Binding="{Binding NivelAlerta}" Value="Sin Stock">
+                                                    <Setter Property="Background" Value="#FCE8E6" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding NivelAlerta}" Value="Inactivo">
+                                                    <Setter Property="Background" Value="#F1F3F4" />
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
@@ -342,6 +359,12 @@
                                                     <DataTrigger Binding="{Binding NivelAlerta}" Value="Bajo Stock">
                                                         <Setter Property="Foreground" Value="#B06000" />
                                                     </DataTrigger>
+                                                    <DataTrigger Binding="{Binding NivelAlerta}" Value="Sin Stock">
+                                                        <Setter Property="Foreground" Value="#C5221F" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding NivelAlerta}" Value="Inactivo">
+                                                        <Setter Property="Foreground" Value="#70757A" />
+                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </TextBlock.Style>
@@ -352,16 +375,27 @@
                     </DataGridTemplateColumn>
 
                     <!-- Actions -->
-                    <DataGridTemplateColumn Header="Acciones" Width="120">
+                    <DataGridTemplateColumn Header="Acciones" Width="160">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Content="➕ Sumar Stock" 
-                                        Command="{Binding DataContext.AbrirIngresoInsumoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}"
-                                        Style="{StaticResource GhostIconButton}"
-                                        Foreground="{StaticResource AccentBrush}"
-                                        FontWeight="SemiBold"
-                                        FontSize="11"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="➕ Sumar" 
+                                            Command="{Binding DataContext.InsumosVM.AbrirIngresoInsumoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource GhostIconButton}"
+                                            Foreground="{StaticResource AccentBrush}"
+                                            FontWeight="SemiBold"
+                                            FontSize="11"
+                                            Margin="0,0,8,0"/>
+
+                                    <Button Content="⚙️ Estado" 
+                                            Command="{Binding DataContext.InsumosVM.CambiarEstadoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource GhostIconButton}"
+                                            Foreground="{StaticResource PrimaryBrush}"
+                                            FontWeight="SemiBold"
+                                            FontSize="11"/>
+                                </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -427,7 +461,7 @@
                 <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Collapsed"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding MostrarDialogoIngresoInsumo}" Value="True">
+                        <DataTrigger Binding="{Binding InsumosVM.MostrarDialogoIngresoInsumo}" Value="True">
                             <Setter Property="Visibility" Value="Visible"/>
                         </DataTrigger>
                     </Style.Triggers>
@@ -440,8 +474,8 @@
                     <TextBlock Text="Incrementa la existencia de cocina central por compra o entrega" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
 
                     <TextBlock Text="Insumo Seleccionado (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding InsumosGlobales}" 
-                              SelectedItem="{Binding InsumoSeleccionado}" 
+                    <ComboBox ItemsSource="{Binding InsumosVM.InsumosFiltrados}" 
+                              SelectedItem="{Binding InsumosVM.InsumoSeleccionadoIngreso}" 
                               DisplayMemberPath="Nombre"
                               Padding="6,4" 
                               Margin="0,0,0,12" 
@@ -454,21 +488,21 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="Cantidad a Ingresar (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding CantidadIngresoInsumo}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding InsumosVM.CantidadIngresoInsumo, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="0,0,0,4">
-                            <TextBlock Text="{Binding InsumoSeleccionado.UnidadMedida}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/>
+                            <TextBlock Text="{Binding InsumosVM.InsumoSeleccionadoIngreso.Unidad}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/>
                         </StackPanel>
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" 
-                                Command="{Binding CerrarIngresoInsumoCommand}"
+                                Command="{Binding InsumosVM.CerrarIngresoInsumoCommand}"
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
                                 Margin="0,0,8,0"/>
                         <Button Content="Registrar Ingreso" 
-                                Command="{Binding GuardarIngresoInsumoCommand}"
+                                Command="{Binding InsumosVM.GuardarIngresoInsumoCommand}"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Padding="14,6"/>
                     </StackPanel>
@@ -476,13 +510,13 @@
             </Border>
         </Grid>
 
-        <!-- MODAL: Registrar Nuevo Tipo de Insumo -->
+        <!-- MODAL: Registrar Nuevo Tipo de Insumo (RF-07) -->
         <Grid Grid.RowSpan="3" Background="#70000000">
             <Grid.Style>
                 <Style TargetType="Grid">
                     <Setter Property="Visibility" Value="Collapsed"/>
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding MostrarDialogoNuevoInsumo}" Value="True">
+                        <DataTrigger Binding="{Binding InsumosVM.MostrarDialogoNuevoInsumo}" Value="True">
                             <Setter Property="Visibility" Value="Visible"/>
                         </DataTrigger>
                     </Style.Triggers>
@@ -494,23 +528,11 @@
                     <TextBlock Text="Nuevo Tipo de Insumo" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,4"/>
                     <TextBlock Text="Dar de alta un nuevo ingrediente o insumo para cocina" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
 
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                            <TextBlock Text="Código (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding NuevoInsumoCodigo}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="Unidad de Medida (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <ComboBox ItemsSource="{Binding UnidadesMedida}" SelectedItem="{Binding NuevoInsumoUnidad}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
-                        </StackPanel>
-                    </Grid>
-
                     <TextBlock Text="Nombre del Insumo (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding NuevoInsumoNombre}" Padding="6,4" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <TextBox Text="{Binding InsumosVM.FormNombre, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                    <TextBlock Text="Unidad de Medida (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <ComboBox ItemsSource="{Binding InsumosVM.UnidadesSugeridas}" SelectedItem="{Binding InsumosVM.FormUnidad}" IsEditable="True" Padding="6,4" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
@@ -519,22 +541,22 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Stock Inicial" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding NuevoInsumoStockInicial}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding InsumosVM.FormStock, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Stock Mínimo (Alerta)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding NuevoInsumoStockMinimo}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding InsumosVM.FormStockMinimo, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" 
-                                Command="{Binding CerrarNuevoInsumoCommand}"
+                                Command="{Binding InsumosVM.CerrarNuevoInsumoCommand}"
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="14,6"
                                 Margin="0,0,8,0"/>
                         <Button Content="Crear Insumo" 
-                                Command="{Binding GuardarNuevoInsumoCommand}"
+                                Command="{Binding InsumosVM.GuardarNuevoInsumoCommand}"
                                 Style="{StaticResource PrimaryButtonStyle}"
                                 Padding="14,6"/>
                     </StackPanel>
