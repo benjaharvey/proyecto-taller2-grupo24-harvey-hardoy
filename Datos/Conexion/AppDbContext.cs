@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Dominio.Entidades;
+using System.Net.NetworkInformation;
 
 namespace Datos.Conexion
 {
@@ -12,9 +13,9 @@ namespace Datos.Conexion
         public DbSet<Rol> Roles { get; set; }
         public DbSet<Sucursal> Sucursales { get; set; }
         public DbSet<Insumo> Insumos { get; set; }
-
         public DbSet<Producto> Productos {get; set;}
         public DbSet<Categoria> Categorias {get; set;} 
+        public DbSet<ProductoInsumo> ProductosInsumos {get; set;}
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -28,6 +29,13 @@ namespace Datos.Conexion
             {
                 entity.Property(e => e.Stock).HasPrecision(18, 3);
                 entity.Property(e => e.StockMinimo).HasPrecision(18, 3);
+            });
+
+            modelBuilder.Entity<ProductoInsumo>(entity =>
+            {
+               entity.HasKey(pi => new { pi.InsumoId, pi.ProductoId});
+
+               entity.Property(pi => pi.CantidadNecesaria).HasPrecision(18,3 );
             });
         }
     }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Aplicacion.DTOs
+﻿namespace Aplicacion.DTOs
 {
     public class ProductoDTO
     {
@@ -25,5 +19,8 @@ namespace Aplicacion.DTOs
         public DateTime? UpdatedAt { get; set; }
 
         public DateTime? DeletedAt { get; set; }
+
+         public List<ProductoInsumoDTO> Receta { get; set; } = new();
+
     }
 }

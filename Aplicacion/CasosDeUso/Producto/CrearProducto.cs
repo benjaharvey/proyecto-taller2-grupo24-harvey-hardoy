@@ -22,7 +22,12 @@ namespace Aplicacion.CasosDeUso
                 Nombre = dto.Nombre,
                 Precio = dto.Precio,
                 CategoriaId = dto.CategoriaId,
-                RutaImagen = dto.RutaImagen
+                RutaImagen = dto.RutaImagen,
+                ProductoInsumos = dto.Receta.Select(r => new ProductoInsumo
+                {
+                    InsumoId = r.InsumoId,
+                    CantidadNecesaria = r.CantidadNecesaria
+                }).ToList()
             };
             _repositorio.Agregar(NuevoProducto);
         }

@@ -39,9 +39,9 @@ namespace Datos.Repositorios
 
         public bool EstaEnRecetaActiva(int id)
         {
-            // Nota de arquitectura: Cuando se incorporen las entidades de Receta/Producto en la BD,
-            // aquí se consultará la existencia en recetas vinculadas a productos activos.
-            return false;
+            using var context = _contextFactory.CreateDbContext();
+            return context.ProductosInsumos
+                .Any(pi => pi.InsumoId == id && pi.Producto != null && pi.Producto.DeletedAt == null);
         }
 
         public void Agregar(Insumo insumo)

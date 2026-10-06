@@ -12,11 +12,39 @@ namespace Aplicacion.CasosDeUso
             ValidarNombre(dto.Nombre);
             ValidarPrecio(dto.Precio);
             ValidarCategoriaId(dto.CategoriaId);
+            ValidarReceta(dto.Receta);
 
             var conMismoNombre = repo.ObtenerPorNombre(dto.Nombre);
             if(conMismoNombre != null && conMismoNombre.Id != idExistente)
             {
                 throw new InvalidOperationException("Ya existe un producto con ese nombre.");
+            }
+        }
+
+        private static void ValidarReceta(List<ProductoInsumoDTO>? receta)
+        {
+            if (receta == null || receta.Count == 0) return;
+
+            foreach (var item in receta)
+            {
+                if (item.InsumoId <= 0)
+                {
+                    throw new InvalidOperationException("Cada insumo de la receta debe ser válido.");
+                }
+
+                if (item.CantidadNecesaria <= 0)
+                {
+                    throw new InvalidOperationException("La cantidad necesaria de cada insumo debe ser mayor a cero.");
+                }
+            }
+
+            var insumosDuplicados = receta
+                .GroupBy(i => i.InsumoId)
+                .Any(g => g.Count() > 1);
+
+            if (insumosDuplicados)
+            {
+                throw new InvalidOperationException("No se pueden repetir insumos en la misma receta.");
             }
         }
 

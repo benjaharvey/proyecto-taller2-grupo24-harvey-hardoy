@@ -24,13 +24,17 @@ namespace Datos.Repositorios
         public List<Producto> ObtenerTodos()
         {
             using var context = _contextFactory.CreateDbContext();
-            return context.Productos.Where(producto => producto.DeletedAt == null).ToList();
+            return context.Productos.Include(p => p.ProductoInsumos)
+            .ThenInclude(pi => pi.Insumo)
+            .Where(producto => producto.DeletedAt == null).ToList();
         }
 
         public Producto? ObtenerPorId(int id)
         {
             using var context = _contextFactory.CreateDbContext();
-            return context.Productos.FirstOrDefault(producto => producto.Id == id && producto.DeletedAt == null);
+            return context.Productos.Include(p => p.ProductoInsumos)
+            .ThenInclude(pi => pi.Insumo)
+            .FirstOrDefault(producto => producto.Id == id && producto.DeletedAt == null);
         }
 
         public Producto? ObtenerPorNombre(string nombre)
@@ -56,13 +60,50 @@ namespace Datos.Repositorios
         public void Actualizar(Producto p_Producto)
         {
             using var context = _contextFactory.CreateDbContext();
-            var productoExistente = context.Productos.FirstOrDefault(producto => producto.Id == p_Producto.Id && producto.DeletedAt == null)
+            var productoExistente = context.Productos
+                                            .Include(p => p.ProductoInsumos)
+                                            .FirstOrDefault(producto => producto.Id == p_Producto.Id && producto.DeletedAt == null)
                 ?? throw new InvalidOperationException("El producto que intentás modificar ya no existe. Recargá la lista.");
 
             productoExistente.Nombre = p_Producto.Nombre;
             productoExistente.Precio = p_Producto.Precio;
             productoExistente.RutaImagen = p_Producto.RutaImagen;
             productoExistente.CategoriaId = p_Producto.CategoriaId;
+
+            // Sacar insumos que el usuario saco de la receta
+            var nuevosInsumoIds = p_Producto.ProductoInsumos.Select(pi => pi.InsumoId).ToHashSet();
+                var insumosAEliminar = productoExistente.ProductoInsumos
+                    .Where(pi => !nuevosInsumoIds.Contains(pi.InsumoId))
+                    .ToList();
+
+                foreach (var item in insumosAEliminar)
+                {
+                    productoExistente.ProductoInsumos.Remove(item);
+                }
+
+                // Modificar existentes o agregar nuevos
+                foreach (var nuevoItem in p_Producto.ProductoInsumos)
+                {
+                    var existente = productoExistente.ProductoInsumos
+                        .FirstOrDefault(pi => pi.InsumoId == nuevoItem.InsumoId);
+
+                    if (existente != null)
+                    {
+                        // Si ya estaba, actualizamos la cantidad
+                        existente.CantidadNecesaria = nuevoItem.CantidadNecesaria;
+                    }
+                    else
+                    {
+                        // Si es nuevo en la receta, lo agregamos
+                        productoExistente.ProductoInsumos.Add(new ProductoInsumo
+                        {
+                            ProductoId = productoExistente.Id,
+                            InsumoId = nuevoItem.InsumoId,
+                            CantidadNecesaria = nuevoItem.CantidadNecesaria
+                        });
+                    }
+                }
+
             productoExistente.UpdatedAt = DateTime.Now;
             context.SaveChanges();
         }
