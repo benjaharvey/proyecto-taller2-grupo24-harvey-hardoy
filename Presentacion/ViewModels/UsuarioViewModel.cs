@@ -71,7 +71,10 @@ public partial class UsuarioViewModel : ObservableObject
     private SucursalOpcion? _formSucursalSeleccionada;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PuedeEditarDni))]
     private bool _esEdicion;
+
+    public bool PuedeEditarDni => !EsEdicion;
 
     [ObservableProperty]
     private bool _mostrarSucursal;
@@ -401,7 +404,7 @@ public partial class UsuarioViewModel : ObservableObject
         {
             Nombre = FormNombre.Trim(),
             Apellido = FormApellido.Trim(),
-            Dni = FormDni.Trim(),
+            Dni = (esEdicion && SelectedUsuario != null) ? SelectedUsuario.Dni : FormDni.Trim(),
             Email = FormEmail.Trim(),
             Password = FormPassword,
             FechaNacimiento = fechaNacimiento,

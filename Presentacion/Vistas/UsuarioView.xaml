@@ -56,7 +56,7 @@
                     </Grid>
 
                     <TextBlock Text="DNI" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" PreviewTextInput="SoloDigitos_PreviewTextInput" DataObject.Pasting="SoloDigitos_Pasting" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                    <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding PuedeEditarDni}" MaxLength="8" PreviewTextInput="SoloDigitos_PreviewTextInput" DataObject.Pasting="SoloDigitos_Pasting" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                     <TextBlock Text="Email" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>

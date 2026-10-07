@@ -66,7 +66,6 @@ namespace Datos.Repositorios
 
             existente.Nombre = usuario.Nombre;
             existente.Apellido = usuario.Apellido;
-            existente.Dni = usuario.Dni;
             existente.Email = usuario.Email;
             if (!string.IsNullOrEmpty(usuario.Password))
             {

@@ -85,6 +85,13 @@ namespace Aplicacion.CasosDeUso
                     throw new InvalidOperationException("El ID de sucursal debe ser un número mayor a 0.");
             }
 
+            if (idExistente.HasValue)
+            {
+                var usuarioExistente = repo.ObtenerPorId(idExistente.Value);
+                if (usuarioExistente != null && !string.Equals(usuarioExistente.Dni, dto.Dni, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("El DNI no puede modificarse.");
+            }
+
             var conMismoEmail = repo.ObtenerPorEmail(dto.Email);
             if (conMismoEmail != null && conMismoEmail.Id != idExistente)
                 throw new InvalidOperationException("Ya existe un usuario con ese email.");
