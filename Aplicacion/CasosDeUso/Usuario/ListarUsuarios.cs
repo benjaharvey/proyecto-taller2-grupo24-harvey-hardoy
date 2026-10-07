@@ -8,11 +8,13 @@ namespace Aplicacion.CasosDeUso
     {
         private readonly IUsuarioRepositorio _repositorioUsuario;
         private readonly IRolRepositorio _repositorioRol;
+        private readonly ISucursalRepositorio _repositorioSucursal;
 
-        public ListarUsuarios(IUsuarioRepositorio repositorioUsuario, IRolRepositorio repositorioRol)
+        public ListarUsuarios(IUsuarioRepositorio repositorioUsuario, IRolRepositorio repositorioRol, ISucursalRepositorio repositorioSucursal)
         {
             _repositorioUsuario = repositorioUsuario;
             _repositorioRol = repositorioRol;
+            _repositorioSucursal = repositorioSucursal;
         }
 
         public List<UsuarioDTO> Ejecutar()
@@ -21,6 +23,7 @@ namespace Aplicacion.CasosDeUso
             foreach (var usuario in _repositorioUsuario.ObtenerTodos())
             {
                 var rol = _repositorioRol.ObtenerPorId(usuario.RolId);
+                var sucursal = _repositorioSucursal.ObtenerPorId(usuario.SucursalId);
                 resultado.Add(new UsuarioDTO
                 {
                     Id = usuario.Id,
@@ -33,6 +36,7 @@ namespace Aplicacion.CasosDeUso
                     RolId = usuario.RolId,
                     NombreRol = rol?.Nombre ?? "Sin rol",
                     SucursalId = usuario.SucursalId,
+                    NombreSucursal = sucursal?.Nombre ?? "Sin sucursal",
                     Activo = usuario.DeletedAt == null,
                     DeletedAt = usuario.DeletedAt
                 });

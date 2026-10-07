@@ -121,7 +121,8 @@ public partial class MainWindow : FluentWindow
         var usuario = SesionActual.UsuarioLogueado;
         if (usuario != null)
         {
-            TxtInfoSesion.Text = $"{usuario.Nombre} {usuario.Apellido} ({usuario.NombreRol})";
+            var sucursal = string.IsNullOrWhiteSpace(usuario.NombreSucursal) ? "Sin sucursal" : usuario.NombreSucursal;
+            TxtInfoSesion.Text = $"{usuario.Nombre} {usuario.Apellido} ({usuario.NombreRol} · {sucursal})";
         }
     }
 

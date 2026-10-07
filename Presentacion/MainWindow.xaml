@@ -366,7 +366,7 @@
                     <Border DockPanel.Dock="Bottom" Margin="12,20" Padding="12" Background="#20000000" CornerRadius="6">
                         <StackPanel>
                             <TextBlock Text="👤 Sesión activa:" FontSize="11" Foreground="{StaticResource SecondaryBrush}"/>
-                            <TextBlock x:Name="TxtInfoSesion" Text="Admin / Sucursal Centro" FontSize="12" FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis" Margin="0,2,0,10"/>
+                            <TextBlock x:Name="TxtInfoSesion" Text="Admin / Sucursal Centro" FontSize="12" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,2,0,10"/>
                             <Button x:Name="BtnCerrarSesion"
                                     Content="🚪 Cerrar Sesión"
                                     Padding="10,6"

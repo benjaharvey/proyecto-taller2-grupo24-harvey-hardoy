@@ -13,11 +13,13 @@ namespace Aplicacion.CasosDeUso
     {
         private readonly IUsuarioRepositorio _repositorio;
         private readonly IRolRepositorio _repositorioRol;
+        private readonly ISucursalRepositorio _repositorioSucursal;
 
-        public IniciarSesion(IUsuarioRepositorio repositorio, IRolRepositorio repositorioRol)
+        public IniciarSesion(IUsuarioRepositorio repositorio, IRolRepositorio repositorioRol, ISucursalRepositorio repositorioSucursal)
         {
             _repositorio = repositorio;
             _repositorioRol = repositorioRol;
+            _repositorioSucursal = repositorioSucursal;
         }
 
         public UsuarioDTO Ejecutar(string email, string contraseñaPlana)
@@ -47,6 +49,7 @@ namespace Aplicacion.CasosDeUso
             }
 
             var rol = _repositorioRol.ObtenerPorId(usuario.RolId);
+            var sucursal = _repositorioSucursal.ObtenerPorId(usuario.SucursalId);
 
             return new UsuarioDTO
             {
@@ -59,7 +62,8 @@ namespace Aplicacion.CasosDeUso
                 Direccion = usuario.Direccion,
                 RolId = usuario.RolId,
                 NombreRol = rol?.Nombre ?? "",
-                SucursalId = usuario.SucursalId
+                SucursalId = usuario.SucursalId,
+                NombreSucursal = sucursal?.Nombre ?? "Sin sucursal"
             };
         }
     }

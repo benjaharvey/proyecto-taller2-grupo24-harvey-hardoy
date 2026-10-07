@@ -15,17 +15,6 @@ namespace Aplicacion.DTOs
         public int SucursalId { get; set; }
         public bool Activo { get; set; } = true;
         public DateTime? DeletedAt { get; set; }
-        public string NombreSucursal => NombreRol switch
-        {
-            "Cocinero" => "Fábrica / Central",
-            "Admin" => "Todas / Central",
-            _ => SucursalId switch
-            {
-                1 => "Sucursal Centro",
-                2 => "Sucursal Norte",
-                3 => "Sucursal Sur",
-                _ => $"Sucursal {SucursalId}"
-            }
-        };
+        public string NombreSucursal { get; set; } = "";
     }
 }
