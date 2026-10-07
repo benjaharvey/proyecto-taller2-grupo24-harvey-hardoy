@@ -7,11 +7,19 @@ namespace Aplicacion.CasosDeUso
     public class ActualizarUsuario
     {
         private readonly IUsuarioRepositorio _repositorio;
-        public ActualizarUsuario(IUsuarioRepositorio repositorio) => _repositorio = repositorio;
+        private readonly IRolRepositorio _rolRepositorio;
+        private readonly ISucursalRepositorio _sucursalRepositorio;
+
+        public ActualizarUsuario(IUsuarioRepositorio repositorio, IRolRepositorio rolRepo, ISucursalRepositorio sucursalRepo)
+        {
+            _repositorio = repositorio;
+            _rolRepositorio = rolRepo;
+            _sucursalRepositorio = sucursalRepo;
+        }
 
         public void Ejecutar(int id, UsuarioCrearDTO dto)
         {
-            ValidadorUsuario.Validar(dto, _repositorio, id);
+            ValidadorUsuario.Validar(dto, _repositorio, _rolRepositorio, _sucursalRepositorio, id);
 
             var usuario = new Usuario
             {

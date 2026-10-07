@@ -44,6 +44,12 @@ namespace Datos.Repositorios
             return context.Usuarios.Count(u => u.RolId == rolId && u.DeletedAt == null);
         }
 
+        public int ContarPorSucursal(int sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            return context.Usuarios.Count(u => u.SucursalId == sucursalId && u.DeletedAt == null);
+        }
+
         public void Agregar(Usuario usuario)
         {
             using var context = _contextFactory.CreateDbContext();

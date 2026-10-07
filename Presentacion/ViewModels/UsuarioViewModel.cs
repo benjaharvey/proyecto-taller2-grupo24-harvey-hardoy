@@ -20,6 +20,7 @@ public partial class UsuarioViewModel : ObservableObject
     private readonly ReactivarUsuario _reactivarUsuario;
     private readonly ListarRoles _listarRoles;
     private readonly ListarUsuarios _listarUsuarios;
+    private readonly ListarSucursales _listarSucursales;
 
     private List<UsuarioDTO> _todosLosUsuarios = new();
 
@@ -87,7 +88,8 @@ public partial class UsuarioViewModel : ObservableObject
         EliminarUsuario eliminarUsuario,
         ReactivarUsuario reactivarUsuario,
         ListarRoles listarRoles,
-        ListarUsuarios listarUsuarios)
+        ListarUsuarios listarUsuarios,
+        ListarSucursales listarSucursales)
     {
         _crearUsuario = crearUsuario;
         _actualizarUsuario = actualizarUsuario;
@@ -95,6 +97,7 @@ public partial class UsuarioViewModel : ObservableObject
         _reactivarUsuario = reactivarUsuario;
         _listarRoles = listarRoles;
         _listarUsuarios = listarUsuarios;
+        _listarSucursales = listarSucursales;
 
         CargarCombos();
         CargarGrilla();
@@ -105,12 +108,10 @@ public partial class UsuarioViewModel : ObservableObject
         var roles = _listarRoles.Ejecutar().Where(r => r.Nombre != "Admin").ToList();
         RolesDisponibles = new ObservableCollection<RolDTO>(roles);
 
-        var sucursales = new List<SucursalOpcion>
-        {
-            new(1, "Sucursal Centro"),
-            new(2, "Sucursal Norte"),
-            new(3, "Sucursal Sur")
-        };
+        var sucursales = _listarSucursales.Ejecutar()
+            .Where(s => string.Equals(s.Estado, "ACTIVA", StringComparison.OrdinalIgnoreCase))
+            .Select(s => new SucursalOpcion(s.Id, s.Nombre))
+            .ToList();
         SucursalesDisponibles = new ObservableCollection<SucursalOpcion>(sucursales);
     }
 
@@ -278,7 +279,8 @@ public partial class UsuarioViewModel : ObservableObject
 
             try
             {
-                _eliminarUsuario.Ejecutar(usuario.Id);
+                var idSesion = SesionActual.UsuarioLogueado?.Id ?? 0;
+                _eliminarUsuario.Ejecutar(usuario.Id, idSesion);
                 MessageBox.Show("Usuario dado de baja correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (InvalidOperationException ex)
@@ -381,7 +383,7 @@ public partial class UsuarioViewModel : ObservableObject
             return false;
         }
 
-        int sucursalId = 1;
+        int sucursalId = 0;
         if (rolNombre == "Vendedor")
         {
             if (FormSucursalSeleccionada != null)
@@ -393,10 +395,6 @@ public partial class UsuarioViewModel : ObservableObject
                 MessageBox.Show("Seleccioná una sucursal para el vendedor.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
-        }
-        else if (rolNombre == "Cocinero")
-        {
-            sucursalId = 1;
         }
 
         dto = new UsuarioCrearDTO

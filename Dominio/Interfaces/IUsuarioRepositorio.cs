@@ -11,6 +11,7 @@ namespace Dominio.Interfaces
         Usuario? ObtenerPorDni(string dni);
 
         int ContarPorRol(int rolId);
+        int ContarPorSucursal(int sucursalId);
 
         void Agregar(Usuario usuario);
         void Actualizar(Usuario usuario);

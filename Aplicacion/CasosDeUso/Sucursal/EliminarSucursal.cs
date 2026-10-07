@@ -8,10 +8,12 @@ namespace Aplicacion.CasosDeUso
         private static readonly string[] SucursalesDelSistema = { "Casa Central", "Fábrica" };
 
         private readonly ISucursalRepositorio _repositorio;
+        private readonly IUsuarioRepositorio _usuarioRepositorio;
 
-        public EliminarSucursal(ISucursalRepositorio repositorio)
+        public EliminarSucursal(ISucursalRepositorio repositorio, IUsuarioRepositorio usuarioRepositorio)
         {
             _repositorio = repositorio;
+            _usuarioRepositorio = usuarioRepositorio;
         }
 
         public void Ejecutar(int id)
@@ -23,6 +25,12 @@ namespace Aplicacion.CasosDeUso
             {
                 throw new InvalidOperationException(
                     $"La sucursal \"{sucursal.Nombre}\" es estructural del sistema y no se puede eliminar.");
+            }
+
+            if (_usuarioRepositorio.ContarPorSucursal(id) > 0)
+            {
+                throw new InvalidOperationException(
+                    "No se puede eliminar la sucursal porque tiene usuarios activos asignados. Reasigná a los empleados primero.");
             }
 
             _repositorio.Eliminar(id);

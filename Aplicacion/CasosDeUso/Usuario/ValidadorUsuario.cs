@@ -22,7 +22,7 @@ namespace Aplicacion.CasosDeUso
         /// Normaliza (trim) el DTO y valida cada campo. Lanza InvalidOperationException con el motivo.
         /// </summary>
         /// <param name="idExistente">Id del usuario que se está editando (null en el alta).</param>
-        public static void Validar(UsuarioCrearDTO dto, IUsuarioRepositorio repo, int? idExistente = null)
+        public static void Validar(UsuarioCrearDTO dto, IUsuarioRepositorio repo, IRolRepositorio rolRepo, ISucursalRepositorio sucursalRepo, int? idExistente = null)
         {
             dto.Nombre = (dto.Nombre ?? "").Trim();
             dto.Apellido = (dto.Apellido ?? "").Trim();
@@ -51,8 +51,39 @@ namespace Aplicacion.CasosDeUso
 
             if (dto.RolId <= 0)
                 throw new InvalidOperationException("Seleccioná un rol.");
-            if (dto.SucursalId <= 0)
-                throw new InvalidOperationException("El ID de sucursal debe ser un número mayor a 0.");
+
+            var rol = rolRepo.ObtenerPorId(dto.RolId)
+                ?? throw new InvalidOperationException("El rol seleccionado no existe.");
+
+            if (rol.Nombre.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                rol.Nombre.Equals("Administrador", StringComparison.OrdinalIgnoreCase))
+            {
+                var casaCentral = sucursalRepo.ObtenerPorNombre("Casa Central")
+                    ?? throw new InvalidOperationException("No se encontró la sucursal \"Casa Central\" en el sistema.");
+                dto.SucursalId = casaCentral.Id;
+            }
+            else if (rol.Nombre.Equals("Cocinero", StringComparison.OrdinalIgnoreCase))
+            {
+                var fabrica = sucursalRepo.ObtenerPorNombre("Fábrica")
+                    ?? throw new InvalidOperationException("No se encontró la sucursal \"Fábrica\" en el sistema.");
+                dto.SucursalId = fabrica.Id;
+            }
+            else if (rol.Nombre.Equals("Vendedor", StringComparison.OrdinalIgnoreCase))
+            {
+                if (dto.SucursalId <= 0)
+                    throw new InvalidOperationException("Debés seleccionar una sucursal para el vendedor.");
+
+                var sucursal = sucursalRepo.ObtenerPorId(dto.SucursalId)
+                    ?? throw new InvalidOperationException("La sucursal seleccionada no existe.");
+
+                if (!string.Equals(sucursal.Estado, "ACTIVA", StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("La sucursal seleccionada no se encuentra activa.");
+            }
+            else
+            {
+                if (dto.SucursalId <= 0)
+                    throw new InvalidOperationException("El ID de sucursal debe ser un número mayor a 0.");
+            }
 
             var conMismoEmail = repo.ObtenerPorEmail(dto.Email);
             if (conMismoEmail != null && conMismoEmail.Id != idExistente)

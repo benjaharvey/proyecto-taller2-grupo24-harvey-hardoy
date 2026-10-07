@@ -7,15 +7,19 @@ namespace Aplicacion.CasosDeUso
     public class CrearUsuario
     {
         private readonly IUsuarioRepositorio _repositorio;
+        private readonly IRolRepositorio _rolRepositorio;
+        private readonly ISucursalRepositorio _sucursalRepositorio;
 
-        public CrearUsuario(IUsuarioRepositorio repo)
+        public CrearUsuario(IUsuarioRepositorio repo, IRolRepositorio rolRepo, ISucursalRepositorio sucursalRepo)
         {
             _repositorio = repo;
+            _rolRepositorio = rolRepo;
+            _sucursalRepositorio = sucursalRepo;
         }
 
         public void Ejecutar(UsuarioCrearDTO dto)
         {
-            ValidadorUsuario.Validar(dto, _repositorio);
+            ValidadorUsuario.Validar(dto, _repositorio, _rolRepositorio, _sucursalRepositorio);
 
             var pUsuario = new Usuario
             {
