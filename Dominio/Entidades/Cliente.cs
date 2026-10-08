@@ -1,4 +1,4 @@
-namespace Dominio.Entidade
+namespace Dominio.Entidades
 {
     public class Cliente{
         public int Id {get; set;}
