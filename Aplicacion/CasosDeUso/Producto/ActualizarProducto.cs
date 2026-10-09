@@ -19,6 +19,7 @@ namespace Aplicacion.CasosDeUso
 
             var ActualizarProducto = new Producto
             {
+                Id = id,
                 Nombre = dto.Nombre,
                 Precio = dto.Precio,
                 CategoriaId = dto.CategoriaId,

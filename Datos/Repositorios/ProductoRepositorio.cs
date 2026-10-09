@@ -21,10 +21,19 @@ namespace Datos.Repositorios
             _contextFactory = contextFactory;
         }
 
-        public List<Producto> ObtenerTodos()
+        public List<Producto> ObtenerTodos(bool incluirEliminadas)
         {
             using var context = _contextFactory.CreateDbContext();
-            return context.Productos.Where(producto => producto.DeletedAt == null).ToList();
+            if (!incluirEliminadas)
+            {
+                return context.Productos
+                .Include(producto => producto.Categoria)
+                .Where(producto => producto.DeletedAt == null)
+                .ToList();
+            } else
+            {
+                return context.Productos.Include(producto => producto.Categoria).ToList();
+            }
         }
 
         public Producto? ObtenerPorId(int id)
