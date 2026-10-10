@@ -1,22 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using Aplicacion.CasosDeUso;
+using Aplicacion.DTOs;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Presentacion.ViewModels;
-
-public class ProductoItem
-{
-    public int Id { get; set; }
-    public string Codigo { get; set; } = string.Empty;
-    public string Nombre { get; set; } = string.Empty;
-    public string Categoria { get; set; } = string.Empty;
-    public decimal Precio { get; set; }
-    public string Descripcion { get; set; } = string.Empty;
-    public bool Activo { get; set; } = true;
-    public string RecetaResumen { get; set; } = string.Empty;
-}
-
 public partial class InsumoRecetaItem : ObservableObject
 {
     [ObservableProperty]
@@ -37,17 +26,31 @@ public class InsumoOpcionItem
 
 public partial class ProductosViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private ObservableCollection<ProductoItem> _productos = new();
+
+    private readonly CrearProducto _crearProducto;
+    private readonly ActualizarProducto _actualizarProducto;
+    private readonly EliminarProducto _eliminarProducto;
+    private readonly ReactivarProducto _reactivarProducto;
+    private readonly ListarProductos _listarProductos;
+
+    private readonly ListarCategorias _listarCategorias;
 
     [ObservableProperty]
-    private ProductoItem? _selectedProducto;
+    private ObservableCollection<ProductoDTO> _productos = new();
+
+    private List<ProductoDTO> _todosLosProductos = new();
+
+    [ObservableProperty]
+    private ProductoDTO? _selectedProducto;
 
     [ObservableProperty]
     private string _busquedaTexto = string.Empty;
 
+    // null = "todas las categorías"
     [ObservableProperty]
-    private string _filtroCategoria = "Todas";
+    private CategoriaDTO? _filtroCategoria;
+
+    public ObservableCollection<CategoriaDTO> Categorias { get; } = new();
 
     [ObservableProperty]
     private string _formTitulo = "Nuevo Producto";
@@ -60,13 +63,13 @@ public partial class ProductosViewModel : ObservableObject
     private string _formNombre = string.Empty;
 
     [ObservableProperty]
-    private string _formCategoria = "Alfajores";
+    private CategoriaDTO? _formCategoria;
 
     [ObservableProperty]
-    private decimal _formPrecio = 0;
+    private int _formPrecio = 0;
 
-    [ObservableProperty]
-    private string _formDescripcion = string.Empty;
+    // null = producto nuevo; con valor = Id del producto que se está editando
+    private int? _productoEditandoId;
 
     [ObservableProperty]
     private ObservableCollection<InsumoRecetaItem> _formRecetaInsumos = new();
@@ -80,17 +83,35 @@ public partial class ProductosViewModel : ObservableObject
 
     [ObservableProperty]
     private decimal _nuevoInsumoCantidad = 50;
-
-    public ObservableCollection<string> Categorias { get; } = new()
-    {
-        "Todas", "Alfajores", "Conitos", "Tabletas", "Tortas", "Especiales"
-    };
-
     public ObservableCollection<InsumoOpcionItem> InsumosDisponibles { get; } = new();
 
-    public ProductosViewModel()
+    public ProductosViewModel(CrearProducto crearProducto, 
+    ActualizarProducto actualizarProducto, 
+    EliminarProducto eliminarProducto, 
+    ReactivarProducto reactivarProducto, 
+    ListarProductos listarProductos,
+    ListarCategorias listarCategorias)
     {
+        _crearProducto = crearProducto;
+        _actualizarProducto = actualizarProducto;
+        _eliminarProducto = eliminarProducto;
+        _reactivarProducto = reactivarProducto;
+        _listarProductos = listarProductos;
+        _listarCategorias = listarCategorias;
+
+        foreach (var categoria in _listarCategorias.Ejecutar())
+        {
+            Categorias.Add(categoria);
+        }
+
+        CargarGrilla();
         LimpiarFormulario();
+    }
+
+    public void CargarGrilla()
+    {
+        _todosLosProductos = _listarProductos.Ejecutar(incluirEliminadas: true);
+        Productos = new ObservableCollection<ProductoDTO>(_todosLosProductos);
     }
 
     private void LimpiarFormulario()
@@ -98,15 +119,16 @@ public partial class ProductosViewModel : ObservableObject
         FormTitulo = "Nuevo Producto";
         FormCodigo = $"PROD-00{Productos.Count + 1}";
         FormNombre = string.Empty;
-        FormCategoria = "Alfajores";
+        FormCategoria = null;
         FormPrecio = 0;
-        FormDescripcion = string.Empty;
+        _productoEditandoId = null;
         FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
     }
 
     [RelayCommand]
-    private void EditarProducto(ProductoItem? prod)
+    private void EditarProducto(ProductoDTO? prod)
     {
+        /*
         if (prod == null) return;
         FormTitulo = $"Editar {prod.Nombre}";
         FormCodigo = prod.Codigo;
@@ -115,6 +137,7 @@ public partial class ProductosViewModel : ObservableObject
         FormPrecio = prod.Precio;
         FormDescripcion = prod.Descripcion;
         FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
+        */
     }
 
     [RelayCommand]
@@ -166,6 +189,7 @@ public partial class ProductosViewModel : ObservableObject
     [RelayCommand]
     private void GuardarFormulario()
     {
+        /*
         if (!string.IsNullOrWhiteSpace(FormNombre))
         {
             var p = new ProductoItem
@@ -183,6 +207,7 @@ public partial class ProductosViewModel : ObservableObject
             SelectedProducto = p;
         }
         LimpiarFormulario();
+        */
     }
 
     [RelayCommand]
@@ -192,8 +217,9 @@ public partial class ProductosViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ToggleEstadoProducto(ProductoItem? prod)
+    private void ToggleEstadoProducto(ProductoDTO? prod)
     {
+        /*
         if (prod != null)
         {
             prod.Activo = !prod.Activo;
@@ -203,5 +229,6 @@ public partial class ProductosViewModel : ObservableObject
                 Productos[index] = prod;
             }
         }
+        */
     }
 }

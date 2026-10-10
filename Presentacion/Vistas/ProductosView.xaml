@@ -8,10 +8,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="950">
 
-    <UserControl.DataContext>
-        <vm:ProductosViewModel />
-    </UserControl.DataContext>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -62,8 +58,9 @@
 
                 <!-- Category Filter -->
                 <ComboBox Grid.Column="1" 
-                          ItemsSource="{Binding Categorias}" 
+                          ItemsSource="{Binding Categorias}"
                           SelectedItem="{Binding FiltroCategoria}"
+                          DisplayMemberPath="Nombre"
                           Margin="0,0,12,0"
                           Padding="8,6"
                           BorderBrush="{StaticResource SecondaryBrush}"
@@ -239,7 +236,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="6,0,0,0">
                                 <TextBlock Text="Categoría" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                                <ComboBox ItemsSource="{Binding Categorias}" SelectedItem="{Binding FormCategoria}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                                <ComboBox ItemsSource="{Binding Categorias}" SelectedItem="{Binding FormCategoria}" DisplayMemberPath="Nombre" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                             </StackPanel>
                         </Grid>
 
@@ -249,11 +246,7 @@
 
                         <!-- Price -->
                         <TextBlock Text="Precio Unitario ($)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormPrecio, StringFormat='N2'}" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
-
-                        <!-- Description -->
-                        <TextBlock Text="Descripción" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormDescripcion}" TextWrapping="Wrap" AcceptsReturn="True" Height="50" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBox Text="{Binding FormPrecio}" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                         <Separator Margin="0,0,0,12" Background="#E2DCD5"/>
 
