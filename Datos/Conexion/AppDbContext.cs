@@ -18,6 +18,8 @@ namespace Datos.Conexion
 
         public DbSet<Cliente> Clientes {get; set;}
 
+        public DbSet<StockSucursal> StocksSucursal { get; set; }
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -30,6 +32,23 @@ namespace Datos.Conexion
             {
                 entity.Property(e => e.Stock).HasPrecision(18, 3);
                 entity.Property(e => e.StockMinimo).HasPrecision(18, 3);
+            });
+
+            modelBuilder.Entity<StockSucursal>(entity =>
+            {
+                entity.HasIndex(s => new { s.SucursalId, s.ProductoId }).IsUnique();
+
+                entity.Property(s => s.Cantidad).HasPrecision(18, 3);
+
+                entity.HasOne(s => s.Sucursal)
+                    .WithMany()
+                    .HasForeignKey(s => s.SucursalId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(s => s.Producto)
+                    .WithMany()
+                    .HasForeignKey(s => s.ProductoId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }
