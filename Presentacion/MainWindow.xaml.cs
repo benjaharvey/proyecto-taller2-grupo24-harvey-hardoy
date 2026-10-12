@@ -91,7 +91,8 @@ public partial class MainWindow : FluentWindow
         else if (rol == "Vendedor")
         {
             RbProductos.Visibility = Visibility.Collapsed;
-            RbStock.Visibility = Visibility.Collapsed;
+            // RF-12: el vendedor consulta el stock de su propia sucursal.
+            RbStock.Visibility = Visibility.Visible;
             RbCocina.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbUsuario.Visibility = Visibility.Collapsed;

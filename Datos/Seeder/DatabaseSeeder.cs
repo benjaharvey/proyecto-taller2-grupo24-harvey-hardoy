@@ -183,36 +183,6 @@ namespace Datos.Seeder
             }
 
             context.SaveChanges();
-
-            // 5. Stock inicial por sucursal (solo si ya hay productos activos; los
-            // productos no se seedean en esta etapa, así que puede no hacer nada)
-            var productosActivos = context.Productos
-                .Where(p => p.DeletedAt == null)
-                .OrderBy(p => p.Id)
-                .Take(2)
-                .ToList();
-
-            foreach (var producto in productosActivos)
-            {
-                foreach (var sucursal in new[] { casaCentral, sucursalCentro })
-                {
-                    var yaExiste = context.StocksSucursal.Any(s =>
-                        s.SucursalId == sucursal.Id && s.ProductoId == producto.Id);
-
-                    if (!yaExiste)
-                    {
-                        context.StocksSucursal.Add(new StockSucursal
-                        {
-                            SucursalId = sucursal.Id,
-                            ProductoId = producto.Id,
-                            Cantidad = 0m,
-                            CreatedAt = DateTime.UtcNow
-                        });
-                    }
-                }
-            }
-
-            context.SaveChanges();
         }
     }
 }

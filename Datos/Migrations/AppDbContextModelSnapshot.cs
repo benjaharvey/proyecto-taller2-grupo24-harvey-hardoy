@@ -203,9 +203,8 @@ namespace Datos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Cantidad")
-                        .HasPrecision(18, 3)
-                        .HasColumnType("decimal(18,3)");
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -317,6 +316,8 @@ namespace Datos.Migrations
 
                     b.HasIndex("RolId");
 
+                    b.HasIndex("SucursalId");
+
                     b.ToTable("Usuarios");
                 });
 
@@ -369,7 +370,15 @@ namespace Datos.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Dominio.Entidades.Sucursal", "Sucursal")
+                        .WithMany()
+                        .HasForeignKey("SucursalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Rol");
+
+                    b.Navigation("Sucursal");
                 });
 #pragma warning restore 612, 618
         }

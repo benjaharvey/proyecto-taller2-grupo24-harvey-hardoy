@@ -38,8 +38,6 @@ namespace Datos.Conexion
             {
                 entity.HasIndex(s => new { s.SucursalId, s.ProductoId }).IsUnique();
 
-                entity.Property(s => s.Cantidad).HasPrecision(18, 3);
-
                 entity.HasOne(s => s.Sucursal)
                     .WithMany()
                     .HasForeignKey(s => s.SucursalId)
@@ -48,6 +46,14 @@ namespace Datos.Conexion
                 entity.HasOne(s => s.Producto)
                     .WithMany()
                     .HasForeignKey(s => s.ProductoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Usuario>(entity =>
+            {
+                entity.HasOne(u => u.Sucursal)
+                    .WithMany()
+                    .HasForeignKey(u => u.SucursalId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

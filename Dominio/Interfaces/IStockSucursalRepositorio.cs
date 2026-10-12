@@ -10,8 +10,8 @@ namespace Dominio.Interfaces
 
         StockSucursal? ObtenerPorSucursalYProducto(int sucursalId, int productoId);
 
-        StockSucursal Ajustar(int sucursalId, int productoId, decimal cantidadResultante);
+        StockSucursal Ajustar(int sucursalId, int productoId, int cantidadResultante);
 
-        void Incrementar(int sucursalId, int productoId, decimal cantidad);
+        void Incrementar(int sucursalId, int productoId, int cantidad);
     }
 }

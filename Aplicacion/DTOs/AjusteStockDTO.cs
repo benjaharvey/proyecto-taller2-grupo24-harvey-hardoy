@@ -2,7 +2,7 @@ namespace Aplicacion.DTOs
 {
     public class AjusteStockDTO
     {
-        public decimal CantidadAnterior { get; set; }
-        public decimal CantidadResultante { get; set; }
+        public int CantidadAnterior { get; set; }
+        public int CantidadResultante { get; set; }
     }
 }

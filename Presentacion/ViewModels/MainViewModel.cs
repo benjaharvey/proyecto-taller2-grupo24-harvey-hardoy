@@ -23,9 +23,11 @@ public partial class MainViewModel : ObservableObject
 
         return rol switch
         {
+            // El admin no ve ventas ni cocina (módulos de otros actores).
             "Admin" => section is not "Ventas" and not "Cocina" and not "Clientes",
             "Cocinero" => section is "Cocina" or "Stock",
-            "Vendedor" => section is "Ventas" or "Clientes",
+            // el vendedor consulta el stock de SU sucursal (solo lectura).
+            "Vendedor" => section is "Ventas" or "Clientes" or "Stock",
             _ => false
         };
     }

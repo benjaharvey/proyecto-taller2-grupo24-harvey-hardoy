@@ -10,7 +10,6 @@ namespace Dominio.Entidades
     {
         public int Id {get; set; }
         public string Nombre {get; set; } = "";
-        /* PREGUNTAR SI GUARDAMOS CON INT O CON FLOAT/DECIMAL */
         public int Precio {get; set; }
         public string? RutaImagen { get; set; }
         public DateTime CreatedAt { get; set; }

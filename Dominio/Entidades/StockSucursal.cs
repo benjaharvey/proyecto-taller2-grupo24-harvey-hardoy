@@ -10,7 +10,7 @@ namespace Dominio.Entidades
         public int ProductoId { get; set; }
         public Producto? Producto { get; set; }
 
-        public decimal Cantidad { get; set; }
+        public int Cantidad { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

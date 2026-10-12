@@ -16,7 +16,7 @@ namespace Aplicacion.DTOs
         public int CategoriaId { get; set; }
         public string NombreCategoria { get; set; } = "";
 
-        public decimal Cantidad { get; set; }
+        public int Cantidad { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

@@ -39,7 +39,7 @@ namespace Datos.Repositorios
                 .FirstOrDefault(s => s.SucursalId == sucursalId && s.ProductoId == productoId);
         }
 
-        public StockSucursal Ajustar(int sucursalId, int productoId, decimal cantidadResultante)
+        public StockSucursal Ajustar(int sucursalId, int productoId, int cantidadResultante)
         {
             if (cantidadResultante < 0)
                 throw new InvalidOperationException("La cantidad resultante no puede ser negativa.");
@@ -71,7 +71,7 @@ namespace Datos.Repositorios
             return stock;
         }
 
-        public void Incrementar(int sucursalId, int productoId, decimal cantidad)
+        public void Incrementar(int sucursalId, int productoId, int cantidad)
         {
             if (cantidad < 0)
                 throw new InvalidOperationException("La cantidad a incrementar no puede ser negativa.");

@@ -22,5 +22,6 @@ namespace Dominio.Entidades
         public int SucursalId { get; set; }
 
         public Rol? Rol { get; set; }
+        public Sucursal? Sucursal { get; set; }
     }
 }

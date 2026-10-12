@@ -12,14 +12,14 @@ namespace Aplicacion.CasosDeUso
             _repositorio = repositorio;
         }
 
-        public AjusteStockDTO Ejecutar(int sucursalId, int productoId, decimal cantidadResultante)
+        public AjusteStockDTO Ejecutar(int sucursalId, int productoId, int cantidadResultante)
         {
             if (cantidadResultante < 0)
                 throw new InvalidOperationException(
                     "La cantidad resultante no puede ser negativa. Revisá el valor ingresado.");
 
             var anterior = _repositorio.ObtenerPorSucursalYProducto(sucursalId, productoId);
-            var cantidadAnterior = anterior?.Cantidad ?? 0m;
+            var cantidadAnterior = anterior?.Cantidad ?? 0;
 
             var stock = _repositorio.Ajustar(sucursalId, productoId, cantidadResultante);
 

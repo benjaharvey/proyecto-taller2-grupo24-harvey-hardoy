@@ -9,6 +9,11 @@
              d:DataContext="{d:DesignInstance Type=vm:StockViewModel}"
              d:DesignHeight="750" d:DesignWidth="1000">
 
+    <UserControl.Resources>
+        <!-- Para ocultar controles exclusivos del administrador (RF-12 / RF-13) -->
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -31,13 +36,14 @@
             <!-- Tab Switcher -->
             <Border Grid.Column="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="8" Padding="4">
                 <StackPanel Orientation="Horizontal">
-                    <RadioButton Content="📦 Productos por Sucursal" 
+                    <RadioButton Content="📦 Productos por Sucursal"
                                  GroupName="StockTabs"
                                  IsChecked="True"
                                  Command="{Binding CambiarTabCommand}"
                                  CommandParameter="Productos"
                                  Padding="14,8"
-                                 Cursor="Hand">
+                                 Cursor="Hand"
+                                 Visibility="{Binding PuedeVerProductosTab, Converter={StaticResource BoolToVis}}">
                         <RadioButton.Style>
                             <Style TargetType="RadioButton">
                                 <Setter Property="Template">
@@ -63,12 +69,13 @@
                         </RadioButton.Style>
                     </RadioButton>
 
-                    <RadioButton Content="🌾 Insumos Globales (Cocina)" 
+                    <RadioButton Content="🌾 Insumos Globales (Cocina)"
                                  GroupName="StockTabs"
                                  Command="{Binding CambiarTabCommand}"
                                  CommandParameter="Insumos"
                                  Padding="14,8"
-                                 Cursor="Hand">
+                                 Cursor="Hand"
+                                 Visibility="{Binding PuedeVerInsumosTab, Converter={StaticResource BoolToVis}}">
                         <RadioButton.Style>
                             <Style TargetType="RadioButton">
                                 <Setter Property="Template">
@@ -144,13 +151,14 @@
                         </Style>
                     </StackPanel.Style>
 
-                    <!-- Branch Filter -->
+                    <!-- Branch Filter: solo administrador (RF-12: el vendedor no elige sucursal, ve la suya) -->
                     <ComboBox Width="180"
-                              ItemsSource="{Binding Sucursales}" 
+                              ItemsSource="{Binding Sucursales}"
                               SelectedItem="{Binding FiltroSucursal}"
                               Margin="0,0,10,0"
                               Padding="8,6"
-                              BorderBrush="{StaticResource SecondaryBrush}"/>
+                              BorderBrush="{StaticResource SecondaryBrush}"
+                              Visibility="{Binding EsAdmin, Converter={StaticResource BoolToVis}}"/>
 
                     <!-- Category Filter -->
                     <ComboBox Width="160"
@@ -269,8 +277,8 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <!-- Actions (RF-13 Ajuste manual de stock) -->
-                    <DataGridTemplateColumn Header="Acciones" Width="120">
+                    <!-- Actions (RF-13 Ajuste manual de stock, solo administrador) -->
+                    <DataGridTemplateColumn x:Name="ColumnaAjustes" Header="Acciones" Width="120">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Content="⚙️ Ajustar" 
@@ -422,7 +430,7 @@
                     <TextBlock Text="{Binding ProductoAjustando.Nombre}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontSize="13" Margin="0,0,0,2"/>
                     <TextBlock Text="{Binding ProductoAjustando.Sucursal, StringFormat='{}En: {0}'}" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,16"/>
 
-                    <Grid Margin="0,0,0,12">
+                    <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -436,9 +444,6 @@
                             <TextBox Text="{Binding NuevoStockProducto}" Padding="6,4" Margin="0,4,0,0" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                     </Grid>
-
-                    <TextBlock Text="Motivo del Ajuste (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding MotivosAjuste}" SelectedItem="{Binding MotivoAjusteProducto}" Padding="6,4" Margin="0,0,0,20" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" 
