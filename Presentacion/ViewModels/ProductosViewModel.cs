@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using Aplicacion.CasosDeUso;
 using Aplicacion.DTOs;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -34,6 +35,7 @@ public partial class ProductosViewModel : ObservableObject
     private readonly ListarProductos _listarProductos;
 
     private readonly ListarCategorias _listarCategorias;
+    private readonly ListarInsumos _listarInsumos;
 
     [ObservableProperty]
     private ObservableCollection<ProductoDTO> _productos = new();
@@ -57,9 +59,6 @@ public partial class ProductosViewModel : ObservableObject
 
     // Form fields
     [ObservableProperty]
-    private string _formCodigo = string.Empty;
-
-    [ObservableProperty]
     private string _formNombre = string.Empty;
 
     [ObservableProperty]
@@ -67,6 +66,9 @@ public partial class ProductosViewModel : ObservableObject
 
     [ObservableProperty]
     private int _formPrecio = 0;
+
+    [ObservableProperty]
+    private bool _esEdicion;
 
     // null = producto nuevo; con valor = Id del producto que se está editando
     private int? _productoEditandoId;
@@ -85,12 +87,13 @@ public partial class ProductosViewModel : ObservableObject
     private decimal _nuevoInsumoCantidad = 50;
     public ObservableCollection<InsumoOpcionItem> InsumosDisponibles { get; } = new();
 
-    public ProductosViewModel(CrearProducto crearProducto, 
-    ActualizarProducto actualizarProducto, 
-    EliminarProducto eliminarProducto, 
-    ReactivarProducto reactivarProducto, 
+    public ProductosViewModel(CrearProducto crearProducto,
+    ActualizarProducto actualizarProducto,
+    EliminarProducto eliminarProducto,
+    ReactivarProducto reactivarProducto,
     ListarProductos listarProductos,
-    ListarCategorias listarCategorias)
+    ListarCategorias listarCategorias,
+    ListarInsumos listarInsumos)
     {
         _crearProducto = crearProducto;
         _actualizarProducto = actualizarProducto;
@@ -98,10 +101,20 @@ public partial class ProductosViewModel : ObservableObject
         _reactivarProducto = reactivarProducto;
         _listarProductos = listarProductos;
         _listarCategorias = listarCategorias;
+        _listarInsumos = listarInsumos;
 
         foreach (var categoria in _listarCategorias.Ejecutar())
         {
             Categorias.Add(categoria);
+        }
+
+        foreach (var insumo in _listarInsumos.Ejecutar())
+        {
+            InsumosDisponibles.Add(new InsumoOpcionItem
+            {
+                Nombre = insumo.Nombre,
+                UnidadMedida = insumo.Unidad
+            });
         }
 
         CargarGrilla();
@@ -110,14 +123,69 @@ public partial class ProductosViewModel : ObservableObject
 
     public void CargarGrilla()
     {
-        _todosLosProductos = _listarProductos.Ejecutar(incluirEliminadas: true);
-        Productos = new ObservableCollection<ProductoDTO>(_todosLosProductos);
+        _todosLosProductos = _listarProductos.Ejecutar(incluirEliminados: true)
+            .OrderBy(p => !p.Activo)
+            .ThenBy(p => p.Nombre)
+            .ToList();
+
+        AplicarFiltro();
+    }
+
+    partial void OnBusquedaTextoChanged(string value)
+    {
+        AplicarFiltro();
+    }
+
+    partial void OnFiltroCategoriaChanged(CategoriaDTO? value)
+    {
+        AplicarFiltro();
+    }
+
+    private void AplicarFiltro()
+    {
+        IEnumerable<ProductoDTO> filtrados = _todosLosProductos;
+
+        if (!string.IsNullOrWhiteSpace(BusquedaTexto))
+        {
+            var texto = BusquedaTexto.Trim();
+            filtrados = filtrados.Where(p =>
+                p.Nombre.Contains(texto, StringComparison.OrdinalIgnoreCase) ||
+                p.NombreCategoria.Contains(texto, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (FiltroCategoria != null)
+        {
+            filtrados = filtrados.Where(p => p.CategoriaId == FiltroCategoria.Id);
+        }
+
+        Productos = new ObservableCollection<ProductoDTO>(filtrados);
+    }
+
+    // Al seleccionar una fila de la grilla se carga el formulario en modo edición
+    partial void OnSelectedProductoChanged(ProductoDTO? value)
+    {
+        if (value != null)
+        {
+            EsEdicion = true;
+            _productoEditandoId = value.Id;
+            FormTitulo = $"Editar {value.Nombre}";
+            FormNombre = value.Nombre;
+            FormPrecio = value.Precio;
+            // El ComboBox compara por referencia: hay que buscar la instancia dentro de Categorias
+            FormCategoria = Categorias.FirstOrDefault(c => c.Id == value.CategoriaId);
+            FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
+        }
+        else
+        {
+            LimpiarFormulario();
+        }
     }
 
     private void LimpiarFormulario()
     {
+        SelectedProducto = null;
+        EsEdicion = false;
         FormTitulo = "Nuevo Producto";
-        FormCodigo = $"PROD-00{Productos.Count + 1}";
         FormNombre = string.Empty;
         FormCategoria = null;
         FormPrecio = 0;
@@ -126,18 +194,10 @@ public partial class ProductosViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void EditarProducto(ProductoDTO? prod)
+    private void LimpiarFiltros()
     {
-        /*
-        if (prod == null) return;
-        FormTitulo = $"Editar {prod.Nombre}";
-        FormCodigo = prod.Codigo;
-        FormNombre = prod.Nombre;
-        FormCategoria = prod.Categoria;
-        FormPrecio = prod.Precio;
-        FormDescripcion = prod.Descripcion;
-        FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
-        */
+        BusquedaTexto = string.Empty;
+        FiltroCategoria = null;
     }
 
     [RelayCommand]
@@ -189,25 +249,37 @@ public partial class ProductosViewModel : ObservableObject
     [RelayCommand]
     private void GuardarFormulario()
     {
-        /*
-        if (!string.IsNullOrWhiteSpace(FormNombre))
+        var dto = new ProductoCrearDTO
         {
-            var p = new ProductoItem
+            Nombre = FormNombre?.Trim() ?? string.Empty,
+            Precio = FormPrecio,
+            CategoriaId = FormCategoria?.Id ?? 0
+        };
+
+        try
+        {
+            if (_productoEditandoId.HasValue)
             {
-                Id = Productos.Count + 1,
-                Codigo = FormCodigo,
-                Nombre = FormNombre,
-                Categoria = FormCategoria,
-                Precio = FormPrecio,
-                Descripcion = FormDescripcion,
-                Activo = true,
-                RecetaResumen = string.Join(", ", FormRecetaInsumos.Select(i => $"{i.InsumoNombre} ({i.Cantidad}{i.UnidadMedida})"))
-            };
-            Productos.Insert(0, p);
-            SelectedProducto = p;
+                _actualizarProducto.Ejecutar(_productoEditandoId.Value, dto);
+                MessageBox.Show("Producto actualizado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                _crearProducto.Ejecutar(dto);
+                MessageBox.Show("Producto creado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            LimpiarFormulario();
+            CargarGrilla();
         }
-        LimpiarFormulario();
-        */
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ocurrió un error inesperado: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     [RelayCommand]
@@ -219,16 +291,40 @@ public partial class ProductosViewModel : ObservableObject
     [RelayCommand]
     private void ToggleEstadoProducto(ProductoDTO? prod)
     {
-        /*
-        if (prod != null)
+        var producto = prod ?? SelectedProducto;
+        if (producto == null) return;
+
+        bool esActivo = producto.Activo;
+        string accion = esActivo ? "dar de baja" : "reactivar";
+        var confirmacion = MessageBox.Show(
+            $"¿Seguro que querés {accion} el producto \"{producto.Nombre}\"?",
+            "Confirmar acción",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (confirmacion != MessageBoxResult.Yes) return;
+
+        try
         {
-            prod.Activo = !prod.Activo;
-            var index = Productos.IndexOf(prod);
-            if (index >= 0)
+            if (esActivo)
             {
-                Productos[index] = prod;
+                _eliminarProducto.Ejecutar(producto.Id);
             }
+            else
+            {
+                _reactivarProducto.Ejecutar(producto.Id);
+            }
+
+            LimpiarFormulario();
+            CargarGrilla();
         }
-        */
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error al modificar el estado: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

@@ -25,5 +25,7 @@ namespace Aplicacion.DTOs
         public DateTime? UpdatedAt { get; set; }
 
         public DateTime? DeletedAt { get; set; }
+
+        public bool Activo => DeletedAt == null;
     }
 }
