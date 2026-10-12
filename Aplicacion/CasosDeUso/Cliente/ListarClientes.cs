@@ -12,10 +12,10 @@ namespace Aplicacion.CasosDeUso
             _repositorio = repositorio;
         }
 
-        public List<ClienteDTO> Ejecutar()
+        public List<ClienteDTO> Ejecutar(bool incluirEliminados = false)
         {
             var resultado = new List<ClienteDTO>();
-            foreach (var cliente in _repositorio.ObtenerTodos())
+            foreach (var cliente in _repositorio.ObtenerTodos(incluirEliminados))
             {
                 resultado.Add(new ClienteDTO
                 {

@@ -79,6 +79,7 @@ public partial class App : Application
         services.AddTransient<InsumoViewModel>();
         services.AddTransient<StockViewModel>();
         services.AddTransient<ProductosViewModel>();
+        services.AddTransient<ClientesViewModel>();
         Services = services.BuildServiceProvider();
 
         try

@@ -14,10 +14,15 @@ namespace Datos.Repositorios
             _contextFactory = contextFactory;
         }
 
-        public List<Cliente> ObtenerTodos()
+        public List<Cliente> ObtenerTodos(bool incluirEliminados = false)
         {
             using var context = _contextFactory.CreateDbContext();
-            return context.Clientes.Include(c => c.Usuario).Where(c => c.DeletedAt == null).ToList();
+            if (!incluirEliminados)
+            {
+                return context.Clientes.Include(c => c.Usuario).Where(c => c.DeletedAt == null).ToList();
+            }
+
+            return context.Clientes.Include(c => c.Usuario).ToList();
         }
 
         public Cliente? ObtenerPorId(int p_id)

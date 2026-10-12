@@ -9,11 +9,6 @@
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
              d:DesignHeight="700" d:DesignWidth="950">
-
-    <UserControl.DataContext>
-        <vm:ClientesViewModel />
-    </UserControl.DataContext>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

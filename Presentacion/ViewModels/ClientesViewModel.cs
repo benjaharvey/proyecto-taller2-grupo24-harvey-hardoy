@@ -2,75 +2,20 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using Aplicacion.CasosDeUso;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace Presentacion.ViewModels;
 
-public class ClienteItem : ObservableObject
-{
-    private int _id;
-    private string _nombre = string.Empty;
-    private string _apellido = string.Empty;
-    private string _dni = string.Empty;
-    private string _email = string.Empty;
-    private DateTime? _fechaNacimiento;
-    private string _registradoPor = string.Empty;
-    private DateTime _fechaRegistro = DateTime.Now;
+public partial class ClientesViewModel : ObservableObject{
 
-    public int Id
-    {
-        get => _id;
-        set => SetProperty(ref _id, value);
-    }
+    private readonly CrearCliente _crearCliente;
+    private readonly ActualizarCliente _actualizarCliente;
+    private readonly EliminarCliente _eliminarCliente;
+    private readonly ReactivarCliente _reactivarCliente;
+    private readonly ListarClientes _listarClientes;
 
-    public string Nombre
-    {
-        get => _nombre;
-        set => SetProperty(ref _nombre, value);
-    }
-
-    public string Apellido
-    {
-        get => _apellido;
-        set => SetProperty(ref _apellido, value);
-    }
-
-    public string Dni
-    {
-        get => _dni;
-        set => SetProperty(ref _dni, value);
-    }
-
-    public string Email
-    {
-        get => _email;
-        set => SetProperty(ref _email, value);
-    }
-
-    public DateTime? FechaNacimiento
-    {
-        get => _fechaNacimiento;
-        set => SetProperty(ref _fechaNacimiento, value);
-    }
-
-    public string RegistradoPor
-    {
-        get => _registradoPor;
-        set => SetProperty(ref _registradoPor, value);
-    }
-
-    public DateTime FechaRegistro
-    {
-        get => _fechaRegistro;
-        set => SetProperty(ref _fechaRegistro, value);
-    }
-
-    public string NombreCompleto => $"{Nombre} {Apellido}".Trim();
-}
-
-public partial class ClientesViewModel : ObservableObject
-{
     private readonly ObservableCollection<ClienteItem> _todosLosClientes = new();
 
     [ObservableProperty]
@@ -101,9 +46,17 @@ public partial class ClientesViewModel : ObservableObject
     [ObservableProperty]
     private bool _esEdicion;
 
-    public ClientesViewModel()
+    public ClientesViewModel(CrearCliente crearCliente, ActualizarCliente actualizarCliente, EliminarCliente eliminarCliente, 
+        ReactivarCliente reactivarCliente, ListarClientes listarClientes)
     {
-        ActualizarFiltro();
+        _crearCliente = crearCliente;
+        _actualizarCliente = actualizarCliente;
+        _eliminarCliente = eliminarCliente;
+        _reactivarCliente = reactivarCliente;
+        _listarClientes = listarClientes;
+
+        CargarGrilla();
+        LimpiarFormulario();
     }
 
     partial void OnBusquedaTextoChanged(string value)
