@@ -50,6 +50,9 @@ public partial class ClientesViewModel : ObservableObject{
     [ObservableProperty]
     private bool _esEdicion;
 
+    [ObservableProperty]
+    private string _textoBotonEstado = "Dar de Baja";
+
     public ClientesViewModel(CrearCliente crearCliente, ActualizarCliente actualizarCliente, EliminarCliente eliminarCliente, 
         ReactivarCliente reactivarCliente, ListarClientes listarClientes)
     {
@@ -82,6 +85,8 @@ public partial class ClientesViewModel : ObservableObject{
         if (value != null)
         {
             EsEdicion = true;
+            TextoBotonEstado = value.Activo ? "Dar de Baja" : "Reactivar";
+
             FormNombre = value.Nombre;
             FormApellido = value.Apellido;
             FormDni = value.Dni;
@@ -147,50 +152,69 @@ public partial class ClientesViewModel : ObservableObject{
     private void Actualizar()
     {
         if (SelectedCliente == null) return;
-
-        if (string.IsNullOrWhiteSpace(FormNombre) || string.IsNullOrWhiteSpace(FormApellido) || string.IsNullOrWhiteSpace(FormDni))
+        
+        var dto = new ClienteDTO
         {
-            MessageBox.Show("Nombre, Apellido y DNI son campos obligatorios.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
+            Nombre = FormNombre,
+            Apellido = FormApellido,
+            Dni = FormDni,
+            Email = FormEmail,
+            FechaNacimiento = FormFechaNacimiento ?? default
+        };
 
-        if (_todosLosClientes.Any(c => c.Id != SelectedCliente.Id && c.Dni.Equals(FormDni.Trim(), StringComparison.OrdinalIgnoreCase)))
+        try
         {
-            MessageBox.Show($"Ya existe otro cliente registrado con el DNI {FormDni.Trim()}.", "DNI Duplicado", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            _actualizarCliente.Ejecutar(SelectedCliente.Id, dto);
+            MessageBox.Show("Cliente actualizado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+            LimpiarFormulario();
+            CargarGrilla();
         }
-
-        if (!string.IsNullOrWhiteSpace(FormEmail) && !FormEmail.Contains("@"))
+        catch (InvalidOperationException ex)
         {
-            MessageBox.Show("El correo electrónico no tiene un formato válido.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
+            MessageBox.Show(ex.Message, "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
-
-        SelectedCliente.Nombre = FormNombre.Trim();
-        SelectedCliente.Apellido = FormApellido.Trim();
-        SelectedCliente.Dni = FormDni.Trim();
-        SelectedCliente.Email = FormEmail?.Trim() ?? string.Empty;
-        SelectedCliente.FechaNacimiento = FormFechaNacimiento ?? default;
-
-        AplicarFiltro();
-        MessageBox.Show("Cliente actualizado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
-        LimpiarFormulario();
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ocurrió un error inesperado: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     [RelayCommand]
     private void Eliminar()
     {
         if (SelectedCliente == null) return;
+        var cliente = SelectedCliente;
+        bool esActivo = cliente.Activo;
 
         var result = MessageBox.Show($"¿Estás seguro de que deseas eliminar al cliente {SelectedCliente.NombreCompleto}?",
             "Confirmar eliminación", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-        if (result == MessageBoxResult.Yes)
+        if(result == MessageBoxResult.No)
         {
-            _todosLosClientes.Remove(SelectedCliente);
-            AplicarFiltro();
-            LimpiarFormulario();
-            MessageBox.Show("Cliente eliminado con éxito.", "Información", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        } else
+        {
+            try
+            {
+                if(esActivo == true)
+                {
+                    _eliminarCliente.Ejecutar(cliente.Id);
+                }
+                else
+                {
+                    _reactivarCliente.Ejecutar(cliente.Id);
+                }
+                CargarGrilla();
+                LimpiarFormulario();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message, "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al modificar el estado: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 

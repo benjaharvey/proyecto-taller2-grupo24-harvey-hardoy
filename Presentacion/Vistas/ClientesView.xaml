@@ -103,7 +103,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Clientes Registrados" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="Eliminar Cliente"
+                            <Button Content="{Binding TextoBotonEstado}"
                                     Style="{StaticResource OutlineButtonStyle}"
                                     Padding="14,6"
                                     IsEnabled="{Binding EsEdicion}"
