@@ -2,9 +2,13 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Documents;
 using Aplicacion.CasosDeUso;
+using Aplicacion.DTOs;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
+using Presentacion.ViewModels;
 
 namespace Presentacion.ViewModels;
 
@@ -16,13 +20,13 @@ public partial class ClientesViewModel : ObservableObject{
     private readonly ReactivarCliente _reactivarCliente;
     private readonly ListarClientes _listarClientes;
 
-    private readonly ObservableCollection<ClienteItem> _todosLosClientes = new();
+    private List<ClienteDTO> _todosLosClientes = new();
 
     [ObservableProperty]
-    private ObservableCollection<ClienteItem> _clientesFiltrados = new();
+    private ObservableCollection<ClienteDTO> _clientesFiltrados = new();
 
     [ObservableProperty]
-    private ClienteItem? _selectedCliente;
+    private ClienteDTO? _selectedCliente;
 
     [ObservableProperty]
     private string _busquedaTexto = string.Empty;
@@ -59,12 +63,21 @@ public partial class ClientesViewModel : ObservableObject{
         LimpiarFormulario();
     }
 
-    partial void OnBusquedaTextoChanged(string value)
+    public void CargarGrilla()
     {
-        ActualizarFiltro();
+        _todosLosClientes = _listarClientes.Ejecutar(incluirEliminados: true)
+            .OrderBy(p => !p.Activo)
+            .ThenBy(p => p.Nombre)
+            .ToList();
+        AplicarFiltro();
     }
 
-    partial void OnSelectedClienteChanged(ClienteItem? value)
+    partial void OnBusquedaTextoChanged(string value)
+    {
+        AplicarFiltro();
+    }
+
+    partial void OnSelectedClienteChanged(ClienteDTO? value)
     {
         if (value != null)
         {
@@ -81,11 +94,11 @@ public partial class ClientesViewModel : ObservableObject{
         }
     }
 
-    private void ActualizarFiltro()
+    private void AplicarFiltro()
     {
         if (string.IsNullOrWhiteSpace(BusquedaTexto))
         {
-            ClientesFiltrados = new ObservableCollection<ClienteItem>(_todosLosClientes);
+            ClientesFiltrados = new ObservableCollection<ClienteDTO>(_todosLosClientes);
         }
         else
         {
@@ -96,52 +109,38 @@ public partial class ClientesViewModel : ObservableObject{
                 c.Nombre.ToLowerInvariant().Contains(texto) ||
                 c.Email.ToLowerInvariant().Contains(texto)
             );
-            ClientesFiltrados = new ObservableCollection<ClienteItem>(filtrados);
+            ClientesFiltrados = new ObservableCollection<ClienteDTO>(filtrados);
         }
     }
 
     [RelayCommand]
     private void Guardar()
     {
-        if (string.IsNullOrWhiteSpace(FormNombre) || string.IsNullOrWhiteSpace(FormApellido) || string.IsNullOrWhiteSpace(FormDni))
+        var nuevo = new ClienteDTO
         {
-            MessageBox.Show("Nombre, Apellido y DNI son campos obligatorios.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        if (_todosLosClientes.Any(c => c.Dni.Equals(FormDni.Trim(), StringComparison.OrdinalIgnoreCase)))
-        {
-            MessageBox.Show($"Ya existe un cliente registrado con el DNI {FormDni.Trim()}.", "DNI Duplicado", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        if (!string.IsNullOrWhiteSpace(FormEmail) && !FormEmail.Contains("@"))
-        {
-            MessageBox.Show("El correo electrónico no tiene un formato válido.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        string usuarioActual = SesionActual.UsuarioLogueado != null 
-            ? $"{SesionActual.UsuarioLogueado.Nombre} {SesionActual.UsuarioLogueado.Apellido}" 
-            : "Vendedor Mostrador";
-
-        var nuevo = new ClienteItem
-        {
-            Id = _todosLosClientes.Count > 0 ? _todosLosClientes.Max(c => c.Id) + 1 : 1,
-            Nombre = FormNombre.Trim(),
-            Apellido = FormApellido.Trim(),
-            Dni = FormDni.Trim(),
-            Email = FormEmail?.Trim() ?? string.Empty,
-            FechaNacimiento = FormFechaNacimiento,
-            RegistradoPor = usuarioActual,
-            FechaRegistro = DateTime.Now
+            Nombre = FormNombre,
+            Apellido = FormApellido,
+            Dni = FormDni,
+            Email = FormEmail,
+            FechaNacimiento = FormFechaNacimiento ?? default,
+            UsuarioId = SesionActual.UsuarioLogueado?.Id ?? 0
         };
 
-        _todosLosClientes.Add(nuevo);
-        ActualizarFiltro();
-        SelectedCliente = nuevo;
-        MessageBox.Show("Cliente guardado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
-        LimpiarFormulario();
+        try
+        {
+            _crearCliente.Ejecutar(nuevo);
+            MessageBox.Show("Cliente guardado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+            LimpiarFormulario();
+            CargarGrilla();
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ocurrió un error inesperado: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     [RelayCommand]
@@ -171,9 +170,9 @@ public partial class ClientesViewModel : ObservableObject{
         SelectedCliente.Apellido = FormApellido.Trim();
         SelectedCliente.Dni = FormDni.Trim();
         SelectedCliente.Email = FormEmail?.Trim() ?? string.Empty;
-        SelectedCliente.FechaNacimiento = FormFechaNacimiento;
+        SelectedCliente.FechaNacimiento = FormFechaNacimiento ?? default;
 
-        ActualizarFiltro();
+        AplicarFiltro();
         MessageBox.Show("Cliente actualizado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
         LimpiarFormulario();
     }
@@ -189,7 +188,7 @@ public partial class ClientesViewModel : ObservableObject{
         if (result == MessageBoxResult.Yes)
         {
             _todosLosClientes.Remove(SelectedCliente);
-            ActualizarFiltro();
+            AplicarFiltro();
             LimpiarFormulario();
             MessageBox.Show("Cliente eliminado con éxito.", "Información", MessageBoxButton.OK, MessageBoxImage.Information);
         }

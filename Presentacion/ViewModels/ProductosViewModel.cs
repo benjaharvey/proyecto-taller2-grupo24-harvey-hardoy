@@ -171,7 +171,6 @@ public partial class ProductosViewModel : ObservableObject
             FormTitulo = $"Editar {value.Nombre}";
             FormNombre = value.Nombre;
             FormPrecio = value.Precio;
-            // El ComboBox compara por referencia: hay que buscar la instancia dentro de Categorias
             FormCategoria = Categorias.FirstOrDefault(c => c.Id == value.CategoriaId);
             FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
         }
