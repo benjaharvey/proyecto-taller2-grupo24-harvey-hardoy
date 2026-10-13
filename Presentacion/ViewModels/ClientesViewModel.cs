@@ -233,5 +233,6 @@ public partial class ClientesViewModel : ObservableObject{
         FormDni = string.Empty;
         FormEmail = string.Empty;
         FormFechaNacimiento = null;
+        TextoBotonEstado = "Dar de Baja";
     }
 }
