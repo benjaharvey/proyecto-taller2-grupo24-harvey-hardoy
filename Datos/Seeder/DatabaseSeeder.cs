@@ -183,6 +183,25 @@ namespace Datos.Seeder
             }
 
             context.SaveChanges();
+
+            // 5. Categorías iniciales de productos
+            var categoriasSeed = new[] { "Alfajores", "Conitos", "Tabletas", "Tortas", "Especiales" };
+
+            foreach (var nombreCategoria in categoriasSeed)
+            {
+                // A diferencia de roles/sucursales/insumos, no se restaura una categoría borrada:
+                // si el admin la dio de baja a propósito, reaparecería en cada inicio de la app.
+                if (context.Categorias.Any(x => x.Nombre == nombreCategoria))
+                    continue;
+
+                context.Categorias.Add(new Categoria
+                {
+                    Nombre = nombreCategoria,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            context.SaveChanges();
         }
     }
 }

@@ -33,6 +33,7 @@ public partial class App : Application
         services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
         services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
         services.AddScoped<IStockSucursalRepositorio, StockSucursalRepositorio>();
+        services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 
         services.AddTransient<CrearRol>();
         services.AddTransient<ActualizarRol>();
@@ -65,6 +66,13 @@ public partial class App : Application
 
         services.AddTransient<ConsultarStockPorSucursal>();
         services.AddTransient<AjustarStockProducto>();
+        services.AddTransient<CrearProducto>();
+        services.AddTransient<ActualizarProducto>();
+        services.AddTransient<EliminarProducto>();
+        services.AddTransient<ReactivarProducto>();
+        services.AddTransient<ListarProductos>();
+
+        services.AddTransient<ListarCategorias>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
@@ -73,6 +81,8 @@ public partial class App : Application
         services.AddTransient<SucursalViewModel>();
         services.AddTransient<InsumoViewModel>();
         services.AddTransient<StockViewModel>();
+        services.AddTransient<ProductosViewModel>();
+        services.AddTransient<ClientesViewModel>();
         Services = services.BuildServiceProvider();
 
         try

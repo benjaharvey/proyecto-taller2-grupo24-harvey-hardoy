@@ -13,9 +13,9 @@ namespace Aplicacion.CasosDeUso
            _repositorio = repo;
         }
 
-        public List<ProductoDTO> Ejecutar()
+        public List<ProductoDTO> Ejecutar(bool incluirEliminados = false)
         {
-            var productos = _repositorio.ObtenerTodos();
+            var productos = _repositorio.ObtenerTodos(incluirEliminados);
             var resultado = new List<ProductoDTO>();
 
             foreach (var producto in productos)
