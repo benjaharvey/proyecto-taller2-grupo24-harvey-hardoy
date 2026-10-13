@@ -9,7 +9,7 @@ namespace Dominio.Interfaces
 {
     public interface IProductoRepositorio
     {
-        List<Producto> ObtenerTodos();
+        List<Producto> ObtenerTodos(bool incluirEliminadas);
 
         Producto? ObtenerPorId(int id);
         Producto? ObtenerPorNombre(string nombre);

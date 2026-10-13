@@ -5,7 +5,7 @@ namespace Dominio.Interfaces
 {
     public interface IClienteRepositorio
     {
-        List<Cliente> ObtenerTodos();
+        List<Cliente> ObtenerTodos(bool incluirEliminados);
 
         Cliente? ObtenerPorId(int id);
         Cliente? ObtenerPorEmail(string email);
