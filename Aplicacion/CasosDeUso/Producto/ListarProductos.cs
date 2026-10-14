@@ -30,7 +30,14 @@ namespace Aplicacion.CasosDeUso
                     NombreCategoria = producto.Categoria?.Nombre ?? "Sin categoría",
                     CreatedAt = producto.CreatedAt,
                     UpdatedAt = producto.UpdatedAt,
-                    DeletedAt = producto.DeletedAt
+                    DeletedAt = producto.DeletedAt,
+                    Receta = producto.ProductoInsumos.Select(pi => new ProductoInsumoDTO
+                    {
+                        InsumoId = pi.InsumoId,
+                        NombreInsumo = pi.Insumo?.Nombre ?? string.Empty,
+                        Unidad = pi.Insumo?.Unidad ?? string.Empty,
+                        CantidadNecesaria = pi.CantidadNecesaria
+                    }).ToList()
                 });
             }
             return resultado;

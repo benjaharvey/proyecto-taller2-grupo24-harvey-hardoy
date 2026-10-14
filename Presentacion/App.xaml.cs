@@ -68,6 +68,7 @@ public partial class App : Application
         services.AddTransient<EliminarProducto>();
         services.AddTransient<ReactivarProducto>();
         services.AddTransient<ListarProductos>();
+        services.AddTransient<ObtenerProducto>();
 
         services.AddTransient<ListarCategorias>();
 

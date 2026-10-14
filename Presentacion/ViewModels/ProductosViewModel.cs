@@ -9,6 +9,8 @@ using CommunityToolkit.Mvvm.Input;
 namespace Presentacion.ViewModels;
 public partial class InsumoRecetaItem : ObservableObject
 {
+    public int InsumoId { get; set; }
+
     [ObservableProperty]
     private string _insumoNombre = string.Empty;
 
@@ -21,6 +23,7 @@ public partial class InsumoRecetaItem : ObservableObject
 
 public class InsumoOpcionItem
 {
+    public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string UnidadMedida { get; set; } = "gr";
 }
@@ -112,6 +115,7 @@ public partial class ProductosViewModel : ObservableObject
         {
             InsumosDisponibles.Add(new InsumoOpcionItem
             {
+                Id = insumo.Id,
                 Nombre = insumo.Nombre,
                 UnidadMedida = insumo.Unidad
             });
@@ -172,12 +176,26 @@ public partial class ProductosViewModel : ObservableObject
             FormNombre = value.Nombre;
             FormPrecio = value.Precio;
             FormCategoria = Categorias.FirstOrDefault(c => c.Id == value.CategoriaId);
-            FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
+            FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>(
+                (value.Receta ?? new List<ProductoInsumoDTO>()).Select(r => new InsumoRecetaItem
+                {
+                    InsumoId = r.InsumoId,
+                    InsumoNombre = r.NombreInsumo,
+                    Cantidad = r.CantidadNecesaria,
+                    UnidadMedida = r.Unidad
+                }));
         }
         else
         {
             LimpiarFormulario();
         }
+    }
+
+    [RelayCommand]
+    private void EditarProducto(ProductoDTO? prod)
+    {
+        if (prod == null) return;
+        SelectedProducto = prod;
     }
 
     private void LimpiarFormulario()
@@ -212,7 +230,7 @@ public partial class ProductosViewModel : ObservableObject
     {
         if (InsumoSeleccionadoParaReceta != null && NuevoInsumoCantidad > 0)
         {
-            var existe = FormRecetaInsumos.FirstOrDefault(i => i.InsumoNombre.Equals(InsumoSeleccionadoParaReceta.Nombre, System.StringComparison.OrdinalIgnoreCase));
+            var existe = FormRecetaInsumos.FirstOrDefault(i => i.InsumoId == InsumoSeleccionadoParaReceta.Id);
             if (existe != null)
             {
                 existe.Cantidad += NuevoInsumoCantidad;
@@ -221,6 +239,7 @@ public partial class ProductosViewModel : ObservableObject
             {
                 FormRecetaInsumos.Add(new InsumoRecetaItem
                 {
+                    InsumoId = InsumoSeleccionadoParaReceta.Id,
                     InsumoNombre = InsumoSeleccionadoParaReceta.Nombre,
                     Cantidad = NuevoInsumoCantidad,
                     UnidadMedida = InsumoSeleccionadoParaReceta.UnidadMedida
@@ -252,7 +271,12 @@ public partial class ProductosViewModel : ObservableObject
         {
             Nombre = FormNombre?.Trim() ?? string.Empty,
             Precio = FormPrecio,
-            CategoriaId = FormCategoria?.Id ?? 0
+            CategoriaId = FormCategoria?.Id ?? 0,
+            Receta = FormRecetaInsumos.Select(i => new ProductoInsumoDTO
+            {
+                InsumoId = i.InsumoId,
+                CantidadNecesaria = i.Cantidad
+            }).ToList()
         };
 
         try

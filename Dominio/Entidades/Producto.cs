@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Dominio.Entidades
+﻿namespace Dominio.Entidades
 {
     public class Producto
     {
@@ -20,6 +14,8 @@ namespace Dominio.Entidades
         public int CategoriaId {get; set;}
 
         public Categoria? Categoria { get; set; }
+
+        public ICollection<ProductoInsumo> ProductoInsumos { get; set; } = new List<ProductoInsumo>();
 
     }
 }
