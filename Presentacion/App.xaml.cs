@@ -32,6 +32,7 @@ public partial class App : Application
         services.AddScoped<IInsumoRepositorio, InsumoRepositorio>();
         services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
         services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
+        services.AddScoped<IStockSucursalRepositorio, StockSucursalRepositorio>();
         services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 
         services.AddTransient<CrearRol>();
@@ -63,6 +64,8 @@ public partial class App : Application
         services.AddTransient<ReactivarCliente>();
         services.AddTransient<ListarClientes>();
 
+        services.AddTransient<ConsultarStockPorSucursal>();
+        services.AddTransient<AjustarStockProducto>();
         services.AddTransient<CrearProducto>();
         services.AddTransient<ActualizarProducto>();
         services.AddTransient<EliminarProducto>();

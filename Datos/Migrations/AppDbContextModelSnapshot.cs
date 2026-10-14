@@ -214,6 +214,39 @@ namespace Datos.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.StockSucursal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SucursalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("SucursalId", "ProductoId")
+                        .IsUnique();
+
+                    b.ToTable("StocksSucursal");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Sucursal", b =>
                 {
                     b.Property<int>("Id")
@@ -302,6 +335,8 @@ namespace Datos.Migrations
 
                     b.HasIndex("RolId");
 
+                    b.HasIndex("SucursalId");
+
                     b.ToTable("Usuarios");
                 });
 
@@ -327,6 +362,23 @@ namespace Datos.Migrations
                     b.Navigation("Categoria");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.StockSucursal", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Dominio.Entidades.Sucursal", "Sucursal")
+                        .WithMany()
+                        .HasForeignKey("SucursalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Sucursal");
             modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
                 {
                     b.HasOne("Dominio.Entidades.Insumo", "Insumo")
@@ -354,7 +406,15 @@ namespace Datos.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Dominio.Entidades.Sucursal", "Sucursal")
+                        .WithMany()
+                        .HasForeignKey("SucursalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Rol");
+
+                    b.Navigation("Sucursal");
                 });
 
             modelBuilder.Entity("Dominio.Entidades.Insumo", b =>
