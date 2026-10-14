@@ -7,15 +7,17 @@ namespace Aplicacion.CasosDeUso
     public class ActualizarProducto
     {
         private readonly IProductoRepositorio _repositorio;
+        private readonly IInsumoRepositorio _insumoRepositorio;
 
-        public ActualizarProducto(IProductoRepositorio repo)
+        public ActualizarProducto(IProductoRepositorio repo, IInsumoRepositorio insumoRepo)
         {
            _repositorio = repo;
+           _insumoRepositorio = insumoRepo;
         }
 
         public void Ejecutar(int id, ProductoCrearDTO dto)
         {
-            ValidadorProducto.Validar(dto, _repositorio, id);
+            ValidadorProducto.Validar(dto, _repositorio, _insumoRepositorio, id);
 
             var ActualizarProducto = new Producto
             {

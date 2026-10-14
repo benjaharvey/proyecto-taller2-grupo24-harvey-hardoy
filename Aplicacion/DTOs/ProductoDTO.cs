@@ -20,7 +20,8 @@
 
         public DateTime? DeletedAt { get; set; }
 
-         public List<ProductoInsumoDTO> Receta { get; set; } = new();
+        public bool Activo => DeletedAt == null;
 
+        public List<ProductoInsumoDTO> Receta { get; set; } = new();
     }
 }

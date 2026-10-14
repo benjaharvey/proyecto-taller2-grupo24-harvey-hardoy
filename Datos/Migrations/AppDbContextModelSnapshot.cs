@@ -22,6 +22,78 @@ namespace Datos.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Dominio.Entidades.Categoria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categorias");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.Cliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Dni")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FechaNacimiento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Clientes");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Insumo", b =>
                 {
                     b.Property<int>("Id")
@@ -58,6 +130,62 @@ namespace Datos.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Insumos");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.Producto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Precio")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RutaImagen")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.ToTable("Productos");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
+                {
+                    b.Property<int>("InsumoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CantidadNecesaria")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.HasKey("InsumoId", "ProductoId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("ProductosInsumos");
                 });
 
             modelBuilder.Entity("Dominio.Entidades.Rol", b =>
@@ -177,6 +305,17 @@ namespace Datos.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.Cliente", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Producto", b =>
                 {
                     b.HasOne("Dominio.Entidades.Categoria", "Categoria")
@@ -188,6 +327,25 @@ namespace Datos.Migrations
                     b.Navigation("Categoria");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Insumo", "Insumo")
+                        .WithMany("ProductoInsumos")
+                        .HasForeignKey("InsumoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Dominio.Entidades.Producto", "Producto")
+                        .WithMany("ProductoInsumos")
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Insumo");
+
+                    b.Navigation("Producto");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Usuario", b =>
                 {
                     b.HasOne("Dominio.Entidades.Rol", "Rol")
@@ -197,6 +355,16 @@ namespace Datos.Migrations
                         .IsRequired();
 
                     b.Navigation("Rol");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.Insumo", b =>
+                {
+                    b.Navigation("ProductoInsumos");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.Producto", b =>
+                {
+                    b.Navigation("ProductoInsumos");
                 });
 #pragma warning restore 612, 618
         }

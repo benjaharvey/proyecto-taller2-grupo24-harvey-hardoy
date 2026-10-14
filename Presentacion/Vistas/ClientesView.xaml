@@ -9,11 +9,6 @@
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
              d:DesignHeight="700" d:DesignWidth="950">
-
-    <UserControl.DataContext>
-        <vm:ClientesViewModel />
-    </UserControl.DataContext>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -108,7 +103,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="Clientes Registrados" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Content="Eliminar Cliente"
+                            <Button Content="{Binding TextoBotonEstado}"
                                     Style="{StaticResource OutlineButtonStyle}"
                                     Padding="14,6"
                                     IsEnabled="{Binding EsEdicion}"
@@ -168,8 +163,8 @@
                             <DataGridTextColumn Header="Apellido" Binding="{Binding Apellido}" Width="*" />
                             <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="1.5*" />
                             <DataGridTextColumn Header="Fecha Nac." Binding="{Binding FechaNacimiento, StringFormat='{}{0:dd/MM/yyyy}'}" Width="100" />
-                            <DataGridTextColumn Header="Registrado Por" Binding="{Binding RegistradoPor}" Width="1.2*" />
-                            <DataGridTextColumn Header="Fecha Registro" Binding="{Binding FechaRegistro, StringFormat='{}{0:dd/MM/yyyy}'}" Width="110" />
+                            <DataGridTextColumn Header="NombreRegistradoPor" Binding="{Binding RegistradoPor}" Width="1.2*" />
+                            <DataGridTextColumn Header="CreatedAt" Binding="{Binding FechaRegistro, StringFormat='{}{0:dd/MM/yyyy}'}" Width="110" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

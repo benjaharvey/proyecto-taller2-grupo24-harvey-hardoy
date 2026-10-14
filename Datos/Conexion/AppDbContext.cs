@@ -17,6 +17,8 @@ namespace Datos.Conexion
         public DbSet<Categoria> Categorias {get; set;} 
         public DbSet<ProductoInsumo> ProductosInsumos {get; set;}
 
+        public DbSet<Cliente> Clientes {get; set;}
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -36,6 +38,18 @@ namespace Datos.Conexion
                entity.HasKey(pi => new { pi.InsumoId, pi.ProductoId});
 
                entity.Property(pi => pi.CantidadNecesaria).HasPrecision(18,3 );
+
+               // RNF-09 / Apéndice A: las claves foráneas se declaran sin borrado en cascada,
+               // en coherencia con la prohibición de borrado físico.
+               entity.HasOne(pi => pi.Insumo)
+                     .WithMany(i => i.ProductoInsumos)
+                     .HasForeignKey(pi => pi.InsumoId)
+                     .OnDelete(DeleteBehavior.Restrict);
+
+               entity.HasOne(pi => pi.Producto)
+                     .WithMany(p => p.ProductoInsumos)
+                     .HasForeignKey(pi => pi.ProductoId)
+                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

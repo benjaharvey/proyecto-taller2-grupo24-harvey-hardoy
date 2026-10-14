@@ -8,10 +8,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="950">
 
-    <UserControl.DataContext>
-        <vm:ProductosViewModel />
-    </UserControl.DataContext>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -45,7 +41,7 @@
                     <TextBox.Resources>
                         <VisualBrush x:Key="HintBrush" TileMode="None" Opacity="0.6" Stretch="None" AlignmentX="Left">
                             <VisualBrush.Visual>
-                                <TextBlock Text="🔍  Buscar por nombre o código..." Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="18,0,0,0"/>
+                                <TextBlock Text="🔍  Buscar por nombre" Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="18,0,0,0"/>
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </TextBox.Resources>
@@ -62,8 +58,9 @@
 
                 <!-- Category Filter -->
                 <ComboBox Grid.Column="1" 
-                          ItemsSource="{Binding Categorias}" 
+                          ItemsSource="{Binding Categorias}"
                           SelectedItem="{Binding FiltroCategoria}"
+                          DisplayMemberPath="Nombre"
                           Margin="0,0,12,0"
                           Padding="8,6"
                           BorderBrush="{StaticResource SecondaryBrush}"
@@ -71,6 +68,7 @@
 
                 <Button Grid.Column="2" 
                         Content="Limpiar Filtros" 
+                        Command="{Binding LimpiarFiltrosCommand}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Padding="14,6"/>
             </Grid>
@@ -122,9 +120,8 @@
                     </DataGrid.Resources>
 
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Código" Binding="{Binding Codigo}" Width="100" />
                         <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="2*" />
-                        <DataGridTextColumn Header="Categoría" Binding="{Binding Categoria}" Width="*" />
+                        <DataGridTextColumn Header="Categoría" Binding="{Binding NombreCategoria}" Width="*" />
                         <DataGridTextColumn Header="Precio Unit." Binding="{Binding Precio, StringFormat='${0:N2}'}" Width="110" />
                         
                         <!-- Status Badge -->
@@ -233,13 +230,9 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Margin="0,0,6,0">
-                                <TextBlock Text="Código" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding FormCodigo}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
-                            </StackPanel>
                             <StackPanel Grid.Column="1" Margin="6,0,0,0">
                                 <TextBlock Text="Categoría" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                                <ComboBox ItemsSource="{Binding Categorias}" SelectedItem="{Binding FormCategoria}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                                <ComboBox ItemsSource="{Binding Categorias}" SelectedItem="{Binding FormCategoria}" DisplayMemberPath="Nombre" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                             </StackPanel>
                         </Grid>
 
@@ -249,11 +242,7 @@
 
                         <!-- Price -->
                         <TextBlock Text="Precio Unitario ($)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormPrecio, StringFormat='N2'}" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
-
-                        <!-- Description -->
-                        <TextBlock Text="Descripción" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormDescripcion}" TextWrapping="Wrap" AcceptsReturn="True" Height="50" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBox Text="{Binding FormPrecio}" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                         <Separator Margin="0,0,0,12" Background="#E2DCD5"/>
 

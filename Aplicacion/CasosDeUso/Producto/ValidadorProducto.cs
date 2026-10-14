@@ -5,14 +5,14 @@ namespace Aplicacion.CasosDeUso
 {
     public static class ValidadorProducto
     {
-        public static void Validar(ProductoCrearDTO dto, IProductoRepositorio repo, int? idExistente = null)
+        public static void Validar(ProductoCrearDTO dto, IProductoRepositorio repo, IInsumoRepositorio insumoRepo, int? idExistente = null)
         {
             dto.Nombre = (dto.Nombre ?? "").Trim();
 
             ValidarNombre(dto.Nombre);
             ValidarPrecio(dto.Precio);
             ValidarCategoriaId(dto.CategoriaId);
-            ValidarReceta(dto.Receta);
+            ValidarReceta(dto.Receta, insumoRepo);
 
             var conMismoNombre = repo.ObtenerPorNombre(dto.Nombre);
             if(conMismoNombre != null && conMismoNombre.Id != idExistente)
@@ -21,7 +21,7 @@ namespace Aplicacion.CasosDeUso
             }
         }
 
-        private static void ValidarReceta(List<ProductoInsumoDTO>? receta)
+        private static void ValidarReceta(List<ProductoInsumoDTO>? receta, IInsumoRepositorio insumoRepo)
         {
             if (receta == null || receta.Count == 0) return;
 
@@ -35,6 +35,14 @@ namespace Aplicacion.CasosDeUso
                 if (item.CantidadNecesaria <= 0)
                 {
                     throw new InvalidOperationException("La cantidad necesaria de cada insumo debe ser mayor a cero.");
+                }
+
+                // RF-08: el insumo debe existir y estar activo (no dado de baja).
+                // ObtenerPorId ya filtra los insumos con baja lógica.
+                var insumo = insumoRepo.ObtenerPorId(item.InsumoId);
+                if (insumo == null)
+                {
+                    throw new InvalidOperationException("Uno de los insumos de la receta no existe o está dado de baja. Recargá la lista de insumos.");
                 }
             }
 

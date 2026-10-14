@@ -30,6 +30,9 @@ public partial class App : Application
         services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
         services.AddScoped<ISucursalRepositorio, SucursalRepositorio>();
         services.AddScoped<IInsumoRepositorio, InsumoRepositorio>();
+        services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
+        services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
+        services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 
         services.AddTransient<CrearRol>();
         services.AddTransient<ActualizarRol>();
@@ -54,6 +57,21 @@ public partial class App : Application
         services.AddTransient<ReactivarInsumo>();
         services.AddTransient<ListarInsumos>();
 
+        services.AddTransient<CrearCliente>();
+        services.AddTransient<ActualizarCliente>();
+        services.AddTransient<EliminarCliente>();
+        services.AddTransient<ReactivarCliente>();
+        services.AddTransient<ListarClientes>();
+
+        services.AddTransient<CrearProducto>();
+        services.AddTransient<ActualizarProducto>();
+        services.AddTransient<EliminarProducto>();
+        services.AddTransient<ReactivarProducto>();
+        services.AddTransient<ListarProductos>();
+        services.AddTransient<ObtenerProducto>();
+
+        services.AddTransient<ListarCategorias>();
+
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
         services.AddTransient<IniciarSesion>();
@@ -61,6 +79,8 @@ public partial class App : Application
         services.AddTransient<SucursalViewModel>();
         services.AddTransient<InsumoViewModel>();
         services.AddTransient<StockViewModel>();
+        services.AddTransient<ProductosViewModel>();
+        services.AddTransient<ClientesViewModel>();
         Services = services.BuildServiceProvider();
 
         try
