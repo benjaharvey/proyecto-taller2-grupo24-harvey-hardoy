@@ -37,8 +37,7 @@ namespace Aplicacion.CasosDeUso
                     throw new InvalidOperationException("La cantidad necesaria de cada insumo debe ser mayor a cero.");
                 }
 
-                // RF-08: el insumo debe existir y estar activo (no dado de baja).
-                // ObtenerPorId ya filtra los insumos con baja lógica.
+                // El insumo debe existir y estar activo (ObtenerPorId excluye los dados de baja).
                 var insumo = insumoRepo.ObtenerPorId(item.InsumoId);
                 if (insumo == null)
                 {

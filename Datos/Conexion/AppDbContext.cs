@@ -39,8 +39,7 @@ namespace Datos.Conexion
 
                entity.Property(pi => pi.CantidadNecesaria).HasPrecision(18,3 );
 
-               // RNF-09 / Apéndice A: las claves foráneas se declaran sin borrado en cascada,
-               // en coherencia con la prohibición de borrado físico.
+               // Sin borrado en cascada (la app usa borrado lógico).
                entity.HasOne(pi => pi.Insumo)
                      .WithMany(i => i.ProductoInsumos)
                      .HasForeignKey(pi => pi.InsumoId)
@@ -51,6 +50,25 @@ namespace Datos.Conexion
                      .HasForeignKey(pi => pi.ProductoId)
                      .OnDelete(DeleteBehavior.Restrict);
             });
+
+            // Sin borrado en cascada (la app usa borrado lógico).
+            modelBuilder.Entity<Producto>()
+                .HasOne(p => p.Categoria)
+                .WithMany()
+                .HasForeignKey(p => p.CategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Rol)
+                .WithMany()
+                .HasForeignKey(u => u.RolId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Cliente>()
+                .HasOne(c => c.Usuario)
+                .WithMany()
+                .HasForeignKey(c => c.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
