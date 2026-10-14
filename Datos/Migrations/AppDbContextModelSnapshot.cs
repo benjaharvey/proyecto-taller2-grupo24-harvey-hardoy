@@ -169,6 +169,25 @@ namespace Datos.Migrations
                     b.ToTable("Productos");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
+                {
+                    b.Property<int>("InsumoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CantidadNecesaria")
+                        .HasPrecision(18, 3)
+                        .HasColumnType("decimal(18,3)");
+
+                    b.HasKey("InsumoId", "ProductoId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("ProductosInsumos");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Rol", b =>
                 {
                     b.Property<int>("Id")
@@ -326,7 +345,7 @@ namespace Datos.Migrations
                     b.HasOne("Dominio.Entidades.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Usuario");
@@ -337,7 +356,7 @@ namespace Datos.Migrations
                     b.HasOne("Dominio.Entidades.Categoria", "Categoria")
                         .WithMany()
                         .HasForeignKey("CategoriaId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Categoria");
@@ -360,6 +379,23 @@ namespace Datos.Migrations
                     b.Navigation("Producto");
 
                     b.Navigation("Sucursal");
+            modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Insumo", "Insumo")
+                        .WithMany("ProductoInsumos")
+                        .HasForeignKey("InsumoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Dominio.Entidades.Producto", "Producto")
+                        .WithMany("ProductoInsumos")
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Insumo");
+
+                    b.Navigation("Producto");
                 });
 
             modelBuilder.Entity("Dominio.Entidades.Usuario", b =>
@@ -367,7 +403,7 @@ namespace Datos.Migrations
                     b.HasOne("Dominio.Entidades.Rol", "Rol")
                         .WithMany()
                         .HasForeignKey("RolId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Dominio.Entidades.Sucursal", "Sucursal")
@@ -379,6 +415,16 @@ namespace Datos.Migrations
                     b.Navigation("Rol");
 
                     b.Navigation("Sucursal");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.Insumo", b =>
+                {
+                    b.Navigation("ProductoInsumos");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.Producto", b =>
+                {
+                    b.Navigation("ProductoInsumos");
                 });
 #pragma warning restore 612, 618
         }

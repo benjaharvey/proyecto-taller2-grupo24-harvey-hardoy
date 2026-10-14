@@ -68,6 +68,7 @@
 
                 <Button Grid.Column="2" 
                         Content="Limpiar Filtros" 
+                        Command="{Binding LimpiarFiltrosCommand}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Padding="14,6"/>
             </Grid>

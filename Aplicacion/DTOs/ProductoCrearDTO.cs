@@ -15,5 +15,7 @@ namespace Aplicacion.DTOs
         public int CategoriaId { get; set; }
 
         public string? RutaImagen { get; set; }
+
+         public List<ProductoInsumoDTO> Receta { get; set; } = new();
     }
 }
