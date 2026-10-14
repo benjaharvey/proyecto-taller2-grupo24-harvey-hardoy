@@ -24,7 +24,7 @@ namespace Aplicacion.CasosDeUso
 
         public ConsultaStockDTO Ejecutar(int? sucursalId = null, int? categoriaId = null)
         {
-            var productos = _repositorioProductos.ObtenerTodos();
+            var productos = _repositorioProductos.ObtenerTodos(incluirEliminadas: false);
             var categorias = _repositorioCategorias.ObtenerTodos();
 
             if (categoriaId.HasValue)

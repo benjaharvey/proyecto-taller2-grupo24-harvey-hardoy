@@ -81,6 +81,12 @@ namespace Datos.Conexion
                 .HasForeignKey(u => u.RolId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Sucursal)
+                .WithMany()
+                .HasForeignKey(u => u.SucursalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Cliente>()
                 .HasOne(c => c.Usuario)
                 .WithMany()
