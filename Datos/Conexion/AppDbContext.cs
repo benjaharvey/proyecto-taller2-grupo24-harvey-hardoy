@@ -21,6 +21,8 @@ namespace Datos.Conexion
 
         public DbSet<StockSucursal> StocksSucursal { get; set; }
 
+        public DbSet<Produccion> Producciones {get; set;}
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }

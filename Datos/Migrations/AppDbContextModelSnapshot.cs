@@ -379,6 +379,8 @@ namespace Datos.Migrations
                     b.Navigation("Producto");
 
                     b.Navigation("Sucursal");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
                 {
                     b.HasOne("Dominio.Entidades.Insumo", "Insumo")
