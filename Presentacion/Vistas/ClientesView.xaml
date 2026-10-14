@@ -163,8 +163,8 @@
                             <DataGridTextColumn Header="Apellido" Binding="{Binding Apellido}" Width="*" />
                             <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="1.5*" />
                             <DataGridTextColumn Header="Fecha Nac." Binding="{Binding FechaNacimiento, StringFormat='{}{0:dd/MM/yyyy}'}" Width="100" />
-                            <DataGridTextColumn Header="NombreRegistradoPor" Binding="{Binding RegistradoPor}" Width="1.2*" />
-                            <DataGridTextColumn Header="CreatedAt" Binding="{Binding FechaRegistro, StringFormat='{}{0:dd/MM/yyyy}'}" Width="110" />
+                            <DataGridTextColumn Header="Registrado por" Binding="{Binding NombreRegistradoPor}" Width="1.2*" />
+                            <DataGridTextColumn Header="Fecha de Registro" Binding="{Binding CreatedAt, StringFormat='{}{0:dd/MM/yyyy}'}" Width="110" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
