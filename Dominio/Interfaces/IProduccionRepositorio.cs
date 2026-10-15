@@ -9,7 +9,7 @@ namespace Dominio.Interfaces
 {
     public interface IProduccionRepositorio
     {
-        void Agregar(Produccion produccion);
+        void Agregar(Produccion produccion, List<ProductoInsumo> receta);
         List<Produccion> ObtenerTodos();
     }
 }
