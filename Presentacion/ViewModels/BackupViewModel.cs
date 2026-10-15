@@ -37,8 +37,7 @@ public partial class BackupViewModel : ObservableObject
 
     public ObservableCollection<string> TiposBackupDisponibles { get; } = new()
     {
-        "Completa",
-        "Diferencial"
+        "Completa"
     };
 
     [RelayCommand]

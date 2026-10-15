@@ -14,9 +14,9 @@ namespace Datos.Conexion
             _connectionString = connectionString;
         }
 
-        public async Task<string> GenerarBackupAsync(string rutaDestino, string tipo)
+        public async Task<string> GenerarBackupAsync(string rutaDestino)
         {
-            string nombreArchivo = $"backup_maie_{tipo}_{DateTime.Now:yyyy-MM-dd_HHmmss}.bak";
+            string nombreArchivo = $"backup_maie_completa_{DateTime.Now:yyyy-MM-dd_HHmmss}.bak";
             string rutaCompleta = Path.Combine(rutaDestino, nombreArchivo);
 
             Directory.CreateDirectory(rutaDestino);
@@ -28,7 +28,7 @@ namespace Datos.Conexion
             await using var conexion = new SqlConnection(_connectionString);
             await using var comando = new SqlCommand(sql, conexion);
             comando.Parameters.AddWithValue("@ruta", rutaCompleta);
-            comando.Parameters.AddWithValue("@nombre", $"Backup {tipo} {DateTime.Now:yyyy-MM-dd HH:mm}");
+            comando.Parameters.AddWithValue("@nombre", $"Backup completo {DateTime.Now:yyyy-MM-dd HH:mm}");
 
             await conexion.OpenAsync();
             await comando.ExecuteNonQueryAsync();
@@ -57,7 +57,6 @@ namespace Datos.Conexion
                         RutaCompleta = ruta,
                         TamanoBytes = new FileInfo(ruta).Length,
                         TamanoLegible = FormatearTamano(new FileInfo(ruta).Length),
-                        Tipo = ParsearTipo(Path.GetFileName(ruta)),
                     });
                 }
             }
@@ -88,20 +87,12 @@ namespace Datos.Conexion
                 TamanoLegible = FormatearTamano(new FileInfo(rutaBak).Length),
                 FechaBackup = reader["BackupStartDate"] as DateTime? ?? DateTime.MinValue,
                 CreadoPor = reader["SQLUserName"]?.ToString() ?? "desconocido",
-                Tipo = ParsearTipo(Path.GetFileName(rutaBak)),
             };
         }
 
         public Task RestaurarBackupAsync(string rutaBak)
             => throw new NotImplementedException("Se implementa en el commit de restore.");
         
-        private static string ParsearTipo(string nombreArchivo)
-        {
-            if (nombreArchivo.Contains("diferencial", StringComparison.OrdinalIgnoreCase))
-                return "Diferencial";
-            return "Completa";
-        }
-
         private static string FormatearTamano(long bytes) =>
             bytes >= 1024L * 1024L * 1024L ? $"{bytes / (double)(1024L * 1024L * 1024L):0.0} GB"
             : bytes >= 1024L * 1024L ? $"{bytes / (double)(1024L * 1024L):0.0} MB"
