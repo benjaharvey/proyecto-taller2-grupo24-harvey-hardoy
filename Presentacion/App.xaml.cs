@@ -35,6 +35,7 @@ public partial class App : Application
         services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
         services.AddScoped<IStockSucursalRepositorio, StockSucursalRepositorio>();
         services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
+        services.AddScoped<IProduccionRepositorio, ProduccionRepositorio>();
 
         services.AddScoped<IBackupServicio>(_ => new BackupSqlServicio(AppDbContext.ConnectionString));
 
@@ -80,6 +81,8 @@ public partial class App : Application
 
         services.AddTransient<GenerarBackup>();
         services.AddTransient<ListarBackups>();
+        services.AddTransient<RegistrarProduccion>();
+        services.AddTransient<ListarProducciones>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
@@ -91,6 +94,7 @@ public partial class App : Application
         services.AddTransient<ProductosViewModel>();
         services.AddTransient<ClientesViewModel>();
         services.AddTransient<BackupViewModel>();
+        services.AddTransient<CocinaViewModel>();
         Services = services.BuildServiceProvider();
 
         try

@@ -1,13 +1,17 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Aplicacion.CasosDeUso;
+using Aplicacion.DTOs;
 
 namespace Presentacion.ViewModels;
 
 public class ConsumoInsumoItem : ObservableObject
 {
+    public int InsumoId { get; set; }
     public string InsumoNombre { get; set; } = string.Empty;
     public decimal CantidadPorUnidad { get; set; }
     public string UnidadMedida { get; set; } = "gr";
@@ -34,12 +38,18 @@ public class ProduccionHistoricaItem
     public int CantidadElaborada { get; set; }
     public string SucursalDestino { get; set; } = string.Empty;
     public string Cocinero { get; set; } = string.Empty;
-    public string InsumosResumen { get; set; } = string.Empty;
-    public string Estado { get; set; } = "ENTREGADO";
 }
 
 public partial class CocinaViewModel : ObservableObject
 {
+    private readonly ListarProductos _listarProductos;
+    private readonly ListarInsumos _listarInsumos;
+    private readonly ListarSucursales _listarSucursales;
+    private readonly RegistrarProduccion _registrarProduccion;
+    private readonly ListarProducciones _listarProducciones;
+
+    private List<SucursalDTO> _sucursalesDb = new();
+
     [ObservableProperty]
     private ObservableCollection<ProductoElaborableItem> _productosDisponibles = new();
 
@@ -47,34 +57,108 @@ public partial class CocinaViewModel : ObservableObject
     private ProductoElaborableItem? _productoSeleccionado;
 
     [ObservableProperty]
-    private int _cantidadAElaborar = 50;
+    private int _cantidadAElaborar = 1;
 
     [ObservableProperty]
-    private string _sucursalDestino = "Sucursal Centro";
+    private string _sucursalDestino = string.Empty;
 
     [ObservableProperty]
     private ObservableCollection<ConsumoInsumoItem> _calculoConsumos = new();
 
     [ObservableProperty]
-    private bool _esProduccionFactible = true;
+    private bool _esProduccionFactible;
 
     [ObservableProperty]
-    private string _mensajeFactibilidad = "Producción factible: todos los insumos están disponibles en el stock global.";
+    private string _mensajeFactibilidad = "Seleccione un producto y cantidad válida.";
 
     [ObservableProperty]
     private ObservableCollection<ProduccionHistoricaItem> _historialProduccion = new();
 
-    [ObservableProperty]
-    private string _cocineroActual = "Segundo Hardoy (Cocinero / Maestro Pastelero)";
+    public ObservableCollection<string> Sucursales { get; } = new();
 
-    public ObservableCollection<string> Sucursales { get; } = new()
+    public CocinaViewModel(
+        ListarProductos listarProductos,
+        ListarInsumos listarInsumos,
+        ListarSucursales listarSucursales,
+        RegistrarProduccion registrarProduccion,
+        ListarProducciones listarProducciones)
     {
-        "Sucursal Centro", "Sucursal Norte", "Sucursal Sur"
-    };
+        _listarProductos = listarProductos;
+        _listarInsumos = listarInsumos;
+        _listarSucursales = listarSucursales;
+        _registrarProduccion = registrarProduccion;
+        _listarProducciones = listarProducciones;
 
-    public CocinaViewModel()
-    {
+        CargarSucursales();
+        CargarProductos();
+        CargarHistorial();
         ActualizarFactibilidad();
+    }
+
+    private void CargarSucursales()
+    {
+        _sucursalesDb = _listarSucursales.Ejecutar();
+
+        Sucursales.Clear();
+        foreach (var s in _sucursalesDb)
+            Sucursales.Add(s.Nombre);
+
+        SucursalDestino = Sucursales.FirstOrDefault() ?? string.Empty;
+    }
+
+    // Trae productos con receta y el stock ACTUAL de cada insumo.
+    private void CargarProductos()
+    {
+        var stockInsumos = _listarInsumos.Ejecutar().ToDictionary(i => i.Id);
+        var seleccionadoId = ProductoSeleccionado?.Id;
+
+        ProductosDisponibles.Clear();
+
+        foreach (var p in _listarProductos.Ejecutar().Where(p => p.Receta.Count > 0))
+        {
+            var item = new ProductoElaborableItem
+            {
+                Id = p.Id,
+                Codigo = $"P-{p.Id:D3}",
+                Nombre = p.Nombre,
+                Categoria = p.NombreCategoria
+            };
+
+            foreach (var r in p.Receta)
+            {
+                item.FormulaBase.Add(new ConsumoInsumoItem
+                {
+                    InsumoId = r.InsumoId,
+                    InsumoNombre = r.NombreInsumo,
+                    CantidadPorUnidad = r.CantidadNecesaria,
+                    UnidadMedida = r.Unidad,
+                    StockGlobalDisponible = stockInsumos.TryGetValue(r.InsumoId, out var insumo) ? insumo.Stock : 0
+                });
+            }
+
+            ProductosDisponibles.Add(item);
+        }
+
+        // Si había uno elegido, lo vuelve a seleccionar con el stock actualizado.
+        ProductoSeleccionado = ProductosDisponibles.FirstOrDefault(p => p.Id == seleccionadoId);
+    }
+
+    private void CargarHistorial()
+    {
+        HistorialProduccion.Clear();
+
+        foreach (var p in _listarProducciones.Ejecutar())
+        {
+            HistorialProduccion.Add(new ProduccionHistoricaItem
+            {
+                CodigoLote = $"PRD-{p.Id:D4}",
+                FechaHora = p.CreatedAt,
+                ProductoNombre = p.NombreProducto,
+                CantidadElaborada = p.Cantidad,
+                SucursalDestino = p.NombreSucursal,
+                Cocinero = p.NombreUsuario
+            });
+        }
     }
 
     partial void OnProductoSeleccionadoChanged(ProductoElaborableItem? value)
@@ -105,6 +189,7 @@ public partial class CocinaViewModel : ObservableObject
             var totalReq = Math.Round(fb.CantidadPorUnidad * CantidadAElaborar, 2);
             var item = new ConsumoInsumoItem
             {
+                InsumoId = fb.InsumoId,
                 InsumoNombre = fb.InsumoNombre,
                 CantidadPorUnidad = fb.CantidadPorUnidad,
                 UnidadMedida = fb.UnidadMedida,
@@ -136,27 +221,41 @@ public partial class CocinaViewModel : ObservableObject
     {
         if (!EsProduccionFactible || ProductoSeleccionado == null || CantidadAElaborar <= 0) return;
 
-        // Descontar insumos mock
-        foreach (var c in CalculoConsumos)
+        var sucursal = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalDestino);
+        if (sucursal == null)
         {
-            c.StockGlobalDisponible -= c.TotalRequerido;
+            MessageBox.Show("Seleccioná la sucursal de destino.", "Producción",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
 
-        var insumosTexto = string.Join(", ", CalculoConsumos.Select(c => $"{c.TotalRequerido:N1}{c.UnidadMedida} {c.InsumoNombre}"));
-
-        var nuevoLote = new ProduccionHistoricaItem
+        if (SesionActual.UsuarioLogueado == null)
         {
-            CodigoLote = $"PRD-2026-00{HistorialProduccion.Count + 46}",
-            FechaHora = DateTime.Now,
-            ProductoNombre = ProductoSeleccionado.Nombre,
-            CantidadElaborada = CantidadAElaborar,
-            SucursalDestino = SucursalDestino,
-            Cocinero = CocineroActual,
-            InsumosResumen = insumosTexto,
-            Estado = "ENVIADO Y STOCK SUMADO"
-        };
+            MessageBox.Show("No hay una sesión activa. Volvé a iniciar sesión.", "Producción",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
 
-        HistorialProduccion.Insert(0, nuevoLote);
+        try
+        {
+            _registrarProduccion.Ejecutar(new ProduccionCrearDTO
+            {
+                ProductoId = ProductoSeleccionado.Id,
+                SucursalId = sucursal.Id,
+                UsuarioId = SesionActual.UsuarioLogueado.Id,
+                Cantidad = CantidadAElaborar
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Producción",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        // Recarga desde la base: stock de insumos descontado e historial con la nueva producción.
+        CargarProductos();
+        CargarHistorial();
         ActualizarFactibilidad();
     }
 }
