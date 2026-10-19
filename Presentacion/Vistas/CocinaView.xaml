@@ -8,10 +8,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="1000">
 
-    <UserControl.DataContext>
-        <vm:CocinaViewModel />
-    </UserControl.DataContext>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -235,18 +231,7 @@
                         <DataGridTextColumn Header="Producto Elaborado" Binding="{Binding ProductoNombre}" Width="2*" />
                         <DataGridTextColumn Header="Cantidad" Binding="{Binding CantidadElaborada, StringFormat='{}{0} un.'}" Width="90" />
                         <DataGridTextColumn Header="Sucursal Destino" Binding="{Binding SucursalDestino}" Width="1.4*" />
-                        <DataGridTextColumn Header="Insumos Descontados" Binding="{Binding InsumosResumen}" Width="2.5*" />
-
-                        <!-- Status Badge -->
-                        <DataGridTemplateColumn Header="Estado" Width="170">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="#E6F4EA" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left">
-                                        <TextBlock Text="{Binding Estado}" FontSize="10" FontWeight="SemiBold" Foreground="#137333"/>
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Registrado por" Binding="{Binding Cocinero}" Width="2*" />
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
