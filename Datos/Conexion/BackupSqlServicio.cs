@@ -94,79 +94,8 @@ namespace Datos.Conexion
                 TamanoBytes = new FileInfo(rutaBak).Length,
                 TamanoLegible = FormatearTamano(new FileInfo(rutaBak).Length),
                 FechaBackup = reader["BackupStartDate"] as DateTime? ?? DateTime.MinValue,
-                CreadoPor = reader["SQLUserName"]?.ToString() ?? "desconocido",
+                CreadoPor = reader["UserName"]?.ToString() ?? "desconocido",
             };
-        }
-
-        public async Task RestaurarBackupAsync(string rutaBak)
-        {
-            if (!File.Exists(rutaBak))
-                throw new FileNotFoundException($"El archivo de backup no existe: {rutaBak}", rutaBak);
-
-            var builder = new SqlConnectionStringBuilder(_connectionString);
-            string nombreBase = builder.InitialCatalog;
-
-            if (string.IsNullOrWhiteSpace(nombreBase))
-                throw new InvalidOperationException("La cadena de conexión no define la base de datos a restaurar.");
-
-            // Todas las sentencias de restore se ejecutan contra master
-            builder.InitialCatalog = "master";
-            string cadenaMaster = builder.ConnectionString;
-            string baseEscapada = nombreBase.Replace("]", "]]");
-
-            // El pool mantiene conexiones abiertas aunque el DbContext se haya liberado.
-            SqlConnection.ClearAllPools();
-
-            await using (var conexion = new SqlConnection(cadenaMaster))
-            {
-                await conexion.OpenAsync();
-                await EjecutarSentenciaAsync(
-                    conexion,
-                    "RESTORE VERIFYONLY FROM DISK = @ruta;",
-                    new SqlParameter("@ruta", rutaBak));
-            }
-
-            bool quedoEnSingleUser = false;
-
-            try
-            {
-                await using var conexion = new SqlConnection(cadenaMaster);
-                await conexion.OpenAsync();
-
-                await EjecutarSentenciaAsync(
-                    conexion,
-                    $"ALTER DATABASE [{baseEscapada}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;");
-                quedoEnSingleUser = true;
-
-                await EjecutarSentenciaAsync(
-                    conexion,
-                    $"RESTORE DATABASE [{baseEscapada}] FROM DISK = @ruta WITH REPLACE, RECOVERY;",
-                    new SqlParameter("@ruta", rutaBak));
-
-                await EjecutarSentenciaAsync(
-                    conexion,
-                    $"ALTER DATABASE [{baseEscapada}] SET MULTI_USER;");
-                quedoEnSingleUser = false;
-            }
-            finally
-            {
-                // Si el restore falla, la base queda en SINGLE_USER y la app no puede reconectarse.
-                if (quedoEnSingleUser)
-                {
-                    try
-                    {
-                        await using var conexion = new SqlConnection(cadenaMaster);
-                        await conexion.OpenAsync();
-                        await EjecutarSentenciaAsync(
-                            conexion,
-                            $"ALTER DATABASE [{baseEscapada}] SET MULTI_USER;");
-                    }
-                    catch
-                    {
-                        // la base quedo en SINGLE_USER y requiere modificacion manual.
-                    }
-                }
-            }
         }
 
         private static async Task EjecutarSentenciaAsync(SqlConnection conexion, string sql, params SqlParameter[] parametros)

@@ -18,7 +18,7 @@
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Copias de Seguridad (Backup)" Style="{StaticResource HeaderTitleStyle}"/>
-            <TextBlock Text="Generación manual y restauración de copias de seguridad de la base de datos" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+            <TextBlock Text="Generación manual de copias de seguridad de la base de datos" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
 
         <Grid Grid.Row="1">
@@ -112,7 +112,7 @@
                                 Content="♻  Restaurar seleccionado"
                                 Style="{StaticResource AccentButtonStyle}"
                                 Padding="12,6"
-                                Command="{Binding RestaurarBackupSeleccionadoCommand}"/>
+                                Command="{Binding AvisarRestauracionManualCommand}"/>
                     </Grid>
 
                     <Grid Grid.Row="1">

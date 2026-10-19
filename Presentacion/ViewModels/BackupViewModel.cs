@@ -9,7 +9,6 @@ using Aplicacion.DTOs;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
-using Presentacion.Vistas;
 
 namespace Presentacion.ViewModels;
 
@@ -17,7 +16,6 @@ public partial class BackupViewModel : ObservableObject
 {
     private readonly GenerarBackup _generarBackup;
     private readonly ListarBackups _listarBackups;
-    private readonly RestaurarBackup _restaurarBackup;
 
     [ObservableProperty]
     private ObservableCollection<BackupDTO> _historialBackups = new();
@@ -32,9 +30,6 @@ public partial class BackupViewModel : ObservableObject
     private bool _estaGenerando;
 
     [ObservableProperty]
-    private bool _estaRestaurando;
-
-    [ObservableProperty]
     private bool _hayBackups;
 
     [ObservableProperty]
@@ -47,11 +42,10 @@ public partial class BackupViewModel : ObservableObject
 
     public string EstadoOneDrive { get; }
 
-    public BackupViewModel(GenerarBackup generarBackup, ListarBackups listarBackups, RestaurarBackup restaurarBackup)
+    public BackupViewModel(GenerarBackup generarBackup, ListarBackups listarBackups)
     {
         _generarBackup = generarBackup;
         _listarBackups = listarBackups;
-        _restaurarBackup = restaurarBackup;
 
         string carpetaPublica = Environment.GetEnvironmentVariable("PUBLIC")
             ?? Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments);
@@ -129,53 +123,18 @@ public partial class BackupViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(PuedeRestaurar))]
-    private async Task RestaurarBackupSeleccionadoAsync()
+    private void AvisarRestauracionManual()
     {
         if (BackupSeleccionado is null)
             return;
 
-        var confirmacion = new ConfirmarRestauracionWindow(BackupSeleccionado);
-
-        if (Application.Current?.MainWindow is { } ventanaPrincipal)
-            confirmacion.Owner = ventanaPrincipal;
-
-        if (confirmacion.ShowDialog() != true)
-            return;
-
-        try
-        {
-            EstaRestaurando = true;
-            MensajeEsError = false;
-            MensajeEstado = "Restaurando la base de datos...";
-
-            await _restaurarBackup.Ejecutar(BackupSeleccionado.RutaCompleta);
-
-            MensajeEstado = "Restauración completada. Reiniciá la aplicación para reconectar con la base restaurada.";
-
-            MessageBox.Show(
-                "La base de datos se restauró correctamente.\n\n" +
-                "Reiniciá la aplicación para reconectar con la base restaurada.",
-                "Restauración completada",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
-
-            await CargarBackupsAsync();
-        }
-        catch (Exception ex)
-        {
-            MensajeEsError = true;
-            MensajeEstado = $"No se pudo restaurar la base de datos: {ex.Message}";
-
-            MessageBox.Show(
-                "No se pudo restaurar la base de datos.\n\n" + ex.Message,
-                "Error al restaurar",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-        }
-        finally
-        {
-            EstaRestaurando = false;
-        }
+        MessageBox.Show(
+            "Llamar al 3794-184591 para que el administrador de base de datos realice la tarea" +
+            $"\n\nArchivo: {BackupSeleccionado.NombreArchivo}" +
+            $"\nUbicación: {BackupSeleccionado.RutaCompleta}",
+            "Restauración de copia de seguridad",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
     }
 
     private async Task CargarBackupsAsync()
@@ -205,24 +164,18 @@ public partial class BackupViewModel : ObservableObject
     }
 
     private bool PuedeGenerarBackup()
-        => !EstaGenerando && !EstaRestaurando && !string.IsNullOrWhiteSpace(RutaDestinoLocal);
+        => !EstaGenerando && !string.IsNullOrWhiteSpace(RutaDestinoLocal);
 
     private bool PuedeRestaurar()
-        => !EstaGenerando && !EstaRestaurando && BackupSeleccionado is not null;
+        => !EstaGenerando && BackupSeleccionado is not null;
 
     partial void OnBackupSeleccionadoChanged(BackupDTO? value)
-        => RestaurarBackupSeleccionadoCommand.NotifyCanExecuteChanged();
+        => AvisarRestauracionManualCommand.NotifyCanExecuteChanged();
 
     partial void OnEstaGenerandoChanged(bool value)
     {
         GenerarBackupAhoraCommand.NotifyCanExecuteChanged();
-        RestaurarBackupSeleccionadoCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnEstaRestaurandoChanged(bool value)
-    {
-        GenerarBackupAhoraCommand.NotifyCanExecuteChanged();
-        RestaurarBackupSeleccionadoCommand.NotifyCanExecuteChanged();
+        AvisarRestauracionManualCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnRutaDestinoLocalChanged(string value)

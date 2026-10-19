@@ -80,7 +80,6 @@ public partial class App : Application
 
         services.AddTransient<GenerarBackup>();
         services.AddTransient<ListarBackups>();
-        services.AddTransient<RestaurarBackup>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
