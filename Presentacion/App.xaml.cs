@@ -2,6 +2,7 @@ using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Aplicacion.CasosDeUso;
+using Aplicacion.Interfaces;
 using Datos.Conexion;
 using Datos.Repositorios;
 using Datos.Seeder;
@@ -35,6 +36,8 @@ public partial class App : Application
         services.AddScoped<IStockSucursalRepositorio, StockSucursalRepositorio>();
         services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
         services.AddScoped<IProduccionRepositorio, ProduccionRepositorio>();
+
+        services.AddScoped<IBackupServicio>(_ => new BackupSqlServicio(AppDbContext.ConnectionString));
 
         services.AddTransient<CrearRol>();
         services.AddTransient<ActualizarRol>();
@@ -76,6 +79,8 @@ public partial class App : Application
 
         services.AddTransient<ListarCategorias>();
 
+        services.AddTransient<GenerarBackup>();
+        services.AddTransient<ListarBackups>();
         services.AddTransient<RegistrarProduccion>();
         services.AddTransient<ListarProducciones>();
 
@@ -88,6 +93,7 @@ public partial class App : Application
         services.AddTransient<StockViewModel>();
         services.AddTransient<ProductosViewModel>();
         services.AddTransient<ClientesViewModel>();
+        services.AddTransient<BackupViewModel>();
         services.AddTransient<CocinaViewModel>();
         Services = services.BuildServiceProvider();
 
