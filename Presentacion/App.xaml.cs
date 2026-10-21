@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Windows;
+using System.Windows.Markup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Aplicacion.CasosDeUso;
@@ -19,6 +21,13 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // WPF interpreta los bindings con cultura en-US por defecto. Forzamos la cultura
+        // del sistema para que los decimales se parseen y formateen con coma (es-AR).
+        FrameworkElement.LanguageProperty.OverrideMetadata(
+            typeof(FrameworkElement),
+            new FrameworkPropertyMetadata(
+                XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
+
         base.OnStartup(e);
 
         var services = new ServiceCollection();
