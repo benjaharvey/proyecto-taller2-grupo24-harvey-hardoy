@@ -23,6 +23,9 @@ namespace Datos.Conexion
 
         public DbSet<Produccion> Producciones {get; set;}
 
+        public DbSet<VentaCabecera> VentasCabecera { get; set; }
+        public DbSet<VentaDetalle> VentasDetalle { get; set; }
+
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
         }
@@ -77,6 +80,10 @@ namespace Datos.Conexion
                 .HasForeignKey(p => p.CategoriaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Producto>()
+                .Property(p => p.Precio)
+                .HasPrecision(18, 2);
+
             modelBuilder.Entity<Usuario>()
                 .HasOne(u => u.Rol)
                 .WithMany()
@@ -94,6 +101,109 @@ namespace Datos.Conexion
                 .WithMany()
                 .HasForeignKey(c => c.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Produccion es una entidad transaccional: sus relaciones no se borran en cascada.
+            modelBuilder.Entity<Produccion>(entity =>
+            {
+                entity.HasOne(p => p.Producto)
+                      .WithMany()
+                      .HasForeignKey(p => p.ProductoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Usuario)
+                      .WithMany()
+                      .HasForeignKey(p => p.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Sucursal)
+                      .WithMany()
+                      .HasForeignKey(p => p.SucursalId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<VentaCabecera>(entity =>
+            {
+                entity.Property(v => v.Estado)
+                      .HasConversion<string>()
+                      .HasMaxLength(20)
+                      .IsRequired();
+
+                entity.Property(v => v.MetodoPago)
+                      .HasConversion<string>()
+                      .HasMaxLength(20);
+
+                entity.Property(v => v.Total)
+                      .HasPrecision(18, 2);
+
+                entity.HasOne(v => v.Sucursal)
+                      .WithMany()
+                      .HasForeignKey(v => v.SucursalId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(v => v.Usuario)
+                      .WithMany()
+                      .HasForeignKey(v => v.UsuarioId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(v => v.Cliente)
+                      .WithMany()
+                      .HasForeignKey(v => v.ClienteId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Una única venta PENDIENTE por vendedor: índice único filtrado.
+                entity.HasIndex(v => v.UsuarioId)
+                      .HasFilter("[Estado] = N'PENDIENTE'")
+                      .IsUnique();
+
+                // Consulta del historial por sucursal y período.
+                entity.HasIndex(v => new { v.SucursalId, v.CreatedAt });
+
+                entity.ToTable(t =>
+                {
+                    t.HasCheckConstraint(
+                        "CK_VentasCabecera_Estado",
+                        "[Estado] IN ('PENDIENTE', 'CONFIRMADA', 'CANCELADA')");
+
+                    t.HasCheckConstraint(
+                        "CK_VentasCabecera_MetodoPago",
+                        "[MetodoPago] IS NULL OR [MetodoPago] IN ('EFECTIVO', 'TARJETA', 'TRANSFERENCIA')");
+
+                    t.HasCheckConstraint(
+                        "CK_VentasCabecera_Completitud",
+                        "[Estado] = 'PENDIENTE' OR ([ClienteId] IS NOT NULL AND [MetodoPago] IS NOT NULL)");
+
+                    t.HasCheckConstraint(
+                        "CK_VentasCabecera_Total",
+                        "[Total] >= 0");
+                });
+            });
+
+            modelBuilder.Entity<VentaDetalle>(entity =>
+            {
+                entity.Property(d => d.PrecioUnit)
+                      .HasPrecision(18, 2);
+
+                entity.HasOne(d => d.Venta)
+                      .WithMany(v => v.Detalles)
+                      .HasForeignKey(d => d.VentaCabeceraId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.Producto)
+                      .WithMany()
+                      .HasForeignKey(d => d.ProductoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.ToTable(t =>
+                {
+                    t.HasCheckConstraint(
+                        "CK_VentasDetalle_Cantidad",
+                        "[Cantidad] > 0");
+
+                    t.HasCheckConstraint(
+                        "CK_VentasDetalle_PrecioUnit",
+                        "[PrecioUnit] > 0");
+                });
+            });
         }
     }
 }
