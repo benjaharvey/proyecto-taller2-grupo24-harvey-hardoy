@@ -44,6 +44,7 @@ public partial class App : Application
         services.AddScoped<IStockSucursalRepositorio, StockSucursalRepositorio>();
         services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
         services.AddScoped<IProduccionRepositorio, ProduccionRepositorio>();
+        services.AddScoped<IVentaRepositorio, VentaRepositorio>();
 
         services.AddTransient<CrearRol>();
         services.AddTransient<ActualizarRol>();
