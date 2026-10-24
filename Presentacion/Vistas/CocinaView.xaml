@@ -106,8 +106,8 @@
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="130" />
-                                                <ColumnDefinition Width="140" />
+                                                <ColumnDefinition Width="170" />
+                                                <ColumnDefinition Width="180" />
                                                 <ColumnDefinition Width="100" />
                                             </Grid.ColumnDefinitions>
 
@@ -116,14 +116,14 @@
                                             <!-- Required -->
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="Requerido: " FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
-                                                <TextBlock Text="{Binding TotalRequerido, StringFormat='{}{0:N2}'}" FontSize="11" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding TotalRequerido, StringFormat='{}{0:0.#####}'}" FontSize="11" FontWeight="Bold"/>
                                                 <TextBlock Text="{Binding UnidadMedida, StringFormat='{} {0}'}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
                                             </StackPanel>
 
                                             <!-- Available in global stock -->
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <TextBlock Text="Disponible: " FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
-                                                <TextBlock Text="{Binding StockGlobalDisponible, StringFormat='{}{0:N1}'}" FontSize="11" FontWeight="Bold"/>
+                                                <TextBlock Text="{Binding StockGlobalDisponible, StringFormat='{}{0:0.#####}'}" FontSize="11" FontWeight="Bold"/>
                                                 <TextBlock Text="{Binding UnidadMedida, StringFormat='{} {0}'}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
                                             </StackPanel>
 

@@ -89,6 +89,24 @@ namespace Datos.Conexion
                 .HasForeignKey(u => u.SucursalId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Produccion>(entity =>
+            {
+                entity.HasOne(p => p.Usuario)
+                    .WithMany()
+                    .HasForeignKey(p => p.UsuarioId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Producto)
+                    .WithMany()
+                    .HasForeignKey(p => p.ProductoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(p => p.Sucursal)
+                    .WithMany()
+                    .HasForeignKey(p => p.SucursalId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             modelBuilder.Entity<Cliente>()
                 .HasOne(c => c.Usuario)
                 .WithMany()
