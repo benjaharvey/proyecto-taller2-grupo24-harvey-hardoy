@@ -5,16 +5,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:vm="clr-namespace:Presentacion.ViewModels"
-             mc:Ignorable="d" 
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             mc:Ignorable="d"
              d:DesignHeight="750" d:DesignWidth="1000">
 
-    <UserControl.DataContext>
-        <vm:ReportesViewModel />
-    </UserControl.DataContext>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,20,0">
         <Grid Margin="0,0,10,24">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -118,8 +120,50 @@
                 </Border>
             </Grid>
 
-            <!-- Row 3: Mid Row: Top Products Ranking & Branch Distribution -->
-            <Grid Grid.Row="3" Margin="0,0,0,20">
+            <!-- Row 3: Producción por producto (datos reales, con filtros elegidos por el usuario) -->
+            <Border Grid.Row="3" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="🧑‍🍳 Producción por Producto" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+
+                    <WrapPanel Margin="0,0,0,14">
+                        <TextBlock Text="Desde:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding ProduccionDesde}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                        <TextBlock Text="Hasta:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding ProduccionHasta}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                        <TextBlock Text="Producto:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox ItemsSource="{Binding ProductosFiltro}"
+                                  SelectedItem="{Binding ProduccionProductoFiltro}"
+                                  DisplayMemberPath="Nombre"
+                                  Width="200" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                        <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox ItemsSource="{Binding SucursalesFiltro}"
+                                  SelectedItem="{Binding ProduccionSucursalFiltro}"
+                                  DisplayMemberPath="Nombre"
+                                  Width="200" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                        <Button Content="Generar"
+                                Command="{Binding GenerarReporteProduccionCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                VerticalAlignment="Center"/>
+                    </WrapPanel>
+
+                    <Grid Height="300">
+                        <lvc:CartesianChart Series="{Binding ProduccionSeries}"
+                                            XAxes="{Binding ProduccionXAxes}"
+                                            YAxes="{Binding ProduccionYAxes}"/>
+                        <TextBlock Text="No hay producción registrada con los filtros seleccionados."
+                                   Style="{StaticResource BodyTextStyle}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Visibility="{Binding ProduccionSinDatos, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 4: Mid Row: Top Products Ranking & Branch Distribution -->
+            <Grid Grid.Row="4" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.4*" />
                     <ColumnDefinition Width="*" />
@@ -189,8 +233,8 @@
                 </Border>
             </Grid>
 
-            <!-- Row 4: Bottom Table: Consolidated Detail -->
-            <Border Grid.Row="4" Style="{StaticResource MaieCardStyle}" Padding="0">
+            <!-- Row 5: Bottom Table: Consolidated Detail -->
+            <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

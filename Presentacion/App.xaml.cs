@@ -78,6 +78,7 @@ public partial class App : Application
 
         services.AddTransient<RegistrarProduccion>();
         services.AddTransient<ListarProducciones>();
+        services.AddTransient<ObtenerProduccionPorProducto>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
@@ -89,6 +90,7 @@ public partial class App : Application
         services.AddTransient<ProductosViewModel>();
         services.AddTransient<ClientesViewModel>();
         services.AddTransient<CocinaViewModel>();
+        services.AddTransient<ReportesViewModel>();
         Services = services.BuildServiceProvider();
 
         try

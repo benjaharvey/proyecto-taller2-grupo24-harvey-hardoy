@@ -86,5 +86,30 @@ namespace Datos.Repositorios
                 .OrderByDescending(p => p.CreatedAt)
                 .ToList();
         }
+
+        public List<(string NombreProducto, int Total)> ObtenerTotalesPorProducto(
+            DateTime desde, DateTime hastaExclusivo, int? productoId, int? sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var query = context.Producciones
+                .Where(p => p.DeletedAt == null && p.CreatedAt >= desde && p.CreatedAt < hastaExclusivo);
+
+            // Filtros opcionales: solo se agregan al WHERE si el usuario eligió un valor.
+            if (productoId.HasValue)
+                query = query.Where(p => p.ProductoId == productoId.Value);
+
+            if (sucursalId.HasValue)
+                query = query.Where(p => p.SucursalId == sucursalId.Value);
+
+            // El GROUP BY y el SUM se ejecutan en SQL Server; acá solo vuelve una fila por producto.
+            return query
+                .GroupBy(p => p.Producto!.Nombre)
+                .Select(g => new { Nombre = g.Key, Total = g.Sum(p => p.Cantidad) })
+                .OrderByDescending(x => x.Total)
+                .AsEnumerable()
+                .Select(x => (x.Nombre, x.Total))
+                .ToList();
+        }
     }
 }
