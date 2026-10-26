@@ -186,7 +186,7 @@ public partial class CocinaViewModel : ObservableObject
 
         foreach (var fb in ProductoSeleccionado.FormulaBase)
         {
-            var totalReq = Math.Round(fb.CantidadPorUnidad * CantidadAElaborar, 2);
+            var totalReq = Math.Round(fb.CantidadPorUnidad * CantidadAElaborar, 5);
             var item = new ConsumoInsumoItem
             {
                 InsumoId = fb.InsumoId,
@@ -201,7 +201,7 @@ public partial class CocinaViewModel : ObservableObject
             if (!item.EsSuficiente)
             {
                 factible = false;
-                faltantesTexto += $"{item.InsumoNombre} (Faltan {item.Faltante:N2} {item.UnidadMedida}), ";
+                faltantesTexto += $"{item.InsumoNombre} (Faltan {item.Faltante:0.#####} {item.UnidadMedida}), ";
             }
         }
 
