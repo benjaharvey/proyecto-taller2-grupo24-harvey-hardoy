@@ -68,7 +68,7 @@ namespace Aplicacion.CasosDeUso
             }
         }
 
-        private static void ValidarPrecio(int valor)
+        private static void ValidarPrecio(decimal valor)
         {
             if(valor <= 0)
             {

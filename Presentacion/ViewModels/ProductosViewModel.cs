@@ -68,7 +68,7 @@ public partial class ProductosViewModel : ObservableObject
     private CategoriaDTO? _formCategoria;
 
     [ObservableProperty]
-    private int _formPrecio = 0;
+    private decimal _formPrecio = 0m;
 
     [ObservableProperty]
     private bool _esEdicion;
