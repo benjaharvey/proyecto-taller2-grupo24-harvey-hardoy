@@ -192,6 +192,40 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <RadioButton x:Name="RbHistorial"
+                                     Content="🧾  Historial de Ventas"
+                                     GroupName="NavMenu"
+                                     Command="{Binding NavigateCommand}"
+                                     CommandParameter="Historial"
+                                     Margin="0,4"
+                                     Padding="12,10"
+                                     Foreground="White"
+                                     FontSize="14"
+                                     Cursor="Hand">
+                            <RadioButton.Style>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource PrimaryHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </RadioButton.Style>
+                        </RadioButton>
+
                         <RadioButton x:Name="RbClientes"
                                      Content="🤝  Clientes"
                                      GroupName="NavMenu"
@@ -420,6 +454,9 @@
                 
                 <!-- Ventas View -->
                 <vistas:VentasView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Ventas, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+
+                <!-- Historial de Ventas View (solo Admin) -->
+                <vistas:HistorialVentasView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Historial, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Stock View -->
                 <vistas:StockView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Stock, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
