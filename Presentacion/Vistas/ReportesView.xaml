@@ -184,6 +184,7 @@
                                         </Grid.RowDefinitions>
                                         <DockPanel Grid.Row="0" Margin="0,0,0,4">
                                             <TextBlock Text="{Binding Nombre}" FontWeight="SemiBold" FontSize="12" Foreground="{StaticResource PrimaryBrush}"/>
+                                            <TextBlock Text="{Binding UnidadesVendidas, StringFormat='{}{0:N0} un.'}" DockPanel.Dock="Right" Margin="12,0,0,0" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
                                             <TextBlock Text="{Binding Recaudacion, StringFormat='${0:N2}'}" DockPanel.Dock="Right" HorizontalAlignment="Right" FontWeight="Bold" FontSize="12" Foreground="{StaticResource AccentBrush}"/>
                                         </DockPanel>
 

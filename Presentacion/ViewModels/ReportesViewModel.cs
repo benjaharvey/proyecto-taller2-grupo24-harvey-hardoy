@@ -41,11 +41,15 @@ public class DetalleConsolidadoReporteItem
 
 public partial class ReportesViewModel : ObservableObject
 {
+    // Filtros de la barra superior: ya gobiernan el ranking de más vendidos.
+    // Cada vez que cambian se vuelve a calcular (ver los métodos On...Changed más abajo).
     [ObservableProperty]
-    private string _periodoSeleccionado = "Mes Actual (Septiembre 2026)";
+    private string _periodoSeleccionado = "Últimos 30 días";
 
     [ObservableProperty]
-    private string _sucursalFiltro = "Todas las Sucursales";
+    private string _sucursalFiltro = TodasLasSucursales;
+
+    private const string TodasLasSucursales = "Todas las Sucursales";
 
     // KPI Cards
     [ObservableProperty]
@@ -72,13 +76,16 @@ public partial class ReportesViewModel : ObservableObject
 
     public ObservableCollection<string> Periodos { get; } = new()
     {
-        "Hoy", "Últimos 7 días", "Mes Actual (Septiembre 2026)", "Últimos 30 días", "Año 2026"
+        "Hoy", "Últimos 7 días", "Últimos 30 días", "Últimos 90 días"
     };
 
-    public ObservableCollection<string> Sucursales { get; } = new()
-    {
-        "Todas las Sucursales", "Sucursal Centro", "Sucursal Norte", "Sucursal Sur"
-    };
+    // Se llena en el constructor con las sucursales reales de la base.
+    public ObservableCollection<string> Sucursales { get; } = new();
+
+    // ---- Ranking de productos más vendidos (datos reales) ----
+    private const int CantidadEnRanking = 10;
+    private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
+    private readonly List<SucursalDTO> _sucursalesDb = new();
 
     // ---- Reporte: producción por producto (datos reales) ----
     private readonly ObtenerProduccionPorProducto _obtenerProduccionPorProducto;
@@ -116,10 +123,18 @@ public partial class ReportesViewModel : ObservableObject
 
     public ReportesViewModel(
         ObtenerProduccionPorProducto obtenerProduccionPorProducto,
+        ObtenerProductosMasVendidos obtenerProductosMasVendidos,
         ListarProductos listarProductos,
         ListarSucursales listarSucursales)
     {
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
+        _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
+
+        // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
+        _sucursalesDb = listarSucursales.Ejecutar();
+        Sucursales.Add(TodasLasSucursales);
+        foreach (var s in _sucursalesDb)
+            Sucursales.Add(s.Nombre);
 
         ProductosFiltro.Add(new ProductoDTO { Id = 0, Nombre = "Todos los productos" });
         foreach (var p in listarProductos.Ejecutar())
@@ -133,6 +148,57 @@ public partial class ReportesViewModel : ObservableObject
         ProduccionSucursalFiltro = SucursalesFiltro[0];
 
         GenerarReporteProduccion();
+        CargarRankingProductos();
+    }
+
+    // Se ejecutan solos cuando el usuario cambia el período o la sucursal en la barra superior.
+    partial void OnPeriodoSeleccionadoChanged(string value) => CargarRankingProductos();
+
+    partial void OnSucursalFiltroChanged(string value) => CargarRankingProductos();
+
+    // Traduce el texto del combo de período a un rango de fechas (hasta = hoy).
+    private static (DateTime Desde, DateTime Hasta) ObtenerRangoDelPeriodo(string periodo)
+    {
+        var hoy = DateTime.Today;
+
+        return periodo switch
+        {
+            "Hoy" => (hoy, hoy),
+            "Últimos 7 días" => (hoy.AddDays(-6), hoy),
+            "Últimos 90 días" => (hoy.AddDays(-89), hoy),
+            _ => (hoy.AddDays(-29), hoy)   // "Últimos 30 días" y cualquier valor inesperado
+        };
+    }
+
+    private void CargarRankingProductos()
+    {
+        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+
+        // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        List<ProductoMasVendidoDTO> datos;
+        try
+        {
+            datos = _obtenerProductosMasVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        // La barra de cada producto se mide contra el más vendido (el primero = 100%).
+        var maximo = datos.Count > 0 ? datos.Max(d => d.Unidades) : 0;
+
+        TopProductos = new ObservableCollection<TopProductoReporteItem>(
+            datos.Select(d => new TopProductoReporteItem
+            {
+                Nombre = d.NombreProducto,
+                UnidadesVendidas = d.Unidades,
+                Recaudacion = d.Recaudado,
+                PorcentajeTotal = maximo > 0 ? d.Unidades * 100.0 / maximo : 0
+            }));
     }
 
     [RelayCommand]
