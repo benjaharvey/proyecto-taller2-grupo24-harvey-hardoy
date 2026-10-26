@@ -85,6 +85,7 @@ public partial class ReportesViewModel : ObservableObject
     // ---- Ranking de productos más vendidos (datos reales) ----
     private const int CantidadEnRanking = 10;
     private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
+    private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
     private readonly List<SucursalDTO> _sucursalesDb = new();
 
     // ---- Reporte: producción por producto (datos reales) ----
@@ -124,11 +125,13 @@ public partial class ReportesViewModel : ObservableObject
     public ReportesViewModel(
         ObtenerProduccionPorProducto obtenerProduccionPorProducto,
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
+        ObtenerVentasPorSucursal obtenerVentasPorSucursal,
         ListarProductos listarProductos,
         ListarSucursales listarSucursales)
     {
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
+        _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
 
         // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
         _sucursalesDb = listarSucursales.Ejecutar();
@@ -149,10 +152,15 @@ public partial class ReportesViewModel : ObservableObject
 
         GenerarReporteProduccion();
         CargarRankingProductos();
+        CargarVentasPorSucursal();
     }
 
     // Se ejecutan solos cuando el usuario cambia el período o la sucursal en la barra superior.
-    partial void OnPeriodoSeleccionadoChanged(string value) => CargarRankingProductos();
+    partial void OnPeriodoSeleccionadoChanged(string value)
+    {
+        CargarRankingProductos();
+        CargarVentasPorSucursal();
+    }
 
     partial void OnSucursalFiltroChanged(string value) => CargarRankingProductos();
 
@@ -199,6 +207,37 @@ public partial class ReportesViewModel : ObservableObject
                 Recaudacion = d.Recaudado,
                 PorcentajeTotal = maximo > 0 ? d.Unidades * 100.0 / maximo : 0
             }));
+    }
+
+    private void CargarVentasPorSucursal()
+    {
+        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+
+        List<VentaPorSucursalDTO> datos;
+        try
+        {
+            datos = _obtenerVentasPorSucursal.Ejecutar(desde, hasta);
+        }
+        catch(InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var totalGeneral = datos.Sum(d => d.TotalRecaudado);
+
+        VentasPorSucursal = new ObservableCollection<SucursalVentaReporteItem>(
+            datos.Select(d => new SucursalVentaReporteItem
+            {
+                SucursalNombre = d.NombreSucursal,
+                CantidadVentas = d.CantidadVentas,
+                TotalFacturado = d.TotalRecaudado,
+                PorcentajeParticipacion = totalGeneral > 0
+                ? Math.Round((double)d.TotalRecaudado * 100 / (double)totalGeneral, 1)
+                : 0
+            })
+        );
+
     }
 
     [RelayCommand]

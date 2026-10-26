@@ -358,6 +358,26 @@ namespace Datos.Repositorios
                 .ToList();
         }
 
+        public List<(string NombreSucursal, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorSucursal(
+            DateTime desde, DateTime hastaExclusivo)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            return context.VentasCabecera
+                .Where(v => v.Estado == EstadoVenta.CONFIRMADA && v.CreatedAt >= desde && v.CreatedAt < hastaExclusivo)
+                .GroupBy(v => v.Sucursal!.Nombre)
+                .Select(g => new 
+                {
+                    Nombre = g.Key,
+                    Cantidad = g.Count(),
+                    Total = g.Sum(v => v.Total)
+                })
+                .OrderByDescending(x => x.Total)
+                .AsEnumerable()
+                .Select(x => (x.Nombre, x.Cantidad, x.Total))
+                .ToList();
+        }
+
         // ---------------------------------------------------------------
         // Helpers privados
         // ---------------------------------------------------------------
