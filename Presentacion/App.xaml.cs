@@ -96,6 +96,9 @@ public partial class App : Application
 
         services.AddTransient<RegistrarProduccion>();
         services.AddTransient<ListarProducciones>();
+        services.AddTransient<ObtenerProduccionPorProducto>();
+        services.AddTransient<ObtenerProductosMasVendidos>();
+        services.AddTransient<ObtenerVentasPorSucursal>();
 
         services.AddTransient<AbrirVenta>();
         services.AddTransient<AgregarItemVenta>();
@@ -118,6 +121,7 @@ public partial class App : Application
         services.AddTransient<ProductosViewModel>();
         services.AddTransient<ClientesViewModel>();
         services.AddTransient<CocinaViewModel>();
+        services.AddTransient<ReportesViewModel>();
         services.AddTransient<VentasViewModel>();
         services.AddTransient<HistorialVentasViewModel>();
         Services = services.BuildServiceProvider();

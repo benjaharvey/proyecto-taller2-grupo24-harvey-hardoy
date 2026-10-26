@@ -22,5 +22,9 @@ namespace Dominio.Interfaces
         void Descartar(int ventaId);
 
         List<VentaCabecera> ObtenerHistorial(VentaFiltro filtro);
+        List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMasVendidos
+        (DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top);
+
+        List<(string NombreSucursal, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorSucursal(DateTime desde, DateTime hastaExclusivo);
     }
 }
