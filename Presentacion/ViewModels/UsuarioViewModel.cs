@@ -20,6 +20,7 @@ public partial class UsuarioViewModel : ObservableObject
     private readonly ReactivarUsuario _reactivarUsuario;
     private readonly ListarRoles _listarRoles;
     private readonly ListarUsuarios _listarUsuarios;
+    private readonly ListarSucursales _listarSucursales;
 
     private List<UsuarioDTO> _todosLosUsuarios = new();
 
@@ -87,7 +88,8 @@ public partial class UsuarioViewModel : ObservableObject
         EliminarUsuario eliminarUsuario,
         ReactivarUsuario reactivarUsuario,
         ListarRoles listarRoles,
-        ListarUsuarios listarUsuarios)
+        ListarUsuarios listarUsuarios,
+        ListarSucursales listarSucursales)
     {
         _crearUsuario = crearUsuario;
         _actualizarUsuario = actualizarUsuario;
@@ -95,6 +97,7 @@ public partial class UsuarioViewModel : ObservableObject
         _reactivarUsuario = reactivarUsuario;
         _listarRoles = listarRoles;
         _listarUsuarios = listarUsuarios;
+        _listarSucursales = listarSucursales;
 
         CargarCombos();
         CargarGrilla();
@@ -105,12 +108,12 @@ public partial class UsuarioViewModel : ObservableObject
         var roles = _listarRoles.Ejecutar().Where(r => r.Nombre != "Admin").ToList();
         RolesDisponibles = new ObservableCollection<RolDTO>(roles);
 
-        var sucursales = new List<SucursalOpcion>
-        {
-            new(1, "Sucursal Centro"),
-            new(2, "Sucursal Norte"),
-            new(3, "Sucursal Sur")
-        };
+        // Las sucursales salen de la base: antes estaban hardcodeadas con IDs
+        // que no coincidian con los reales y guardaban la sucursal equivocada.
+        var sucursales = _listarSucursales.Ejecutar()
+            .Select(s => new SucursalOpcion(s.Id, s.Nombre))
+            .ToList();
+
         SucursalesDisponibles = new ObservableCollection<SucursalOpcion>(sucursales);
     }
 
@@ -381,22 +384,35 @@ public partial class UsuarioViewModel : ObservableObject
             return false;
         }
 
-        int sucursalId = 1;
+        int sucursalId;
+
         if (rolNombre == "Vendedor")
         {
-            if (FormSucursalSeleccionada != null)
-            {
-                sucursalId = FormSucursalSeleccionada.Id;
-            }
-            else
+            if (FormSucursalSeleccionada == null)
             {
                 MessageBox.Show("Seleccioná una sucursal para el vendedor.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
+
+            sucursalId = FormSucursalSeleccionada.Id;
         }
-        else if (rolNombre == "Cocinero")
+        else if (esEdicion && SelectedUsuario != null)
         {
-            sucursalId = 1;
+            // Un rol que no vende conserva la sucursal que ya tenía.
+            sucursalId = SelectedUsuario.SucursalId;
+        }
+        else
+        {
+            // Alta de admin/cocinero: se usa la sucursal del usuario logueado.
+            sucursalId = SesionActual.UsuarioLogueado?.SucursalId
+                         ?? SucursalesDisponibles.FirstOrDefault()?.Id
+                         ?? 0;
+        }
+
+        if (sucursalId <= 0)
+        {
+            MessageBox.Show("No se pudo determinar la sucursal del usuario.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
         }
 
         dto = new UsuarioCrearDTO

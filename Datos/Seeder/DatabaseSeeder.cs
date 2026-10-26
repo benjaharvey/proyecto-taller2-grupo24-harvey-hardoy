@@ -127,7 +127,9 @@ namespace Datos.Seeder
 
             foreach (var u in usuariosSeed)
             {
-                if (!context.Usuarios.Any(x => x.Email == u.Email))
+                var existente = context.Usuarios.FirstOrDefault(x => x.Email == u.Email);
+
+                if (existente == null)
                 {
                     context.Usuarios.Add(new Usuario
                     {
@@ -142,6 +144,13 @@ namespace Datos.Seeder
                         Direccion = u.Direccion,
                         CreatedAt = DateTime.UtcNow
                     });
+                    continue;
+                }
+
+                if (existente.DeletedAt == null && existente.SucursalId != u.SucursalId)
+                {
+                    existente.SucursalId = u.SucursalId;
+                    existente.UpdatedAt = DateTime.UtcNow;
                 }
             }
 

@@ -16,8 +16,16 @@ namespace Aplicacion.CasosDeUso
         {
             // si el vendedor ya tiene una venta en curso, se retoma.
             var pendiente = _repositorio.ObtenerPendiente(usuarioId);
+
             if (pendiente != null)
-                return pendiente;
+            {
+                // Si cambió de sucursal, el carrito viejo no sirve: los precios
+                // y el stock pertenecen a otra sucursal. Se descarta y se abre otra.
+                if (pendiente.SucursalId == sucursalId)
+                    return pendiente;
+
+                _repositorio.Descartar(pendiente.Id);
+            }
 
             var venta = new VentaCabecera
             {

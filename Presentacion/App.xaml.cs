@@ -118,6 +118,8 @@ public partial class App : Application
         services.AddTransient<ProductosViewModel>();
         services.AddTransient<ClientesViewModel>();
         services.AddTransient<CocinaViewModel>();
+        services.AddTransient<VentasViewModel>();
+        services.AddTransient<HistorialVentasViewModel>();
         Services = services.BuildServiceProvider();
 
         try

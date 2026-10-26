@@ -21,57 +21,32 @@ namespace Datos.Migrations
                 oldClrType: typeof(int),
                 oldType: "int");
 
-            migrationBuilder.CreateTable(
-                name: "Producciones",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Cantidad = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UsuarioId = table.Column<int>(type: "int", nullable: false),
-                    ProductoId = table.Column<int>(type: "int", nullable: false),
-                    SucursalId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Producciones", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Producciones_Productos_ProductoId",
-                        column: x => x.ProductoId,
-                        principalTable: "Productos",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Producciones_Sucursales_SucursalId",
-                        column: x => x.SucursalId,
-                        principalTable: "Sucursales",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Producciones_Usuarios_UsuarioId",
-                        column: x => x.UsuarioId,
-                        principalTable: "Usuarios",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
+            // La rama de produccion creó la misma tabla en su propia migración
+            // (AgregarProduccion). Al mergear, cualquiera de las dos puede correr
+            // segunda: se crea solo si no existe.
+            migrationBuilder.Sql("""
+                IF OBJECT_ID(N'[Producciones]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [Producciones] (
+                        [Id] int NOT NULL IDENTITY,
+                        [Cantidad] int NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL,
+                        [UpdatedAt] datetime2 NULL,
+                        [DeletedAt] datetime2 NULL,
+                        [UsuarioId] int NOT NULL,
+                        [ProductoId] int NOT NULL,
+                        [SucursalId] int NOT NULL,
+                        CONSTRAINT [PK_Producciones] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_Producciones_Productos_ProductoId] FOREIGN KEY ([ProductoId]) REFERENCES [Productos] ([Id]),
+                        CONSTRAINT [FK_Producciones_Sucursales_SucursalId] FOREIGN KEY ([SucursalId]) REFERENCES [Sucursales] ([Id]),
+                        CONSTRAINT [FK_Producciones_Usuarios_UsuarioId] FOREIGN KEY ([UsuarioId]) REFERENCES [Usuarios] ([Id])
+                    );
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Producciones_ProductoId",
-                table: "Producciones",
-                column: "ProductoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Producciones_SucursalId",
-                table: "Producciones",
-                column: "SucursalId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Producciones_UsuarioId",
-                table: "Producciones",
-                column: "UsuarioId");
+                    CREATE INDEX [IX_Producciones_ProductoId] ON [Producciones] ([ProductoId]);
+                    CREATE INDEX [IX_Producciones_SucursalId] ON [Producciones] ([SucursalId]);
+                    CREATE INDEX [IX_Producciones_UsuarioId] ON [Producciones] ([UsuarioId]);
+                END
+                """);
         }
 
         /// <inheritdoc />

@@ -35,6 +35,7 @@ namespace Aplicacion.Mapeadores
                 Detalles = venta.Detalles
                     .Select(d => new VentaDetalleDTO
                     {
+                        Id = d.Id,
                         ProductoId = d.ProductoId,
                         NombreProducto = d.Producto?.Nombre ?? "Producto eliminado",
                         Cantidad = d.Cantidad,
