@@ -55,6 +55,10 @@ public partial class ReportesViewModel : ObservableObject
     private const string TodasLasSucursales = "Todas las Sucursales";
 
     // KPI Cards
+    // Ganancia = lo cobrado menos lo que costó producir lo vendido. TotalIngresosVentas es lo cobrado (facturado).
+    [ObservableProperty]
+    private decimal _totalGanancia = 0;
+
     [ObservableProperty]
     private decimal _totalIngresosVentas = 0;
 
@@ -65,7 +69,7 @@ public partial class ReportesViewModel : ObservableObject
     private int _totalUnidadesVendidas = 0;
 
     [ObservableProperty]
-    private int _totalUnidadesElaboradas = 0;
+    private decimal _ticketPromedio = 0;
 
     // Visual lists
     [ObservableProperty]
@@ -84,6 +88,7 @@ public partial class ReportesViewModel : ObservableObject
     private const int CantidadEnRanking = 10;
     private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
     private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
+    private readonly ObtenerResumenVentas _obtenerResumenVentas;
     private readonly List<SucursalDTO> _sucursalesDb = new();
 
     // ---- Reporte: producción por producto (datos reales) ----
@@ -124,12 +129,14 @@ public partial class ReportesViewModel : ObservableObject
         ObtenerProduccionPorProducto obtenerProduccionPorProducto,
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
         ObtenerVentasPorSucursal obtenerVentasPorSucursal,
+        ObtenerResumenVentas obtenerResumenVentas,
         ListarProductos listarProductos,
         ListarSucursales listarSucursales)
     {
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
         _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
+        _obtenerResumenVentas = obtenerResumenVentas;
 
         // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
         _sucursalesDb = listarSucursales.Ejecutar();
@@ -151,6 +158,7 @@ public partial class ReportesViewModel : ObservableObject
         GenerarReporteProduccion();
         CargarRankingProductos();
         CargarVentasPorSucursal();
+        CargarResumenVentas();
     }
     private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
@@ -171,7 +179,12 @@ public partial class ReportesViewModel : ObservableObject
             return true;
         }
     }
-    partial void OnSucursalFiltroChanged(string value) => CargarRankingProductos();
+    // El ranking y las tarjetas dependen de la sucursal elegida (ventas por sucursal compara todas).
+    partial void OnSucursalFiltroChanged(string value)
+    {
+        CargarRankingProductos();
+        CargarResumenVentas();
+    }
 
     private void CargarRankingProductos()
     {
@@ -235,11 +248,39 @@ public partial class ReportesViewModel : ObservableObject
 
     }
 
+    // Llena las tarjetas de arriba: ganancia, facturado, ventas confirmadas y unidades vendidas.
+    private void CargarResumenVentas()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        ResumenVentasDTO resumen;
+        try
+        {
+            resumen = _obtenerResumenVentas.Ejecutar(desde, hasta, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        TotalGanancia = resumen.Ganancia;
+        TotalIngresosVentas = resumen.Facturado;
+        TotalOperacionesVenta = resumen.CantidadVentas;
+        TotalUnidadesVendidas = resumen.Unidades;
+        TicketPromedio = resumen.TicketPromedio;
+
+    }
+
     [RelayCommand]
     private void AplicarFiltros()
     {
         CargarRankingProductos();
         CargarVentasPorSucursal();
+        CargarResumenVentas();
     }
 
     [RelayCommand]

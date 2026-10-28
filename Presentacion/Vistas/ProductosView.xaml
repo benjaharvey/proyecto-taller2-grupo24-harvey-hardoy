@@ -123,6 +123,7 @@
                         <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="2*" />
                         <DataGridTextColumn Header="Categoría" Binding="{Binding NombreCategoria}" Width="*" />
                         <DataGridTextColumn Header="Precio Unit." Binding="{Binding Precio, StringFormat='${0:N2}'}" Width="110" />
+                        <DataGridTextColumn Header="Costo Unit." Binding="{Binding Costo, StringFormat='${0:N2}'}" Width="110" />
                         
                         <!-- Status Badge -->
                         <DataGridTemplateColumn Header="Estado" Width="95">
@@ -242,7 +243,11 @@
 
                         <!-- Price -->
                         <TextBlock Text="Precio Unitario ($)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormPrecio}" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBox Text="{Binding FormPrecio}" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
+
+                        <!-- Cost -->
+                        <TextBlock Text="Costo de Producción por Unidad ($)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding FormCosto}" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                         <Separator Margin="0,0,0,12" Background="#E2DCD5"/>
 
