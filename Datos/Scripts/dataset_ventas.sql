@@ -3,7 +3,8 @@
    Base: ProyectoCRUD (SQL Server Express, instancia localhost\SQLEXPRESS)
 
    REQUISITOS
-     1) La base tiene que tener las migraciones de ventas aplicadas (abrir la app una vez).
+     1) La base tiene que tener las migraciones aplicadas, incluida AgregarCostos
+        (columnas Productos.Costo y VentasDetalle.CostoUnit). Se aplican abriendo la app una vez.
      2) Tiene que haber al menos: 1 usuario con rol Vendedor, 1 cliente activo y
         1 producto activo con precio. (Los crea el seeder / datos_prueba.sql.)
 
@@ -13,6 +14,10 @@
    QUE HACE (es seguro volver a correrlo)
      - Genera ventas de los ultimos @Dias dias en las sucursales que venden
        (todas las activas menos Casa Central y Fabrica).
+     - A los productos activos que tengan Costo = 0 les asigna un costo de produccion
+       de entre el 45% y el 70% del precio (determinista por producto). Los productos
+       con un costo ya cargado NO se tocan. Cada renglon de venta guarda ese costo en
+       CostoUnit, para poder calcular la ganancia.
      - Si @CrearSucursalesExtra = 1 y faltan, crea "Sucursal Norte" y "Sucursal Sur"
        (con filas de stock) para poder probar reportes por sucursal.
      - Mas ventas viernes y sabado, pocas los domingos, tendencia levemente creciente,
@@ -46,6 +51,9 @@ DECLARE @Ahora                DATETIME2 = SYSDATETIME();
 IF OBJECT_ID(N'VentasCabecera', N'U') IS NULL OR OBJECT_ID(N'VentasDetalle', N'U') IS NULL
     THROW 50010, 'No existen las tablas de ventas. Abri la app una vez para aplicar las migraciones.', 1;
 
+IF COL_LENGTH(N'Productos', N'Costo') IS NULL OR COL_LENGTH(N'VentasDetalle', N'CostoUnit') IS NULL
+    THROW 50012, 'Faltan las columnas de costo (migracion AgregarCostos). Abri la app una vez para aplicarla.', 1;
+
 BEGIN TRANSACTION;
 
 -- 0) Limpieza de lo generado en una corrida anterior (las identifica la marca) ----
@@ -74,6 +82,11 @@ CROSS JOIN Sucursales s
 WHERE p.DeletedAt IS NULL AND s.DeletedAt IS NULL
   AND NOT EXISTS (SELECT 1 FROM StocksSucursal ss WHERE ss.ProductoId = p.Id AND ss.SucursalId = s.Id);
 
+-- 2b) Costos de produccion: solo para los productos activos que todavia no tienen costo ----
+UPDATE Productos
+SET Costo = ROUND(Precio * (45 + (Id * 7) % 26) / 100.0, 0)
+WHERE DeletedAt IS NULL AND Costo = 0;
+
 -- 3) Tablas auxiliares: quienes participan ---------------------------------------
 -- Sucursales que venden (Casa Central y Fabrica son administracion / produccion).
 SELECT ROW_NUMBER() OVER (ORDER BY s.Id) AS Orden, s.Id AS SucursalId
@@ -83,7 +96,7 @@ WHERE s.DeletedAt IS NULL
   AND s.Nombre <> N'Casa Central'
   AND s.Nombre NOT LIKE N'F%brica';
 
-SELECT ROW_NUMBER() OVER (ORDER BY p.Id) AS Orden, p.Id AS ProductoId, p.Precio
+SELECT ROW_NUMBER() OVER (ORDER BY p.Id) AS Orden, p.Id AS ProductoId, p.Precio, p.Costo
 INTO #Prod
 FROM Productos p
 WHERE p.DeletedAt IS NULL AND p.Precio > 0;
@@ -200,12 +213,12 @@ Elegidas AS (
            1 + (l.H2 / 211) % 6 AS Cant
     FROM Lineas l
 )
-INSERT INTO VentasDetalle (VentaCabeceraId, ProductoId, Cantidad, PrecioUnit, CreatedAt)
-SELECT m.VentaId, p.ProductoId, SUM(e.Cant), p.Precio, MIN(e.Fecha)
+INSERT INTO VentasDetalle (VentaCabeceraId, ProductoId, Cantidad, PrecioUnit, CostoUnit, CreatedAt)
+SELECT m.VentaId, p.ProductoId, SUM(e.Cant), p.Precio, p.Costo, MIN(e.Fecha)
 FROM Elegidas e
 JOIN #Mapa m ON m.TicketId = e.TicketId
 JOIN #Prod p ON p.Orden = e.PIdx
-GROUP BY m.VentaId, p.ProductoId, p.Precio;
+GROUP BY m.VentaId, p.ProductoId, p.Precio, p.Costo;
 
 -- 7) Total de cada cabecera = suma de sus detalles -------------------------------
 UPDATE c

@@ -183,6 +183,10 @@ namespace Datos.Migrations
                     b.Property<int>("CategoriaId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Costo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -207,7 +211,10 @@ namespace Datos.Migrations
 
                     b.HasIndex("CategoriaId");
 
-                    b.ToTable("Productos");
+                    b.ToTable("Productos", t =>
+                        {
+                            t.HasCheckConstraint("CK_Productos_Costo", "[Costo] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
@@ -450,6 +457,10 @@ namespace Datos.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("CostoUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -472,6 +483,8 @@ namespace Datos.Migrations
                     b.ToTable("VentasDetalle", t =>
                         {
                             t.HasCheckConstraint("CK_VentasDetalle_Cantidad", "[Cantidad] > 0");
+
+                            t.HasCheckConstraint("CK_VentasDetalle_CostoUnit", "[CostoUnit] >= 0");
 
                             t.HasCheckConstraint("CK_VentasDetalle_PrecioUnit", "[PrecioUnit] > 0");
                         });

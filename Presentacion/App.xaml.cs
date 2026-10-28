@@ -99,6 +99,7 @@ public partial class App : Application
         services.AddTransient<ObtenerProduccionPorProducto>();
         services.AddTransient<ObtenerProductosMasVendidos>();
         services.AddTransient<ObtenerVentasPorSucursal>();
+        services.AddTransient<ObtenerResumenVentas>();
 
         services.AddTransient<AbrirVenta>();
         services.AddTransient<AgregarItemVenta>();

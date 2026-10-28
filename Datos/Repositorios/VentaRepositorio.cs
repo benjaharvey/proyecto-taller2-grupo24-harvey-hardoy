@@ -65,19 +65,21 @@ namespace Datos.Repositorios
                 .FirstOrDefault(v => v.Id == ventaId);
         }
 
-        public void AgregarItem(int ventaId, int productoId, int cantidad, decimal precioUnit)
+        public void AgregarItem(int ventaId, int productoId, int cantidad, decimal precioUnit, decimal costoUnit)
         {
             if (cantidad <= 0)
                 throw new InvalidOperationException("La cantidad debe ser mayor a cero.");
             if (precioUnit <= 0)
                 throw new InvalidOperationException("El precio unitario debe ser mayor a cero.");
+            if (costoUnit < 0)
+                throw new InvalidOperationException("El costo unitario no puede ser negativo.");
 
             using var context = _contextFactory.CreateDbContext();
             var ahora = DateTime.Now;
 
             var venta = CargarPendiente(context, ventaId);
 
-            // El precio se congela en la primera carga del producto.
+            // El precio y el costo se congelan en la primera carga del producto.
             var item = venta.Detalles.FirstOrDefault(d => d.ProductoId == productoId);
 
             if (item == null) // si no existe, creamos la ventadetalle con ese producto
@@ -88,6 +90,7 @@ namespace Datos.Repositorios
                     ProductoId = productoId,
                     Cantidad = cantidad,
                     PrecioUnit = precioUnit,
+                    CostoUnit = costoUnit,
                     CreatedAt = ahora
                 });
             }
@@ -376,6 +379,41 @@ namespace Datos.Repositorios
                 .AsEnumerable()
                 .Select(x => (x.Nombre, x.Cantidad, x.Total))
                 .ToList();
+        }
+
+        public (decimal Facturado, decimal Ganancia, int CantidadVentas, int Unidades) ObtenerResumenVentas(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            // Lo facturado y la cantidad de ventas salen de la cabecera (una fila por venta).
+            var ventas = context.VentasCabecera
+                .Where(v => v.Estado == EstadoVenta.CONFIRMADA
+                         && v.CreatedAt >= desde
+                         && v.CreatedAt < hastaExclusivo);
+
+            // Las unidades y la ganancia salen de los renglones, con las mismas condiciones.
+            var renglones = context.VentasDetalle
+                .Where(d => d.Venta!.Estado == EstadoVenta.CONFIRMADA
+                         && d.Venta.CreatedAt >= desde
+                         && d.Venta.CreatedAt < hastaExclusivo);
+
+            // Filtro opcional: solo se agrega si el usuario eligió una sucursal.
+            if (sucursalId.HasValue)
+            {
+                ventas = ventas.Where(v => v.SucursalId == sucursalId.Value);
+                renglones = renglones.Where(d => d.Venta!.SucursalId == sucursalId.Value);
+            }
+
+            // Sum sobre una lista vacía devuelve 0: si no hay ventas, todo queda en 0.
+            var facturado = ventas.Sum(v => v.Total);
+            var cantidadVentas = ventas.Count();
+            var unidades = renglones.Sum(d => d.Cantidad);
+
+            // Ganancia = lo vendido menos lo que costó producirlo, por cada unidad.
+            var ganancia = renglones.Sum(d => d.Cantidad * (d.PrecioUnit - d.CostoUnit));
+
+            return (facturado, ganancia, cantidadVentas, unidades);
         }
 
         // ---------------------------------------------------------------

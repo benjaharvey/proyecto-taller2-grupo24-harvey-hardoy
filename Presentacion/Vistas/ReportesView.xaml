@@ -71,14 +71,14 @@
                 <!-- Card 1: Ingresos -->
                 <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
-                        <TextBlock Text="💰 Ingresos por Ventas" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
-                        <TextBlock Text="{Binding TotalIngresosVentas, StringFormat='${0:N2}'}" 
-                                   FontFamily="Noto Serif" 
-                                   FontSize="20" 
-                                   FontWeight="Bold" 
+                        <TextBlock Text="💰 Ganancias por Ventas" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="{Binding TotalGanancia, StringFormat='${0:N2}'}"
+                                   FontFamily="Noto Serif"
+                                   FontSize="20"
+                                   FontWeight="Bold"
                                    Foreground="{StaticResource AccentBrush}"
                                    Margin="0,6,0,4"/>
-                        <TextBlock Text="↗ +14% vs mes anterior" FontSize="11" Foreground="#137333" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TotalIngresosVentas, StringFormat='Facturado: ${0:N2}'}" FontSize="11" Foreground="#137333" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Border>
 
@@ -106,21 +106,21 @@
                                    FontWeight="Bold" 
                                    Foreground="{StaticResource PrimaryBrush}"
                                    Margin="0,6,0,4"/>
-                        <TextBlock Text="En todas las sucursales" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="{Binding SucursalFiltro}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Card 4: Unidades Elaboradas -->
                 <Border Grid.Column="3" Style="{StaticResource MaieCardStyle}" Margin="8,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="🧑‍🍳 Elaborado en Cocina" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
-                        <TextBlock Text="{Binding TotalUnidadesElaboradas, StringFormat='{}{0:N0} un.'}" 
+                        <TextBlock Text="💰 Ticket Promedio" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="{Binding TicketPromedio, StringFormat='${0:N2}'}" 
                                    FontFamily="Noto Serif" 
                                    FontSize="20" 
                                    FontWeight="Bold" 
                                    Foreground="{StaticResource PrimaryBrush}"
                                    Margin="0,6,0,4"/>
-                        <TextBlock Text="Reposición enviada a sucursales" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="Facturado ÷ ventas confirmadas" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>

@@ -12,7 +12,7 @@ namespace Dominio.Interfaces
         VentaCabecera? ObtenerPorId(int ventaId);
 
         // Cambios del carrito
-        void AgregarItem(int ventaId, int productoId, int cantidad, decimal precioUnit);
+        void AgregarItem(int ventaId, int productoId, int cantidad, decimal precioUnit, decimal costoUnit);
         void CambiarCantidad(int detalleId, int cantidad);
         void QuitarItem(int detalleId);
 
@@ -26,5 +26,10 @@ namespace Dominio.Interfaces
         (DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top);
 
         List<(string NombreSucursal, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorSucursal(DateTime desde, DateTime hastaExclusivo);
+
+        // Totales de las ventas confirmadas en [desde, hastaExclusivo): lo facturado, la ganancia
+        // (venta menos costo), cuántas ventas fueron y cuántas unidades. sucursalId null = todas.
+        (decimal Facturado, decimal Ganancia, int CantidadVentas, int Unidades) ObtenerResumenVentas(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId);
     }
 }

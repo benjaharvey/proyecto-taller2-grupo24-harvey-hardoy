@@ -84,6 +84,13 @@ namespace Datos.Conexion
                 .Property(p => p.Precio)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Producto>()
+                .Property(p => p.Costo)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Producto>()
+                .ToTable(t => t.HasCheckConstraint("CK_Productos_Costo", "[Costo] >= 0"));
+
             modelBuilder.Entity<Usuario>()
                 .HasOne(u => u.Rol)
                 .WithMany()
@@ -201,6 +208,9 @@ namespace Datos.Conexion
                 entity.Property(d => d.PrecioUnit)
                       .HasPrecision(18, 2);
 
+                entity.Property(d => d.CostoUnit)
+                      .HasPrecision(18, 2);
+
                 entity.HasOne(d => d.Venta)
                       .WithMany(v => v.Detalles)
                       .HasForeignKey(d => d.VentaCabeceraId)
@@ -220,6 +230,10 @@ namespace Datos.Conexion
                     t.HasCheckConstraint(
                         "CK_VentasDetalle_PrecioUnit",
                         "[PrecioUnit] > 0");
+
+                    t.HasCheckConstraint(
+                        "CK_VentasDetalle_CostoUnit",
+                        "[CostoUnit] >= 0");
                 });
             });
         }
