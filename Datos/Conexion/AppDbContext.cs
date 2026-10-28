@@ -61,7 +61,6 @@ namespace Datos.Conexion
 
                entity.Property(pi => pi.CantidadNecesaria).HasPrecision(18,3 );
 
-               // Sin borrado en cascada (la app usa borrado lógico).
                entity.HasOne(pi => pi.Insumo)
                      .WithMany(i => i.ProductoInsumos)
                      .HasForeignKey(pi => pi.InsumoId)

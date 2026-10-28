@@ -4,6 +4,7 @@ using System.Windows.Markup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Aplicacion.CasosDeUso;
+using Aplicacion.Interfaces;
 using Aplicacion.Servicios;
 using Datos.Conexion;
 using Datos.Repositorios;
@@ -54,6 +55,8 @@ public partial class App : Application
 
         services.AddTransient<IComprobantePdfServicio, ComprobantePdfServicio>();
 
+        services.AddScoped<IBackupServicio>(_ => new BackupSqlServicio(AppDbContext.ConnectionString));
+
         services.AddTransient<CrearRol>();
         services.AddTransient<ActualizarRol>();
         services.AddTransient<EliminarRol>();
@@ -94,6 +97,8 @@ public partial class App : Application
 
         services.AddTransient<ListarCategorias>();
 
+        services.AddTransient<GenerarBackup>();
+        services.AddTransient<ListarBackups>();
         services.AddTransient<RegistrarProduccion>();
         services.AddTransient<ListarProducciones>();
         services.AddTransient<ObtenerProduccionPorProducto>();
@@ -121,6 +126,7 @@ public partial class App : Application
         services.AddTransient<StockViewModel>();
         services.AddTransient<ProductosViewModel>();
         services.AddTransient<ClientesViewModel>();
+        services.AddTransient<BackupViewModel>();
         services.AddTransient<CocinaViewModel>();
         services.AddTransient<ReportesViewModel>();
         services.AddTransient<VentasViewModel>();
