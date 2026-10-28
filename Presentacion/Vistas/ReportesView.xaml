@@ -33,6 +33,13 @@
             <!-- Row 1: Filters Bar -->
             <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,24" Padding="16,14">
                 <DockPanel>
+                    <!-- El botón va primero y pegado a la derecha; el resto de los filtros ocupa el espacio que queda. -->
+                    <Button Content="Aplicar"
+                            Command="{Binding AplicarFiltrosCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            DockPanel.Dock="Right"
+                            VerticalAlignment="Center"/>
+
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                         <TextBlock Text="Filtrar por:" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="13"/>
                         
@@ -48,11 +55,6 @@
                                   Padding="10,6"
                                   Width="230"
                                   BorderBrush="{StaticResource SecondaryBrush}"/>
-                        
-                        <Button Content="Aplicar"
-                                Command="{Binding AplicarFiltrosCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                VerticalAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
