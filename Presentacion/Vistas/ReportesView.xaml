@@ -36,13 +36,11 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                         <TextBlock Text="Filtrar por:" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="13"/>
                         
-                        <TextBlock Text="Período:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox ItemsSource="{Binding Periodos}" 
-                                  SelectedItem="{Binding PeriodoSeleccionado}"
-                                  Padding="10,6"
-                                  Width="260"
-                                  Margin="0,0,28,0"
-                                  BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBlock Text="Desde:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding FechaDesde}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                        <TextBlock Text="Hasta:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding FechaHasta}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
                         <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <ComboBox ItemsSource="{Binding Sucursales}" 
@@ -50,6 +48,11 @@
                                   Padding="10,6"
                                   Width="230"
                                   BorderBrush="{StaticResource SecondaryBrush}"/>
+                        
+                        <Button Content="Aplicar"
+                                Command="{Binding AplicarFiltrosCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                VerticalAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
