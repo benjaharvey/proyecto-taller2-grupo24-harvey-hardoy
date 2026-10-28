@@ -44,7 +44,10 @@ public partial class ReportesViewModel : ObservableObject
     // Filtros de la barra superior: ya gobiernan el ranking de más vendidos.
     // Cada vez que cambian se vuelve a calcular (ver los métodos On...Changed más abajo).
     [ObservableProperty]
-    private string _periodoSeleccionado = "Últimos 30 días";
+    private DateTime? _fechaDesde = DateTime.Today.AddDays(-30);
+
+    [ObservableProperty]
+    private DateTime? _fechaHasta = DateTime.Today;
 
     [ObservableProperty]
     private string _sucursalFiltro = TodasLasSucursales;
@@ -73,11 +76,6 @@ public partial class ReportesViewModel : ObservableObject
 
     [ObservableProperty]
     private ObservableCollection<DetalleConsolidadoReporteItem> _tablaConsolidada = new();
-
-    public ObservableCollection<string> Periodos { get; } = new()
-    {
-        "Hoy", "Últimos 7 días", "Últimos 30 días", "Últimos 90 días"
-    };
 
     // Se llena en el constructor con las sucursales reales de la base.
     public ObservableCollection<string> Sucursales { get; } = new();
@@ -154,33 +152,30 @@ public partial class ReportesViewModel : ObservableObject
         CargarRankingProductos();
         CargarVentasPorSucursal();
     }
-
-    // Se ejecutan solos cuando el usuario cambia el período o la sucursal en la barra superior.
-    partial void OnPeriodoSeleccionadoChanged(string value)
+    private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
-        CargarRankingProductos();
-        CargarVentasPorSucursal();
-    }
-
-    partial void OnSucursalFiltroChanged(string value) => CargarRankingProductos();
-
-    // Traduce el texto del combo de período a un rango de fechas (hasta = hoy).
-    private static (DateTime Desde, DateTime Hasta) ObtenerRangoDelPeriodo(string periodo)
-    {
-        var hoy = DateTime.Today;
-
-        return periodo switch
+        if (FechaDesde == null || FechaHasta == null)
         {
-            "Hoy" => (hoy, hoy),
-            "Últimos 7 días" => (hoy.AddDays(-6), hoy),
-            "Últimos 90 días" => (hoy.AddDays(-89), hoy),
-            _ => (hoy.AddDays(-29), hoy)   // "Últimos 30 días" y cualquier valor inesperado
-        };
+            desde = default;
+            hasta = default;
+            MessageBox.Show("Elegí la fecha desde y la fecha hasta.", "Reportes",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+
+            return false;
+
+        } else
+        {
+            desde = FechaDesde.Value;
+            hasta = FechaHasta.Value;
+
+            return true;
+        }
     }
+    partial void OnSucursalFiltroChanged(string value) => CargarRankingProductos();
 
     private void CargarRankingProductos()
     {
-        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
 
         // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
         int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
@@ -211,7 +206,7 @@ public partial class ReportesViewModel : ObservableObject
 
     private void CargarVentasPorSucursal()
     {
-        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
 
         List<VentaPorSucursalDTO> datos;
         try
@@ -238,6 +233,13 @@ public partial class ReportesViewModel : ObservableObject
             })
         );
 
+    }
+
+    [RelayCommand]
+    private void AplicarFiltros()
+    {
+        CargarRankingProductos();
+        CargarVentasPorSucursal();
     }
 
     [RelayCommand]
