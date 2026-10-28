@@ -11,6 +11,7 @@ namespace Aplicacion.CasosDeUso
 
             ValidarNombre(dto.Nombre);
             ValidarPrecio(dto.Precio);
+            ValidarCosto(dto.Costo);
             ValidarCategoriaId(dto.CategoriaId);
             ValidarReceta(dto.Receta, insumoRepo);
 
@@ -68,11 +69,20 @@ namespace Aplicacion.CasosDeUso
             }
         }
 
-        private static void ValidarPrecio(int valor)
+        private static void ValidarPrecio(decimal valor)
         {
             if(valor <= 0)
             {
                 throw new InvalidOperationException("El precio no puede ser 0 o negativo. Reingrese");
+            }
+        }
+
+        // El costo puede ser 0 (todavía no cargado), pero no negativo.
+        private static void ValidarCosto(decimal valor)
+        {
+            if(valor < 0)
+            {
+                throw new InvalidOperationException("El costo de producción no puede ser negativo. Reingrese");
             }
         }
 

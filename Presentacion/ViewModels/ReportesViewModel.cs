@@ -1,6 +1,14 @@
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
+using Aplicacion.CasosDeUso;
+using Aplicacion.DTOs;
 
 namespace Presentacion.ViewModels;
 
@@ -33,13 +41,24 @@ public class DetalleConsolidadoReporteItem
 
 public partial class ReportesViewModel : ObservableObject
 {
+    // Filtros de la barra superior: ya gobiernan el ranking de más vendidos.
+    // Cada vez que cambian se vuelve a calcular (ver los métodos On...Changed más abajo).
     [ObservableProperty]
-    private string _periodoSeleccionado = "Mes Actual (Septiembre 2026)";
+    private DateTime? _fechaDesde = DateTime.Today.AddDays(-30);
 
     [ObservableProperty]
-    private string _sucursalFiltro = "Todas las Sucursales";
+    private DateTime? _fechaHasta = DateTime.Today;
+
+    [ObservableProperty]
+    private string _sucursalFiltro = TodasLasSucursales;
+
+    private const string TodasLasSucursales = "Todas las Sucursales";
 
     // KPI Cards
+    // Ganancia = lo cobrado menos lo que costó producir lo vendido. TotalIngresosVentas es lo cobrado (facturado).
+    [ObservableProperty]
+    private decimal _totalGanancia = 0;
+
     [ObservableProperty]
     private decimal _totalIngresosVentas = 0;
 
@@ -50,7 +69,7 @@ public partial class ReportesViewModel : ObservableObject
     private int _totalUnidadesVendidas = 0;
 
     [ObservableProperty]
-    private int _totalUnidadesElaboradas = 0;
+    private decimal _ticketPromedio = 0;
 
     // Visual lists
     [ObservableProperty]
@@ -62,18 +81,253 @@ public partial class ReportesViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<DetalleConsolidadoReporteItem> _tablaConsolidada = new();
 
-    public ObservableCollection<string> Periodos { get; } = new()
+    // Se llena en el constructor con las sucursales reales de la base.
+    public ObservableCollection<string> Sucursales { get; } = new();
+
+    // ---- Ranking de productos más vendidos (datos reales) ----
+    private const int CantidadEnRanking = 10;
+    private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
+    private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
+    private readonly ObtenerResumenVentas _obtenerResumenVentas;
+    private readonly List<SucursalDTO> _sucursalesDb = new();
+
+    // ---- Reporte: producción por producto (datos reales) ----
+    private readonly ObtenerProduccionPorProducto _obtenerProduccionPorProducto;
+
+    [ObservableProperty]
+    private DateTime? _produccionDesde = DateTime.Today.AddDays(-30);
+
+    [ObservableProperty]
+    private DateTime? _produccionHasta = DateTime.Today;
+
+    // El primer elemento de cada lista es la opción "Todos" (Id = 0): equivale a no filtrar.
+    [ObservableProperty]
+    private ProductoDTO? _produccionProductoFiltro;
+
+    [ObservableProperty]
+    private SucursalDTO? _produccionSucursalFiltro;
+
+    [ObservableProperty]
+    private ISeries[] _produccionSeries = Array.Empty<ISeries>();
+
+    [ObservableProperty]
+    private Axis[] _produccionXAxes = Array.Empty<Axis>();
+
+    [ObservableProperty]
+    private bool _produccionSinDatos;
+
+    public ObservableCollection<ProductoDTO> ProductosFiltro { get; } = new();
+    public ObservableCollection<SucursalDTO> SucursalesFiltro { get; } = new();
+
+    // El eje Y arranca en 0 y avanza de a 1 (son unidades enteras).
+    public Axis[] ProduccionYAxes { get; } =
     {
-        "Hoy", "Últimos 7 días", "Mes Actual (Septiembre 2026)", "Últimos 30 días", "Año 2026"
+        new Axis { MinLimit = 0, MinStep = 1, Name = "Unidades elaboradas" }
     };
 
-    public ObservableCollection<string> Sucursales { get; } = new()
+    public ReportesViewModel(
+        ObtenerProduccionPorProducto obtenerProduccionPorProducto,
+        ObtenerProductosMasVendidos obtenerProductosMasVendidos,
+        ObtenerVentasPorSucursal obtenerVentasPorSucursal,
+        ObtenerResumenVentas obtenerResumenVentas,
+        ListarProductos listarProductos,
+        ListarSucursales listarSucursales)
     {
-        "Todas las Sucursales", "Sucursal Centro", "Sucursal Norte", "Sucursal Sur"
-    };
+        _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
+        _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
+        _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
+        _obtenerResumenVentas = obtenerResumenVentas;
 
-    public ReportesViewModel()
+        // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
+        _sucursalesDb = listarSucursales.Ejecutar();
+        Sucursales.Add(TodasLasSucursales);
+        foreach (var s in _sucursalesDb)
+            Sucursales.Add(s.Nombre);
+
+        ProductosFiltro.Add(new ProductoDTO { Id = 0, Nombre = "Todos los productos" });
+        foreach (var p in listarProductos.Ejecutar())
+            ProductosFiltro.Add(p);
+
+        SucursalesFiltro.Add(new SucursalDTO { Id = 0, Nombre = "Todas las sucursales" });
+        foreach (var s in listarSucursales.Ejecutar())
+            SucursalesFiltro.Add(s);
+
+        ProduccionProductoFiltro = ProductosFiltro[0];
+        ProduccionSucursalFiltro = SucursalesFiltro[0];
+
+        GenerarReporteProduccion();
+        CargarRankingProductos();
+        CargarVentasPorSucursal();
+        CargarResumenVentas();
+    }
+    private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
+        if (FechaDesde == null || FechaHasta == null)
+        {
+            desde = default;
+            hasta = default;
+            MessageBox.Show("Elegí la fecha desde y la fecha hasta.", "Reportes",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+
+            return false;
+
+        } else
+        {
+            desde = FechaDesde.Value;
+            hasta = FechaHasta.Value;
+
+            return true;
+        }
+    }
+    // El ranking y las tarjetas dependen de la sucursal elegida (ventas por sucursal compara todas).
+    partial void OnSucursalFiltroChanged(string value)
+    {
+        CargarRankingProductos();
+        CargarResumenVentas();
+    }
+
+    private void CargarRankingProductos()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        List<ProductoMasVendidoDTO> datos;
+        try
+        {
+            datos = _obtenerProductosMasVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        // La barra de cada producto se mide contra el más vendido (el primero = 100%).
+        var maximo = datos.Count > 0 ? datos.Max(d => d.Unidades) : 0;
+
+        TopProductos = new ObservableCollection<TopProductoReporteItem>(
+            datos.Select(d => new TopProductoReporteItem
+            {
+                Nombre = d.NombreProducto,
+                UnidadesVendidas = d.Unidades,
+                Recaudacion = d.Recaudado,
+                PorcentajeTotal = maximo > 0 ? d.Unidades * 100.0 / maximo : 0
+            }));
+    }
+
+    private void CargarVentasPorSucursal()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        List<VentaPorSucursalDTO> datos;
+        try
+        {
+            datos = _obtenerVentasPorSucursal.Ejecutar(desde, hasta);
+        }
+        catch(InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var totalGeneral = datos.Sum(d => d.TotalRecaudado);
+
+        VentasPorSucursal = new ObservableCollection<SucursalVentaReporteItem>(
+            datos.Select(d => new SucursalVentaReporteItem
+            {
+                SucursalNombre = d.NombreSucursal,
+                CantidadVentas = d.CantidadVentas,
+                TotalFacturado = d.TotalRecaudado,
+                PorcentajeParticipacion = totalGeneral > 0
+                ? Math.Round((double)d.TotalRecaudado * 100 / (double)totalGeneral, 1)
+                : 0
+            })
+        );
+
+    }
+
+    // Llena las tarjetas de arriba: ganancia, facturado, ventas confirmadas y unidades vendidas.
+    private void CargarResumenVentas()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        ResumenVentasDTO resumen;
+        try
+        {
+            resumen = _obtenerResumenVentas.Ejecutar(desde, hasta, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        TotalGanancia = resumen.Ganancia;
+        TotalIngresosVentas = resumen.Facturado;
+        TotalOperacionesVenta = resumen.CantidadVentas;
+        TotalUnidadesVendidas = resumen.Unidades;
+        TicketPromedio = resumen.TicketPromedio;
+
+    }
+
+    [RelayCommand]
+    private void AplicarFiltros()
+    {
+        CargarRankingProductos();
+        CargarVentasPorSucursal();
+        CargarResumenVentas();
+    }
+
+    [RelayCommand]
+    private void GenerarReporteProduccion()
+    {
+        // Un DatePicker vacío entrega null: se valida antes de consultar.
+        if (ProduccionDesde == null || ProduccionHasta == null)
+        {
+            MessageBox.Show("Elegí la fecha desde y la fecha hasta.", "Reportes",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        // Id = 0 (la opción "Todos") se traduce a null = sin filtro.
+        int? productoId = ProduccionProductoFiltro is { Id: > 0 } ? ProduccionProductoFiltro.Id : null;
+        int? sucursalId = ProduccionSucursalFiltro is { Id: > 0 } ? ProduccionSucursalFiltro.Id : null;
+
+        List<ProduccionPorProductoDTO> datos;
+        try
+        {
+            datos = _obtenerProduccionPorProducto.Ejecutar(
+                ProduccionDesde.Value, ProduccionHasta.Value, productoId, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        ProduccionSinDatos = datos.Count == 0;
+
+        // Se reemplazan los arreglos completos: el [ObservableProperty] avisa a la vista del cambio.
+        ProduccionSeries = new ISeries[]
+        {
+            new ColumnSeries<int>
+            {
+                Name = "Elaborado",
+                Values = datos.Select(d => d.Total).ToArray(),
+                Fill = new SolidColorPaint(SKColor.Parse("#9A4600"))
+            }
+        };
+
+        // Las etiquetas del eje X van en el mismo orden que los valores.
+        ProduccionXAxes = new Axis[]
+        {
+            new Axis { Labels = datos.Select(d => d.NombreProducto).ToArray() }
+        };
     }
 
     [RelayCommand]

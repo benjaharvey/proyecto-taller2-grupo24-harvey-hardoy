@@ -1,5 +1,6 @@
 using System;
 using System.Windows;
+using Aplicacion.CasosDeUso;
 using Microsoft.Extensions.DependencyInjection;
 using Presentacion.ViewModels;
 using Wpf.Ui.Controls;
@@ -44,6 +45,17 @@ public partial class MainWindow : FluentWindow
 
         if (confirmacion != System.Windows.MessageBoxResult.Yes) return;
 
+        // RF-17: al cerrar sesión se descarta la venta pendiente (no se conserva).
+        try
+        {
+            App.Services.GetRequiredService<DescartarVentaPendiente>()
+                .Ejecutar(SesionActual.UsuarioLogueado!.Id);
+        }
+        catch
+        {
+            // Un fallo al descartar no puede impedir cerrar sesión.
+        }
+
         _cerrandoSesionVoluntariamente = true;
         SesionActual.UsuarioLogueado = null;
 
@@ -70,6 +82,7 @@ public partial class MainWindow : FluentWindow
             RbVentas.Visibility = Visibility.Collapsed;
             RbCocina.Visibility = Visibility.Collapsed;
             RbClientes.Visibility = Visibility.Collapsed;
+            RbHistorial.Visibility = Visibility.Visible;
             RbBackup.Visibility = Visibility.Visible;
             RbSucursales.Visibility = Visibility.Visible;
         }
@@ -77,6 +90,7 @@ public partial class MainWindow : FluentWindow
         {
             RbProductos.Visibility = Visibility.Collapsed;
             RbVentas.Visibility = Visibility.Collapsed;
+            RbHistorial.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbUsuario.Visibility = Visibility.Collapsed;
             RbSucursales.Visibility = Visibility.Collapsed;
@@ -94,6 +108,7 @@ public partial class MainWindow : FluentWindow
             // RF-12: el vendedor consulta el stock de su propia sucursal.
             RbStock.Visibility = Visibility.Visible;
             RbCocina.Visibility = Visibility.Collapsed;
+            RbHistorial.Visibility = Visibility.Collapsed;
             RbReportes.Visibility = Visibility.Collapsed;
             RbUsuario.Visibility = Visibility.Collapsed;
             RbSucursales.Visibility = Visibility.Collapsed;
@@ -113,6 +128,7 @@ public partial class MainWindow : FluentWindow
             RbVentas.Visibility = Visibility.Collapsed;
             RbCocina.Visibility = Visibility.Collapsed;
             RbClientes.Visibility = Visibility.Collapsed;
+            RbHistorial.Visibility = Visibility.Collapsed;
             RbBackup.Visibility = Visibility.Collapsed;
         }
     }
@@ -130,6 +146,7 @@ public partial class MainWindow : FluentWindow
     {
         RbProductos.IsChecked = section == "Productos";
         RbVentas.IsChecked = section == "Ventas";
+        RbHistorial.IsChecked = section == "Historial";
         RbClientes.IsChecked = section == "Clientes";
         RbStock.IsChecked = section == "Stock";
         RbCocina.IsChecked = section == "Cocina";

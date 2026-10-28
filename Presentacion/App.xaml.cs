@@ -1,13 +1,17 @@
+using System.Globalization;
 using System.Windows;
+using System.Windows.Markup;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Aplicacion.CasosDeUso;
 using Aplicacion.Interfaces;
+using Aplicacion.Servicios;
 using Datos.Conexion;
 using Datos.Repositorios;
 using Datos.Seeder;
 using Dominio.Interfaces;
 using Presentacion.ViewModels;
+using QuestPDF.Infrastructure;
 
 namespace Presentacion;
 
@@ -20,7 +24,18 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // WPF interpreta los bindings con cultura en-US por defecto. Forzamos la cultura
+        // del sistema para que los decimales se parseen y formateen con coma (es-AR).
+        FrameworkElement.LanguageProperty.OverrideMetadata(
+            typeof(FrameworkElement),
+            new FrameworkPropertyMetadata(
+                XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
+
         base.OnStartup(e);
+
+        // QuestPDF exige declarar la licencia antes de generar el primer documento.
+        // Community: gratuita para uso no comercial / facturación anual menor a 1M USD.
+        QuestPDF.Settings.License = LicenseType.Community;
 
         var services = new ServiceCollection();
 
@@ -36,6 +51,9 @@ public partial class App : Application
         services.AddScoped<IStockSucursalRepositorio, StockSucursalRepositorio>();
         services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
         services.AddScoped<IProduccionRepositorio, ProduccionRepositorio>();
+        services.AddScoped<IVentaRepositorio, VentaRepositorio>();
+
+        services.AddTransient<IComprobantePdfServicio, ComprobantePdfServicio>();
 
         services.AddScoped<IBackupServicio>(_ => new BackupSqlServicio(AppDbContext.ConnectionString));
 
@@ -83,6 +101,21 @@ public partial class App : Application
         services.AddTransient<ListarBackups>();
         services.AddTransient<RegistrarProduccion>();
         services.AddTransient<ListarProducciones>();
+        services.AddTransient<ObtenerProduccionPorProducto>();
+        services.AddTransient<ObtenerProductosMasVendidos>();
+        services.AddTransient<ObtenerVentasPorSucursal>();
+        services.AddTransient<ObtenerResumenVentas>();
+
+        services.AddTransient<AbrirVenta>();
+        services.AddTransient<AgregarItemVenta>();
+        services.AddTransient<ModificarCantidadItem>();
+        services.AddTransient<QuitarItemVenta>();
+        services.AddTransient<DescartarVentaPendiente>();
+        services.AddTransient<CancelarVenta>();
+        services.AddTransient<ListarVentas>();
+        services.AddTransient<ObtenerVenta>();
+        services.AddTransient<ConfirmarVenta>();
+        services.AddTransient<GenerarComprobante>();
 
         services.AddTransient<MainWindow>();
         services.AddTransient<VistaLogin>();
@@ -95,6 +128,9 @@ public partial class App : Application
         services.AddTransient<ClientesViewModel>();
         services.AddTransient<BackupViewModel>();
         services.AddTransient<CocinaViewModel>();
+        services.AddTransient<ReportesViewModel>();
+        services.AddTransient<VentasViewModel>();
+        services.AddTransient<HistorialVentasViewModel>();
         Services = services.BuildServiceProvider();
 
         try

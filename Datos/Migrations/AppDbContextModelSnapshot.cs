@@ -132,6 +132,46 @@ namespace Datos.Migrations
                     b.ToTable("Insumos");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.Produccion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SucursalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("SucursalId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Producciones");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Producto", b =>
                 {
                     b.Property<int>("Id")
@@ -143,6 +183,10 @@ namespace Datos.Migrations
                     b.Property<int>("CategoriaId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("Costo")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -153,8 +197,9 @@ namespace Datos.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Precio")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Precio")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RutaImagen")
                         .HasColumnType("nvarchar(max)");
@@ -166,7 +211,10 @@ namespace Datos.Migrations
 
                     b.HasIndex("CategoriaId");
 
-                    b.ToTable("Productos");
+                    b.ToTable("Productos", t =>
+                        {
+                            t.HasCheckConstraint("CK_Productos_Costo", "[Costo] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
@@ -340,6 +388,108 @@ namespace Datos.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.VentaCabecera", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("MetodoPago")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("SucursalId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.HasIndex("UsuarioId")
+                        .IsUnique()
+                        .HasFilter("[Estado] = N'PENDIENTE'");
+
+                    b.HasIndex("SucursalId", "CreatedAt");
+
+                    b.ToTable("VentasCabecera", t =>
+                        {
+                            t.HasCheckConstraint("CK_VentasCabecera_Completitud", "[Estado] = 'PENDIENTE' OR ([ClienteId] IS NOT NULL AND [MetodoPago] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_VentasCabecera_Estado", "[Estado] IN ('PENDIENTE', 'CONFIRMADA', 'CANCELADA')");
+
+                            t.HasCheckConstraint("CK_VentasCabecera_MetodoPago", "[MetodoPago] IS NULL OR [MetodoPago] IN ('EFECTIVO', 'TARJETA', 'TRANSFERENCIA')");
+
+                            t.HasCheckConstraint("CK_VentasCabecera_Total", "[Total] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.VentaDetalle", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CostoUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PrecioUnit")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VentaCabeceraId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("VentaCabeceraId");
+
+                    b.ToTable("VentasDetalle", t =>
+                        {
+                            t.HasCheckConstraint("CK_VentasDetalle_Cantidad", "[Cantidad] > 0");
+
+                            t.HasCheckConstraint("CK_VentasDetalle_CostoUnit", "[CostoUnit] >= 0");
+
+                            t.HasCheckConstraint("CK_VentasDetalle_PrecioUnit", "[PrecioUnit] > 0");
+                        });
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Cliente", b =>
                 {
                     b.HasOne("Dominio.Entidades.Usuario", "Usuario")
@@ -351,18 +501,7 @@ namespace Datos.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("Dominio.Entidades.Producto", b =>
-                {
-                    b.HasOne("Dominio.Entidades.Categoria", "Categoria")
-                        .WithMany()
-                        .HasForeignKey("CategoriaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Categoria");
-                });
-
-            modelBuilder.Entity("Dominio.Entidades.StockSucursal", b =>
+            modelBuilder.Entity("Dominio.Entidades.Produccion", b =>
                 {
                     b.HasOne("Dominio.Entidades.Producto", "Producto")
                         .WithMany()
@@ -376,9 +515,28 @@ namespace Datos.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Dominio.Entidades.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Producto");
 
                     b.Navigation("Sucursal");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.Producto", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Categoria", "Categoria")
+                        .WithMany()
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Categoria");
                 });
 
             modelBuilder.Entity("Dominio.Entidades.ProductoInsumo", b =>
@@ -400,6 +558,25 @@ namespace Datos.Migrations
                     b.Navigation("Producto");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.StockSucursal", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Dominio.Entidades.Sucursal", "Sucursal")
+                        .WithMany()
+                        .HasForeignKey("SucursalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Sucursal");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Usuario", b =>
                 {
                     b.HasOne("Dominio.Entidades.Rol", "Rol")
@@ -419,6 +596,51 @@ namespace Datos.Migrations
                     b.Navigation("Sucursal");
                 });
 
+            modelBuilder.Entity("Dominio.Entidades.VentaCabecera", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Dominio.Entidades.Sucursal", "Sucursal")
+                        .WithMany()
+                        .HasForeignKey("SucursalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Dominio.Entidades.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Sucursal");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.VentaDetalle", b =>
+                {
+                    b.HasOne("Dominio.Entidades.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Dominio.Entidades.VentaCabecera", "Venta")
+                        .WithMany("Detalles")
+                        .HasForeignKey("VentaCabeceraId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Venta");
+                });
+
             modelBuilder.Entity("Dominio.Entidades.Insumo", b =>
                 {
                     b.Navigation("ProductoInsumos");
@@ -427,6 +649,11 @@ namespace Datos.Migrations
             modelBuilder.Entity("Dominio.Entidades.Producto", b =>
                 {
                     b.Navigation("ProductoInsumos");
+                });
+
+            modelBuilder.Entity("Dominio.Entidades.VentaCabecera", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 #pragma warning restore 612, 618
         }

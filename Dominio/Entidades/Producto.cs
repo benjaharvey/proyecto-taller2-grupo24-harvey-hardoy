@@ -4,7 +4,10 @@
     {
         public int Id {get; set; }
         public string Nombre {get; set; } = "";
-        public int Precio {get; set; }
+        public decimal Precio {get; set; }
+
+        // Cuánto cuesta producir una unidad (el precio de venta es Precio).
+        public decimal Costo { get; set; }
         public string? RutaImagen { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
