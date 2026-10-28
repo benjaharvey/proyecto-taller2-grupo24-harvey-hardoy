@@ -11,11 +11,23 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- Encabezado de las grillas de reportes: mismo look que la tabla consolidada. -->
+        <Style x:Key="ReporteColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFamily" Value="Noto Serif" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,20,0">
         <Grid Margin="0,0,10,24">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -162,8 +174,82 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 4: Mid Row: Top Products Ranking & Branch Distribution -->
-            <Grid Grid.Row="4" Margin="0,0,0,20">
+            <!-- Row 4: Recaudación por método de pago (datos reales) -->
+            <Border Grid.Row="4" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="💳 Recaudación por Medio de Pago" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.1*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Doughnut: 3 porciones, el punto es la composición del total -->
+                        <Grid Grid.Column="0" Height="260" Margin="0,0,20,0">
+                            <lvc:PieChart Series="{Binding MetodoPagoSeries}" LegendPosition="Right" />
+                            <TextBlock Text="No hay ventas confirmadas en el período seleccionado."
+                                       Style="{StaticResource BodyTextStyle}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Visibility="{Binding MetodoPagoSinDatos, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
+
+                        <StackPanel Grid.Column="1">
+                            <DataGrid ItemsSource="{Binding MetodosPago}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#EFECE6"
+                                      Background="White"
+                                      BorderThickness="0"
+                                      RowHeight="38"
+                                      SelectionMode="Single"
+                                      ColumnHeaderStyle="{StaticResource ReporteColumnHeaderStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Método" Binding="{Binding Nombre}" Width="1.2*" />
+                                    <DataGridTextColumn Header="Recaudado" Binding="{Binding TotalRecaudado, StringFormat='${0:N2}'}" Width="*" />
+                                    <DataGridTextColumn Header="Tickets" Binding="{Binding CantidadVentas}" Width="Auto" />
+                                    <DataGridTextColumn Header="Ticket prom." Binding="{Binding TicketPromedio, StringFormat='${0:N2}'}" Width="Auto" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- efectivo vs. digital y total del período -->
+                            <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding TotalRecaudadoMetodoPago, StringFormat='Total del período: ${0:N2}'}"
+                                               FontWeight="SemiBold" FontSize="13"
+                                               Foreground="{StaticResource PrimaryBrush}" />
+
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Efectivo" FontSize="11" Foreground="{StaticResource TextBodyBrush}" />
+                                            <TextBlock Text="{Binding ParticipacionEfectivo, StringFormat='{}{0}%'}"
+                                                       FontSize="16" FontWeight="Bold"
+                                                       Foreground="{StaticResource PrimaryBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Digital (tarjeta + transf.)" FontSize="11" Foreground="{StaticResource TextBodyBrush}" />
+                                            <TextBlock Text="{Binding ParticipacionDigital, StringFormat='{}{0}%'}"
+                                                       FontSize="16" FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 5: Mid Row: Top Products Ranking & Branch Distribution -->
+            <Grid Grid.Row="5" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.4*" />
                     <ColumnDefinition Width="*" />
@@ -234,8 +320,8 @@
                 </Border>
             </Grid>
 
-            <!-- Row 5: Bottom Table: Consolidated Detail -->
-            <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Padding="0">
+            <!-- Row 6: Bottom Table: Consolidated Detail -->
+            <Border Grid.Row="6" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

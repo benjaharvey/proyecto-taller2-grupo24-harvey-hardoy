@@ -9,6 +9,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using Aplicacion.CasosDeUso;
 using Aplicacion.DTOs;
+using Dominio.Enums;
 
 namespace Presentacion.ViewModels;
 
@@ -74,6 +75,26 @@ public partial class ReportesViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<DetalleConsolidadoReporteItem> _tablaConsolidada = new();
 
+    // ---- Reporte: recaudación por método de pago
+    [ObservableProperty]
+    private ISeries[] _metodoPagoSeries = Array.Empty<ISeries>();
+
+    [ObservableProperty]
+    private ObservableCollection<RecaudacionPorMetodoPagoDTO> _metodosPago = new();
+
+    [ObservableProperty]
+    private decimal _totalRecaudadoMetodoPago = 0;
+
+    // Reparto efectivo vs. digital del período (0-100).
+    [ObservableProperty]
+    private double _participacionEfectivo = 0;
+
+    [ObservableProperty]
+    private double _participacionDigital = 0;
+
+    [ObservableProperty]
+    private bool _metodoPagoSinDatos;
+
     public ObservableCollection<string> Periodos { get; } = new()
     {
         "Hoy", "Últimos 7 días", "Últimos 30 días", "Últimos 90 días"
@@ -86,6 +107,7 @@ public partial class ReportesViewModel : ObservableObject
     private const int CantidadEnRanking = 10;
     private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
     private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
+    private readonly ObtenerRecaudacionPorMetodoPago _obtenerRecaudacionPorMetodoPago;
     private readonly List<SucursalDTO> _sucursalesDb = new();
 
     // ---- Reporte: producción por producto (datos reales) ----
@@ -126,12 +148,14 @@ public partial class ReportesViewModel : ObservableObject
         ObtenerProduccionPorProducto obtenerProduccionPorProducto,
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
         ObtenerVentasPorSucursal obtenerVentasPorSucursal,
+        ObtenerRecaudacionPorMetodoPago obtenerRecaudacionPorMetodoPago,
         ListarProductos listarProductos,
         ListarSucursales listarSucursales)
     {
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
         _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
+        _obtenerRecaudacionPorMetodoPago = obtenerRecaudacionPorMetodoPago;
 
         // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
         _sucursalesDb = listarSucursales.Ejecutar();
@@ -153,6 +177,7 @@ public partial class ReportesViewModel : ObservableObject
         GenerarReporteProduccion();
         CargarRankingProductos();
         CargarVentasPorSucursal();
+        CargarRecaudacionPorMetodoPago();
     }
 
     // Se ejecutan solos cuando el usuario cambia el período o la sucursal en la barra superior.
@@ -160,9 +185,14 @@ public partial class ReportesViewModel : ObservableObject
     {
         CargarRankingProductos();
         CargarVentasPorSucursal();
+        CargarRecaudacionPorMetodoPago();
     }
 
-    partial void OnSucursalFiltroChanged(string value) => CargarRankingProductos();
+    partial void OnSucursalFiltroChanged(string value)
+    {
+        CargarRankingProductos();
+        CargarRecaudacionPorMetodoPago();
+    }
 
     // Traduce el texto del combo de período a un rango de fechas (hasta = hoy).
     private static (DateTime Desde, DateTime Hasta) ObtenerRangoDelPeriodo(string periodo)
@@ -238,6 +268,66 @@ public partial class ReportesViewModel : ObservableObject
             })
         );
 
+    }
+
+    // Reporte por metodo de pago
+    private static readonly Dictionary<MetodoPago, SKColor> ColoresPorMetodoPago = new()
+    {
+        [MetodoPago.EFECTIVO] = SKColor.Parse("#622B16"),
+        [MetodoPago.TARJETA] = SKColor.Parse("#9A4600"),
+        [MetodoPago.TRANSFERENCIA] = SKColor.Parse("#BE8E75")
+    };
+
+    private void CargarRecaudacionPorMetodoPago()
+    {
+        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+
+        // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        List<RecaudacionPorMetodoPagoDTO> datos;
+        try
+        {
+            datos = _obtenerRecaudacionPorMetodoPago.Ejecutar(desde, hasta, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        MetodosPago = new ObservableCollection<RecaudacionPorMetodoPagoDTO>(datos);
+
+        TotalRecaudadoMetodoPago = datos.Sum(d => d.TotalRecaudado);
+        MetodoPagoSinDatos = TotalRecaudadoMetodoPago <= 0;
+
+        // Efectivo vs. digital
+        var efectivo = datos.FirstOrDefault(d => d.Metodo == MetodoPago.EFECTIVO)?.TotalRecaudado ?? 0;
+
+        ParticipacionEfectivo = TotalRecaudadoMetodoPago > 0
+            ? Math.Round((double)(efectivo * 100 / TotalRecaudadoMetodoPago), 1)
+            : 0;
+
+        ParticipacionDigital = TotalRecaudadoMetodoPago > 0
+            ? Math.Round(100 - ParticipacionEfectivo, 1)
+            : 0;
+
+        // Las porciones en cero no se dibujan: no aportan información y ensucian la torta.
+        // En la tabla sí aparecen, para que el cero sea explícito.
+        MetodoPagoSeries = datos
+            .Where(d => d.TotalRecaudado > 0)
+            .Select(d => (ISeries)new PieSeries<decimal>
+            {
+                Name = d.Nombre,
+                Values = new[] { d.TotalRecaudado },
+                Fill = new SolidColorPaint(ColoresPorMetodoPago[d.Metodo]),
+                Stroke = null,
+                DataLabelsPaint = new SolidColorPaint(SKColors.White),
+                DataLabelsSize = 11,
+                DataLabelsFormatter = p => $"{p.StackedValue!.Share:P0}",
+                InnerRadius = 55
+            })
+            .ToArray();
     }
 
     [RelayCommand]

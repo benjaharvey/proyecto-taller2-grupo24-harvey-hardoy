@@ -22,9 +22,15 @@ namespace Dominio.Interfaces
         void Descartar(int ventaId);
 
         List<VentaCabecera> ObtenerHistorial(VentaFiltro filtro);
+
+
+        // Servicios que se llaman para generar los reportes
         List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMasVendidos
         (DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top);
 
         List<(string NombreSucursal, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorSucursal(DateTime desde, DateTime hastaExclusivo);
+
+        List<(MetodoPago Metodo, int CantidadVentas, decimal TotalRecaudado)> ObtenerRecaudacionPorMetodoPago
+        (DateTime desde, DateTime hastaExclusivo, int? sucursalId);
     }
 }

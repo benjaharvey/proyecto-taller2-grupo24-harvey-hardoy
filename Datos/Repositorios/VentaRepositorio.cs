@@ -163,8 +163,7 @@ namespace Datos.Repositorios
                 .FirstOrDefault()
                 ?? throw new InvalidOperationException("La venta no existe.");
 
-            // Transición condicional y atómica. Cliente, método de pago y total
-            // se completan en el mismo UPDATE que cambia el estado, porque
+            // Cliente, método de pago y total se completan en el mismo UPDATE que cambia el estado, porque
             // nuestro check exige no nulos fuera de PENDIENTE.
             var filas = context.Database.ExecuteSqlRaw("""
                 UPDATE VentasCabecera
@@ -255,8 +254,8 @@ namespace Datos.Repositorios
             using var context = _contextFactory.CreateDbContext();
             using var transaccion = context.Database.BeginTransaction();
 
-            // Borrado condicional: si la venta se confirmó en el medio, la
-            // cabecera no se elimina y el rollback devuelve los detalles.
+            // si la venta se confirmó en el medio, la cabecera
+            // no se elimina y el rollback devuelve los detalles.
             context.Database.ExecuteSqlRaw("""
                 DELETE FROM VentasDetalle
                  WHERE VentaCabeceraId = @VentaId
@@ -327,6 +326,8 @@ namespace Datos.Repositorios
                 .ToList();
         }
 
+
+        // Metodos que utilizamos para los reportes
         public List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMasVendidos(
             DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top)
         {
@@ -375,6 +376,33 @@ namespace Datos.Repositorios
                 .OrderByDescending(x => x.Total)
                 .AsEnumerable()
                 .Select(x => (x.Nombre, x.Cantidad, x.Total))
+                .ToList();
+        }
+
+        public List<(MetodoPago Metodo, int CantidadVentas, decimal TotalRecaudado)> ObtenerRecaudacionPorMetodoPago(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var query = context.VentasCabecera
+                .Where(v => v.Estado == EstadoVenta.CONFIRMADA
+                         && v.CreatedAt >= desde
+                         && v.CreatedAt < hastaExclusivo);
+
+            if (sucursalId.HasValue)
+                query = query.Where(v => v.SucursalId == sucursalId.Value);
+
+            return query
+                .GroupBy(v => v.MetodoPago)
+                .Select(g => new
+                {
+                    Metodo = g.Key,
+                    Cantidad = g.Count(),
+                    Total = g.Sum(v => v.Total)
+                })
+                .AsEnumerable()
+                .Where(x => x.Metodo.HasValue)
+                .Select(x => (x.Metodo!.Value, x.Cantidad, x.Total))
                 .ToList();
         }
 
