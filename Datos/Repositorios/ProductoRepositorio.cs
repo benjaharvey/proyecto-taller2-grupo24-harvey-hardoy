@@ -76,6 +76,7 @@ namespace Datos.Repositorios
 
             productoExistente.Nombre = p_Producto.Nombre;
             productoExistente.Precio = p_Producto.Precio;
+            productoExistente.Costo = p_Producto.Costo;
             productoExistente.RutaImagen = p_Producto.RutaImagen;
             productoExistente.CategoriaId = p_Producto.CategoriaId;
 

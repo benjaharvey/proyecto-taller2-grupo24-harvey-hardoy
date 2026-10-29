@@ -25,6 +25,7 @@ namespace Aplicacion.CasosDeUso
                     Id = producto.Id,
                     Nombre = producto.Nombre,
                     Precio = producto.Precio,
+                    Costo = producto.Costo,
                     RutaImagen = producto.RutaImagen,
                     CategoriaId = producto.CategoriaId,
                     NombreCategoria = producto.Categoria?.Nombre ?? "Sin categoría",

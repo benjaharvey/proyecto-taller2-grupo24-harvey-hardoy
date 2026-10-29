@@ -48,8 +48,8 @@ namespace Aplicacion.CasosDeUso
                 throw new InvalidOperationException(
                     $"Stock insuficiente de {producto.Nombre}: hay {enStock} y el carrito quedaría con {enCarrito + cantidad}.");
 
-            // El precio sale de la base y queda congelado en el detalle.
-            _ventaRepositorio.AgregarItem(ventaId, productoId, cantidad, producto.Precio);
+            // El precio y el costo salen de la base y quedan congelados en el detalle.
+            _ventaRepositorio.AgregarItem(ventaId, productoId, cantidad, producto.Precio, producto.Costo);
         }
     }
 }

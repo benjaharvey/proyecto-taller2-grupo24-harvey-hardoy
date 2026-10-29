@@ -3,26 +3,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:vm="clr-namespace:Presentacion.ViewModels"
              mc:Ignorable="d"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
              d:DesignHeight="700" d:DesignWidth="950">
 
-    <UserControl.DataContext>
-        <vm:BackupViewModel />
-    </UserControl.DataContext>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Copias de Seguridad (Backup)" Style="{StaticResource HeaderTitleStyle}"/>
-            <TextBlock Text="Generación manual y restauración de copias de seguridad de la base de datos" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
+            <TextBlock Text="Generación manual de copias de seguridad de la base de datos" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
 
         <Grid Grid.Row="1">
@@ -35,51 +31,51 @@
             <!-- Panel de Generación -->
             <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Padding="20" VerticalAlignment="Top">
                 <StackPanel>
-                    <TextBlock Text="Generar Copia de Seguridad" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" Margin="0,0,0,14"/>
+                    <TextBlock Text="Guardar Copia de Seguridad" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" Margin="0,0,0,14"/>
 
-                    <TextBlock Text="Tipo de Backup" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding TiposBackupDisponibles}"
-                              SelectedItem="{Binding TipoBackupSeleccionado}"
-                              Padding="8,6"
-                              Margin="0,0,0,14"
-                              BorderBrush="{StaticResource SecondaryBrush}"
-                              HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Text="Directorio de Destino" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Carpeta de destino local" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding RutaDestino, Mode=TwoWay}"
+                        <TextBox Text="{Binding RutaDestinoLocal, Mode=OneWay}"
                                  Padding="8,6"
                                  IsReadOnly="True"
+                                 TextWrapping="NoWrap"
                                  BorderBrush="{StaticResource SecondaryBrush}"
                                  FontSize="12"
                                  Background="#FBF9F6"/>
                         <Button Grid.Column="1"
                                 Content="📁"
-                                ToolTip="Examinar / Configurar ruta"
+                                ToolTip="Elegir carpeta de destino"
                                 Style="{StaticResource OutlineButtonStyle}"
                                 Padding="10,6"
                                 Margin="6,0,0,0"
-                                Command="{Binding CambiarRutaDestinoCommand}"/>
+                                Command="{Binding SeleccionarCarpetaCommand}"/>
                     </Grid>
 
-                    <TextBlock Text="Motivo / Descripción (Opcional)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding DescripcionOpcional, UpdateSourceTrigger=PropertyChanged}"
-                             Padding="8,6"
-                             Margin="0,0,0,20"
-                             BorderBrush="{StaticResource SecondaryBrush}"
-                             FontSize="13"/>
+                    <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Copia en la nube (OneDrive)"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryBrush}"/>
+                            <TextBlock Text="{Binding EstadoOneDrive}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextBodyBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
 
-                    <Button Content="💾  Generar Backup Ahora"
+                    <Button Content="💾  Guardar Copia"
                             Style="{StaticResource AccentButtonStyle}"
                             Padding="16,10"
                             FontSize="14"
                             FontWeight="SemiBold"
                             HorizontalAlignment="Stretch"
-                            Command="{Binding GenerarBackupCommand}"/>
+                            Command="{Binding GenerarBackupAhoraCommand}"/>
                 </StackPanel>
             </Border>
 
@@ -92,53 +88,128 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="20,16">
-                        <TextBlock Text="Historial de Copias de Seguridad" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Copias de Seguridad Disponibles"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryBrush}"
+                                   FontFamily="Noto Serif"
+                                   VerticalAlignment="Center"/>
+
+                        <Button Grid.Column="1"
+                                Content="Actualizar"
+                                Style="{StaticResource OutlineButtonStyle}"
+                                Padding="12,6"
+                                Margin="0,0,8,0"
+                                Command="{Binding ActualizarListaCommand}"/>
+
+                        <Button Grid.Column="2"
+                                Content="♻  Restaurar seleccionado"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Padding="12,6"
+                                Command="{Binding AvisarRestauracionManualCommand}"/>
                     </Grid>
 
-                    <DataGrid Grid.Row="1"
-                              ItemsSource="{Binding HistorialBackups}"
-                              SelectedItem="{Binding SelectedBackup, Mode=TwoWay}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="Horizontal"
-                              HorizontalGridLinesBrush="#EFECE6"
-                              Background="White"
-                              BorderThickness="0"
-                              RowHeight="40"
-                              SelectionMode="Single">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-                                <Setter Property="FontWeight" Value="SemiBold" />
-                                <Setter Property="FontFamily" Value="Noto Serif" />
-                                <Setter Property="Padding" Value="12,10" />
-                                <Setter Property="BorderThickness" Value="0,0,0,1" />
-                                <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
-                            </Style>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="Background" Value="White" />
-                                <Setter Property="Margin" Value="0" />
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.Resources>
+                    <Grid Grid.Row="1">
+                        <DataGrid ItemsSource="{Binding HistorialBackups}"
+                                  SelectedItem="{Binding BackupSeleccionado, Mode=TwoWay}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#EFECE6"
+                                  Background="White"
+                                  BorderThickness="0"
+                                  RowHeight="40"
+                                  SelectionMode="Single">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                    <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                    <Setter Property="FontFamily" Value="Noto Serif" />
+                                    <Setter Property="Padding" Value="12,10" />
+                                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                    <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                                </Style>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White" />
+                                    <Setter Property="Margin" Value="0" />
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.Resources>
 
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Archivo" Binding="{Binding NombreArchivo}" Width="2*" />
-                            <DataGridTextColumn Header="Tipo" Binding="{Binding Tipo}" Width="90" />
-                            <DataGridTextColumn Header="Tamaño" Binding="{Binding Tamano}" Width="75" />
-                            <DataGridTextColumn Header="Fecha y Hora" Binding="{Binding FechaCreacion, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="125" />
-                            <DataGridTextColumn Header="Generado Por" Binding="{Binding CreadoPor}" Width="1.2*" />
-                            <DataGridTextColumn Header="Motivo / Descripción" Binding="{Binding Descripcion}" Width="1.5*" />
-                        </DataGrid.Columns>
-                    </DataGrid>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Archivo" Binding="{Binding NombreArchivo}" Width="2*" />
+                                <DataGridTextColumn Header="Tamaño" Binding="{Binding TamanoLegible}" Width="85" />
+                                <DataGridTextColumn Header="Fecha del Backup" Binding="{Binding FechaBackup, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" Width="140" />
+                                <DataGridTextColumn Header="Creado Por" Binding="{Binding CreadoPor}" Width="1.2*" />
+                                <DataGridTextColumn Header="Ubicación local" Binding="{Binding RutaCompleta}" Width="1.5*">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                            <Setter Property="ToolTip" Value="{Binding RutaCompleta}" />
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Text="Todavía no hay copias de seguridad en esta carpeta."
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   Foreground="{StaticResource TextBodyBrush}"
+                                   IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HayBackups}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>
+
+        <!-- Estado de la última operación -->
+        <Border Grid.Row="2" Margin="0,16,0,0" Padding="12,10" CornerRadius="6">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Setter Property="Background" Value="#EAF4EA" />
+                    <Setter Property="BorderBrush" Value="#B9DCB9" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding MensajeEstado}" Value="">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding MensajeEsError}" Value="True">
+                            <Setter Property="Background" Value="#FBEAEA" />
+                            <Setter Property="BorderBrush" Value="#E2B6B6" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding MensajeEstado}"
+                       FontSize="13"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource TextBodyBrush}" />
+        </Border>
     </Grid>
 </UserControl>

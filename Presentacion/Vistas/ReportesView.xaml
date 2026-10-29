@@ -46,16 +46,21 @@
             <!-- Row 1: Filters Bar -->
             <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,24" Padding="16,14">
                 <DockPanel>
+                    <!-- El botón va primero y pegado a la derecha; el resto de los filtros ocupa el espacio que queda. -->
+                    <Button Content="Aplicar"
+                            Command="{Binding AplicarFiltrosCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            DockPanel.Dock="Right"
+                            VerticalAlignment="Center"/>
+
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                         <TextBlock Text="Filtrar por:" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="13"/>
                         
-                        <TextBlock Text="Período:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox ItemsSource="{Binding Periodos}" 
-                                  SelectedItem="{Binding PeriodoSeleccionado}"
-                                  Padding="10,6"
-                                  Width="260"
-                                  Margin="0,0,28,0"
-                                  BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBlock Text="Desde:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding FechaDesde}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                        <TextBlock Text="Hasta:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <DatePicker SelectedDate="{Binding FechaHasta}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
                         <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <ComboBox ItemsSource="{Binding Sucursales}" 
@@ -79,14 +84,14 @@
                 <!-- Card 1: Ingresos -->
                 <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
-                        <TextBlock Text="💰 Ingresos por Ventas" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
-                        <TextBlock Text="{Binding TotalIngresosVentas, StringFormat='${0:N2}'}" 
-                                   FontFamily="Noto Serif" 
-                                   FontSize="20" 
-                                   FontWeight="Bold" 
+                        <TextBlock Text="💰 Ganancias por Ventas" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="{Binding TotalGanancia, StringFormat='${0:N2}'}"
+                                   FontFamily="Noto Serif"
+                                   FontSize="20"
+                                   FontWeight="Bold"
                                    Foreground="{StaticResource AccentBrush}"
                                    Margin="0,6,0,4"/>
-                        <TextBlock Text="↗ +14% vs mes anterior" FontSize="11" Foreground="#137333" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding TotalIngresosVentas, StringFormat='Facturado: ${0:N2}'}" FontSize="11" Foreground="#137333" FontWeight="SemiBold"/>
                     </StackPanel>
                 </Border>
 
@@ -114,21 +119,21 @@
                                    FontWeight="Bold" 
                                    Foreground="{StaticResource PrimaryBrush}"
                                    Margin="0,6,0,4"/>
-                        <TextBlock Text="En todas las sucursales" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="{Binding SucursalFiltro}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Card 4: Unidades Elaboradas -->
                 <Border Grid.Column="3" Style="{StaticResource MaieCardStyle}" Margin="8,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="🧑‍🍳 Elaborado en Cocina" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
-                        <TextBlock Text="{Binding TotalUnidadesElaboradas, StringFormat='{}{0:N0} un.'}" 
+                        <TextBlock Text="💰 Ticket Promedio" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="{Binding TicketPromedio, StringFormat='${0:N2}'}" 
                                    FontFamily="Noto Serif" 
                                    FontSize="20" 
                                    FontWeight="Bold" 
                                    Foreground="{StaticResource PrimaryBrush}"
                                    Margin="0,6,0,4"/>
-                        <TextBlock Text="Reposición enviada a sucursales" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
+                        <TextBlock Text="Facturado ÷ ventas confirmadas" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>

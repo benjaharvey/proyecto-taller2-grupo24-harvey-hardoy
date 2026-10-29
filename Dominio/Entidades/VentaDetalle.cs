@@ -14,6 +14,9 @@ namespace Dominio.Entidades
 
         public decimal PrecioUnit { get; set; }
 
+        // Costo de producir una unidad al momento de la venta (se congela, igual que PrecioUnit).
+        public decimal CostoUnit { get; set; }
+
         public DateTime CreatedAt { get; set; }
     }
 }

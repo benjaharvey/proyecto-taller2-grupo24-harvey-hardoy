@@ -71,6 +71,9 @@ public partial class ProductosViewModel : ObservableObject
     private decimal _formPrecio = 0m;
 
     [ObservableProperty]
+    private decimal _formCosto = 0m;
+
+    [ObservableProperty]
     private bool _esEdicion;
 
     // null = producto nuevo; con valor = Id del producto que se está editando
@@ -175,6 +178,7 @@ public partial class ProductosViewModel : ObservableObject
             FormTitulo = $"Editar {value.Nombre}";
             FormNombre = value.Nombre;
             FormPrecio = value.Precio;
+            FormCosto = value.Costo;
             FormCategoria = Categorias.FirstOrDefault(c => c.Id == value.CategoriaId);
             FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>(
                 (value.Receta ?? new List<ProductoInsumoDTO>()).Select(r => new InsumoRecetaItem
@@ -206,6 +210,7 @@ public partial class ProductosViewModel : ObservableObject
         FormNombre = string.Empty;
         FormCategoria = null;
         FormPrecio = 0;
+        FormCosto = 0;
         _productoEditandoId = null;
         FormRecetaInsumos = new ObservableCollection<InsumoRecetaItem>();
     }
@@ -271,6 +276,7 @@ public partial class ProductosViewModel : ObservableObject
         {
             Nombre = FormNombre?.Trim() ?? string.Empty,
             Precio = FormPrecio,
+            Costo = FormCosto,
             CategoriaId = FormCategoria?.Id ?? 0,
             Receta = FormRecetaInsumos.Select(i => new ProductoInsumoDTO
             {

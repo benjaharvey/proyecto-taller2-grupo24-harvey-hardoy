@@ -12,6 +12,8 @@ namespace Aplicacion.DTOs
 
         public decimal Precio {get; set; }
 
+        public decimal Costo { get; set; }
+
         public int CategoriaId { get; set; }
 
         public string? RutaImagen { get; set; }

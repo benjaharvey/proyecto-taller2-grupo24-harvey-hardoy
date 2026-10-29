@@ -24,6 +24,7 @@ namespace Aplicacion.CasosDeUso
                 Id = id,
                 Nombre = dto.Nombre,
                 Precio = dto.Precio,
+                Costo = dto.Costo,
                 CategoriaId = dto.CategoriaId,
                 RutaImagen = dto.RutaImagen,
                 ProductoInsumos = dto.Receta.Select(r => new ProductoInsumo

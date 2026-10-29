@@ -45,7 +45,10 @@ public partial class ReportesViewModel : ObservableObject
     // Filtros de la barra superior: ya gobiernan el ranking de más vendidos.
     // Cada vez que cambian se vuelve a calcular (ver los métodos On...Changed más abajo).
     [ObservableProperty]
-    private string _periodoSeleccionado = "Últimos 30 días";
+    private DateTime? _fechaDesde = DateTime.Today.AddDays(-30);
+
+    [ObservableProperty]
+    private DateTime? _fechaHasta = DateTime.Today;
 
     [ObservableProperty]
     private string _sucursalFiltro = TodasLasSucursales;
@@ -53,6 +56,10 @@ public partial class ReportesViewModel : ObservableObject
     private const string TodasLasSucursales = "Todas las Sucursales";
 
     // KPI Cards
+    // Ganancia = lo cobrado menos lo que costó producir lo vendido. TotalIngresosVentas es lo cobrado (facturado).
+    [ObservableProperty]
+    private decimal _totalGanancia = 0;
+
     [ObservableProperty]
     private decimal _totalIngresosVentas = 0;
 
@@ -63,7 +70,7 @@ public partial class ReportesViewModel : ObservableObject
     private int _totalUnidadesVendidas = 0;
 
     [ObservableProperty]
-    private int _totalUnidadesElaboradas = 0;
+    private decimal _ticketPromedio = 0;
 
     // Visual lists
     [ObservableProperty]
@@ -122,11 +129,6 @@ public partial class ReportesViewModel : ObservableObject
         new Axis { MinLimit = 0, Name = "Recaudado" }
     };
 
-    public ObservableCollection<string> Periodos { get; } = new()
-    {
-        "Hoy", "Últimos 7 días", "Últimos 30 días", "Últimos 90 días"
-    };
-
     // Se llena en el constructor con las sucursales reales de la base.
     public ObservableCollection<string> Sucursales { get; } = new();
 
@@ -134,6 +136,7 @@ public partial class ReportesViewModel : ObservableObject
     private const int CantidadEnRanking = 10;
     private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
     private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
+    private readonly ObtenerResumenVentas _obtenerResumenVentas;
     private readonly ObtenerRecaudacionPorMetodoPago _obtenerRecaudacionPorMetodoPago;
     private readonly ObtenerRecaudacionPorCategoria _obtenerRecaudacionPorCategoria;
     private readonly List<SucursalDTO> _sucursalesDb = new();
@@ -176,6 +179,7 @@ public partial class ReportesViewModel : ObservableObject
         ObtenerProduccionPorProducto obtenerProduccionPorProducto,
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
         ObtenerVentasPorSucursal obtenerVentasPorSucursal,
+        ObtenerResumenVentas obtenerResumenVentas,
         ObtenerRecaudacionPorMetodoPago obtenerRecaudacionPorMetodoPago,
         ObtenerRecaudacionPorCategoria obtenerRecaudacionPorCategoria,
         ListarProductos listarProductos,
@@ -184,6 +188,7 @@ public partial class ReportesViewModel : ObservableObject
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
         _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
+        _obtenerResumenVentas = obtenerResumenVentas;
         _obtenerRecaudacionPorMetodoPago = obtenerRecaudacionPorMetodoPago;
         _obtenerRecaudacionPorCategoria = obtenerRecaudacionPorCategoria;
 
@@ -207,43 +212,41 @@ public partial class ReportesViewModel : ObservableObject
         GenerarReporteProduccion();
         CargarRankingProductos();
         CargarVentasPorSucursal();
+        CargarResumenVentas();
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
     }
-
-    // Se ejecutan solos cuando el usuario cambia el período o la sucursal en la barra superior.
-    partial void OnPeriodoSeleccionadoChanged(string value)
+    private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
-        CargarRankingProductos();
-        CargarVentasPorSucursal();
-        CargarRecaudacionPorMetodoPago();
-        CargarRecaudacionPorCategoria();
-    }
+        if (FechaDesde == null || FechaHasta == null)
+        {
+            desde = default;
+            hasta = default;
+            MessageBox.Show("Elegí la fecha desde y la fecha hasta.", "Reportes",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
 
+            return false;
+
+        } else
+        {
+            desde = FechaDesde.Value;
+            hasta = FechaHasta.Value;
+
+            return true;
+        }
+    }
+    // El ranking y las tarjetas dependen de la sucursal elegida (ventas por sucursal compara todas).
     partial void OnSucursalFiltroChanged(string value)
     {
         CargarRankingProductos();
+        CargarResumenVentas();
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
-    }
-
-    // Traduce el texto del combo de período a un rango de fechas (hasta = hoy).
-    private static (DateTime Desde, DateTime Hasta) ObtenerRangoDelPeriodo(string periodo)
-    {
-        var hoy = DateTime.Today;
-
-        return periodo switch
-        {
-            "Hoy" => (hoy, hoy),
-            "Últimos 7 días" => (hoy.AddDays(-6), hoy),
-            "Últimos 90 días" => (hoy.AddDays(-89), hoy),
-            _ => (hoy.AddDays(-29), hoy)   // "Últimos 30 días" y cualquier valor inesperado
-        };
     }
 
     private void CargarRankingProductos()
     {
-        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
 
         // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
         int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
@@ -274,7 +277,7 @@ public partial class ReportesViewModel : ObservableObject
 
     private void CargarVentasPorSucursal()
     {
-        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
 
         List<VentaPorSucursalDTO> datos;
         try
@@ -303,6 +306,43 @@ public partial class ReportesViewModel : ObservableObject
 
     }
 
+    // Llena las tarjetas de arriba: ganancia, facturado, ventas confirmadas y unidades vendidas.
+    private void CargarResumenVentas()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        ResumenVentasDTO resumen;
+        try
+        {
+            resumen = _obtenerResumenVentas.Ejecutar(desde, hasta, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        TotalGanancia = resumen.Ganancia;
+        TotalIngresosVentas = resumen.Facturado;
+        TotalOperacionesVenta = resumen.CantidadVentas;
+        TotalUnidadesVendidas = resumen.Unidades;
+        TicketPromedio = resumen.TicketPromedio;
+
+    }
+
+    [RelayCommand]
+    private void AplicarFiltros()
+    {
+        CargarRankingProductos();
+        CargarVentasPorSucursal();
+        CargarResumenVentas();
+        CargarRecaudacionPorMetodoPago();
+        CargarRecaudacionPorCategoria();
+    }
+
     // Reporte por metodo de pago
     private static readonly Dictionary<MetodoPago, SKColor> ColoresPorMetodoPago = new()
     {
@@ -313,7 +353,7 @@ public partial class ReportesViewModel : ObservableObject
 
     private void CargarRecaudacionPorMetodoPago()
     {
-        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
 
         // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
         int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
@@ -366,7 +406,8 @@ public partial class ReportesViewModel : ObservableObject
     // Reporte por categoria
     private void CargarRecaudacionPorCategoria()
     {
-        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
         int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
 
         List<RecaudacionPorCategoriaDTO> datos;
