@@ -32,5 +32,8 @@ namespace Dominio.Interfaces
 
         List<(MetodoPago Metodo, int CantidadVentas, decimal TotalRecaudado)> ObtenerRecaudacionPorMetodoPago
         (DateTime desde, DateTime hastaExclusivo, int? sucursalId);
+
+        List<(string NombreCategoria, int Unidades, decimal TotalRecaudado)> ObtenerRecaudacionPorCategoria
+        (DateTime desde, DateTime hastaExclusivo, int? sucursalId);
     }
 }

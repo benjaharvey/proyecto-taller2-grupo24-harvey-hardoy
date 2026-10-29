@@ -33,6 +33,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -248,8 +249,70 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 5: Mid Row: Top Products Ranking & Branch Distribution -->
-            <Grid Grid.Row="5" Margin="0,0,0,20">
+            <!-- Row 5: Recaudación por categoría (datos reales) -->
+            <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="🏷️ Recaudación por Categoría" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.1*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Barras: comparar longitudes es más preciso que comparar ángulos -->
+                        <Grid Grid.Column="0" Height="260" Margin="0,0,20,0">
+                            <lvc:CartesianChart Series="{Binding CategoriaSeries}"
+                                                XAxes="{Binding CategoriaXAxes}"
+                                                YAxes="{Binding CategoriaYAxes}" />
+                            <TextBlock Text="No hay ventas confirmadas en el período seleccionado."
+                                       Style="{StaticResource BodyTextStyle}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Visibility="{Binding CategoriaSinDatos, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
+
+                        <StackPanel Grid.Column="1">
+                            <DataGrid ItemsSource="{Binding Categorias}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#EFECE6"
+                                      Background="White"
+                                      BorderThickness="0"
+                                      RowHeight="38"
+                                      SelectionMode="Single"
+                                      ColumnHeaderStyle="{StaticResource ReporteColumnHeaderStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Categoría" Binding="{Binding NombreCategoria}" Width="*" />
+                                    <DataGridTextColumn Header="Recaudado" Binding="{Binding TotalRecaudado, StringFormat='${0:N2}'}" Width="Auto" />
+                                    <DataGridTextColumn Header="%" Binding="{Binding Participacion, StringFormat='{}{0}%'}" Width="Auto" />
+                                    <DataGridTextColumn Header="Unidades" Binding="{Binding Unidades}" Width="Auto" />
+                                    <DataGridTextColumn Header="Precio prom." Binding="{Binding PrecioPromedio, StringFormat='${0:N2}'}" Width="Auto" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding TotalRecaudadoCategorias, StringFormat='Total del período: ${0:N2}'}"
+                                               FontWeight="SemiBold" FontSize="13"
+                                               Foreground="{StaticResource PrimaryBrush}" />
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <TextBlock Text="Categoría líder: " FontSize="12" Foreground="{StaticResource TextBodyBrush}" />
+                                        <TextBlock Text="{Binding CategoriaLider}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding ParticipacionCategoriaLider, StringFormat='{}{0}% del total recaudado'}"
+                                               FontSize="11" Foreground="{StaticResource TextBodyBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 6: Mid Row: Top Products Ranking & Branch Distribution -->
+            <Grid Grid.Row="6" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.4*" />
                     <ColumnDefinition Width="*" />
@@ -320,8 +383,8 @@
                 </Border>
             </Grid>
 
-            <!-- Row 6: Bottom Table: Consolidated Detail -->
-            <Border Grid.Row="6" Style="{StaticResource MaieCardStyle}" Padding="0">
+            <!-- Row 7: Bottom Table: Consolidated Detail -->
+            <Border Grid.Row="7" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

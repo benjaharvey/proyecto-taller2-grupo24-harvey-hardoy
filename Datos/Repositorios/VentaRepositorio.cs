@@ -406,6 +406,33 @@ namespace Datos.Repositorios
                 .ToList();
         }
 
+        public List<(string NombreCategoria, int Unidades, decimal TotalRecaudado)> ObtenerRecaudacionPorCategoria(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var query = context.VentasDetalle
+                .Where(d => d.Venta!.Estado == EstadoVenta.CONFIRMADA
+                         && d.Venta.CreatedAt >= desde
+                         && d.Venta.CreatedAt < hastaExclusivo);
+
+            if (sucursalId.HasValue)
+                query = query.Where(d => d.Venta!.SucursalId == sucursalId.Value);
+
+            return query
+                .GroupBy(d => d.Producto!.Categoria!.Nombre)
+                .Select(g => new
+                {
+                    Nombre = g.Key,
+                    Unidades = g.Sum(d => d.Cantidad),
+                    Total = g.Sum(d => d.Cantidad * d.PrecioUnit)
+                })
+                .OrderByDescending(x => x.Total)
+                .AsEnumerable()
+                .Select(x => (x.Nombre, x.Unidades, x.Total))
+                .ToList();
+        }
+
         // ---------------------------------------------------------------
         // Helpers privados
         // ---------------------------------------------------------------

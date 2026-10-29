@@ -95,6 +95,33 @@ public partial class ReportesViewModel : ObservableObject
     [ObservableProperty]
     private bool _metodoPagoSinDatos;
 
+    // ---- Reporte: recaudación por categoría
+    [ObservableProperty]
+    private ISeries[] _categoriaSeries = Array.Empty<ISeries>();
+
+    [ObservableProperty]
+    private Axis[] _categoriaXAxes = Array.Empty<Axis>();
+
+    [ObservableProperty]
+    private ObservableCollection<RecaudacionPorCategoriaDTO> _categorias = new();
+
+    [ObservableProperty]
+    private decimal _totalRecaudadoCategorias = 0;
+
+    [ObservableProperty]
+    private string _categoriaLider = "—";
+
+    [ObservableProperty]
+    private double _participacionCategoriaLider = 0;
+
+    [ObservableProperty]
+    private bool _categoriaSinDatos;
+
+    public Axis[] CategoriaYAxes { get; } =
+    {
+        new Axis { MinLimit = 0, Name = "Recaudado" }
+    };
+
     public ObservableCollection<string> Periodos { get; } = new()
     {
         "Hoy", "Últimos 7 días", "Últimos 30 días", "Últimos 90 días"
@@ -108,6 +135,7 @@ public partial class ReportesViewModel : ObservableObject
     private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
     private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
     private readonly ObtenerRecaudacionPorMetodoPago _obtenerRecaudacionPorMetodoPago;
+    private readonly ObtenerRecaudacionPorCategoria _obtenerRecaudacionPorCategoria;
     private readonly List<SucursalDTO> _sucursalesDb = new();
 
     // ---- Reporte: producción por producto (datos reales) ----
@@ -149,6 +177,7 @@ public partial class ReportesViewModel : ObservableObject
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
         ObtenerVentasPorSucursal obtenerVentasPorSucursal,
         ObtenerRecaudacionPorMetodoPago obtenerRecaudacionPorMetodoPago,
+        ObtenerRecaudacionPorCategoria obtenerRecaudacionPorCategoria,
         ListarProductos listarProductos,
         ListarSucursales listarSucursales)
     {
@@ -156,6 +185,7 @@ public partial class ReportesViewModel : ObservableObject
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
         _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
         _obtenerRecaudacionPorMetodoPago = obtenerRecaudacionPorMetodoPago;
+        _obtenerRecaudacionPorCategoria = obtenerRecaudacionPorCategoria;
 
         // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
         _sucursalesDb = listarSucursales.Ejecutar();
@@ -178,6 +208,7 @@ public partial class ReportesViewModel : ObservableObject
         CargarRankingProductos();
         CargarVentasPorSucursal();
         CargarRecaudacionPorMetodoPago();
+        CargarRecaudacionPorCategoria();
     }
 
     // Se ejecutan solos cuando el usuario cambia el período o la sucursal en la barra superior.
@@ -186,12 +217,14 @@ public partial class ReportesViewModel : ObservableObject
         CargarRankingProductos();
         CargarVentasPorSucursal();
         CargarRecaudacionPorMetodoPago();
+        CargarRecaudacionPorCategoria();
     }
 
     partial void OnSucursalFiltroChanged(string value)
     {
         CargarRankingProductos();
         CargarRecaudacionPorMetodoPago();
+        CargarRecaudacionPorCategoria();
     }
 
     // Traduce el texto del combo de período a un rango de fechas (hasta = hoy).
@@ -328,6 +361,49 @@ public partial class ReportesViewModel : ObservableObject
                 InnerRadius = 55
             })
             .ToArray();
+    }
+
+    // Reporte por categoria
+    private void CargarRecaudacionPorCategoria()
+    {
+        var (desde, hasta) = ObtenerRangoDelPeriodo(PeriodoSeleccionado);
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        List<RecaudacionPorCategoriaDTO> datos;
+        try
+        {
+            datos = _obtenerRecaudacionPorCategoria.Ejecutar(desde, hasta, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        Categorias = new ObservableCollection<RecaudacionPorCategoriaDTO>(datos);
+
+        TotalRecaudadoCategorias = datos.Sum(d => d.TotalRecaudado);
+        CategoriaSinDatos = TotalRecaudadoCategorias <= 0;
+
+        var lider = datos.FirstOrDefault();
+
+        CategoriaLider = lider?.NombreCategoria ?? "—";
+        ParticipacionCategoriaLider = lider?.Participacion ?? 0;
+
+        CategoriaSeries = new ISeries[]
+        {
+            new ColumnSeries<decimal>
+            {
+                Name = "Recaudado",
+                Values = datos.Select(d => d.TotalRecaudado).ToArray(),
+                Fill = new SolidColorPaint(SKColor.Parse("#9A4600"))
+            }
+        };
+
+        CategoriaXAxes = new Axis[]
+        {
+            new Axis { Labels = datos.Select(d => d.NombreCategoria).ToArray() }
+        };
     }
 
     [RelayCommand]
