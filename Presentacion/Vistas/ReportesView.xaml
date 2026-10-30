@@ -177,7 +177,17 @@
                 <!-- Top Products -->
                 <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,12,0" Padding="16">
                     <StackPanel>
-                        <TextBlock Text="🏆 Ranking de Productos Más Vendidos" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+                        <!-- El botón va primero y pegado a la derecha; el título ocupa el espacio que queda. -->
+                        <DockPanel Margin="0,0,0,14">
+                            <Button Content="{Binding TextoBotonRanking}"
+                                    Command="{Binding AlternarRankingCommand}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    DockPanel.Dock="Right"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"/>
+
+                            <TextBlock Text="{Binding TituloRanking}" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" VerticalAlignment="Center"/>
+                        </DockPanel>
 
                         <ItemsControl ItemsSource="{Binding TopProductos}">
                             <ItemsControl.ItemTemplate>
@@ -239,51 +249,22 @@
                 </Border>
             </Grid>
 
-            <!-- Row 5: Bottom Table: Consolidated Detail -->
-            <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Padding="0">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+            <!-- Row 5: Ventas por vendedor (torta) -->
+            <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Ventas por vendedor"
+                        Style="{StaticResource SubheaderTitleStyle}"
+                        FontSize="15" Margin="0,0,0,12"/>
 
-                    <Border Grid.Row="0" Background="{StaticResource SurfaceAltBrush}" Padding="14,10" BorderBrush="#E2DCD5" BorderThickness="0,0,0,1">
-                        <TextBlock Text="Balance Consolidado por Producto (Producción vs Ventas)" Style="{StaticResource SubheaderTitleStyle}" FontSize="15"/>
-                    </Border>
-
-                    <DataGrid Grid.Row="1"
-                              ItemsSource="{Binding TablaConsolidada}"
-                              AutoGenerateColumns="False"
-                              IsReadOnly="True"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="Horizontal"
-                              HorizontalGridLinesBrush="#EFECE6"
-                              Background="White"
-                              BorderThickness="0"
-                              RowHeight="42"
-                              SelectionMode="Single">
-                        <DataGrid.Resources>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-                                <Setter Property="FontWeight" Value="SemiBold" />
-                                <Setter Property="FontFamily" Value="Noto Serif" />
-                                <Setter Property="Padding" Value="12,8" />
-                                <Setter Property="BorderThickness" Value="0,0,0,1" />
-                                <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
-                            </Style>
-                        </DataGrid.Resources>
-
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Producto" Binding="{Binding Producto}" Width="2*" />
-                            <DataGridTextColumn Header="Categoría" Binding="{Binding Categoria}" Width="*" />
-                            <DataGridTextColumn Header="Elaborados (Cocina)" Binding="{Binding UnidadesElaboradas, StringFormat='{}{0} un.'}" Width="150" />
-                            <DataGridTextColumn Header="Vendidos (Caja)" Binding="{Binding UnidadesVendidas, StringFormat='{}{0} un.'}" Width="140" />
-                            <DataGridTextColumn Header="Stock Actual" Binding="{Binding StockDisponible, StringFormat='{}{0} un.'}" Width="120" />
-                            <DataGridTextColumn Header="Total Facturado" Binding="{Binding TotalRecaudado, StringFormat='${0:N2}'}" Width="140" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
+                    <Grid Height="300">
+                        <lvc:PieChart Series="{Binding VendedorSeries}"
+                            LegendPosition="Right"/>
+                        <TextBlock Text="No hay ventas de vendedores en el período seleccionado."
+                            Style="{StaticResource BodyTextStyle}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Visibility="{Binding VendedoresSinDatos, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </StackPanel>
             </Border>
         </Grid>
     </ScrollViewer>

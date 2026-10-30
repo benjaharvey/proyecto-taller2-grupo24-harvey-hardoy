@@ -25,11 +25,16 @@ namespace Dominio.Interfaces
         List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMasVendidos
         (DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top);
 
+         List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMenosVendidos
+        (DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top);
+
         List<(string NombreSucursal, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorSucursal(DateTime desde, DateTime hastaExclusivo);
 
         // Totales de las ventas confirmadas en [desde, hastaExclusivo): lo facturado, la ganancia
         // (venta menos costo), cuántas ventas fueron y cuántas unidades. sucursalId null = todas.
         (decimal Facturado, decimal Ganancia, int CantidadVentas, int Unidades) ObtenerResumenVentas(
             DateTime desde, DateTime hastaExclusivo, int? sucursalId);
+
+        List<(string NombreVendedor, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorVendedor(DateTime desde, DateTime hastaExclusivo, int? sucursalId);
     }
 }

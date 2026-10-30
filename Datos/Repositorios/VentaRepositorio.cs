@@ -361,6 +361,38 @@ namespace Datos.Repositorios
                 .ToList();
         }
 
+            public List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMenosVendidos(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            // Se arranca por los renglones de venta: lo que se agrupa y se suma está acá.
+            var query = context.VentasDetalle
+                .Where(d => d.Venta!.Estado == EstadoVenta.CONFIRMADA
+                         && d.Venta.CreatedAt >= desde
+                         && d.Venta.CreatedAt < hastaExclusivo);
+
+            // Filtro opcional: solo se agrega si el usuario eligió una sucursal.
+            if (sucursalId.HasValue)
+                query = query.Where(d => d.Venta!.SucursalId == sucursalId.Value);
+
+            // El GROUP BY, los SUM, el ORDER BY y el TOP se ejecutan en SQL Server.
+            return query
+                .GroupBy(d => d.Producto!.Nombre)
+                .Select(g => new
+                {
+                    Nombre = g.Key,
+                    Unidades = g.Sum(d => d.Cantidad),
+                    Recaudado = g.Sum(d => d.Cantidad * d.PrecioUnit)
+                })
+                .OrderBy(x => x.Unidades)
+                .ThenBy(x => x.Nombre)
+                .Take(top)
+                .AsEnumerable()
+                .Select(x => (x.Nombre, x.Unidades, x.Recaudado))
+                .ToList();
+        }
+
         public List<(string NombreSucursal, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorSucursal(
             DateTime desde, DateTime hastaExclusivo)
         {
@@ -378,6 +410,55 @@ namespace Datos.Repositorios
                 .OrderByDescending(x => x.Total)
                 .AsEnumerable()
                 .Select(x => (x.Nombre, x.Cantidad, x.Total))
+                .ToList();
+        }
+
+        public List<(string NombreVendedor, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorVendedor(DateTime desde, DateTime hastaExclusivo, int? sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var query = context.VentasCabecera.Where(v => v.Estado == EstadoVenta.CONFIRMADA && v.CreatedAt >= desde && v.CreatedAt < hastaExclusivo);
+
+            if (sucursalId.HasValue)
+            {
+                query = query.Where(v => v.SucursalId == sucursalId.Value);
+            }
+
+            // De acá en adelante se "arma" el resultado. Cada línea toma lo que dejó la anterior.
+            // Hasta el ToList() final no se consulta nada: todo esto se convierte en UNA sola consulta SQL.
+            return query
+                // 1) AGRUPAR: junta todas las ventas de un mismo vendedor en un "grupo".
+                //    La clave del grupo es un objeto con 3 datos (id, nombre y apellido): dos ventas
+                //    caen en el mismo grupo solo si coinciden en los tres. Se incluye el id para que
+                //    dos vendedores con el mismo nombre no se mezclen.
+                .GroupBy(v => new { v.UsuarioId, v.Usuario!.Nombre, v.Usuario.Apellido })
+
+                // 2) CALCULAR: por cada grupo (o sea, por cada vendedor) arma una fila nueva con:
+                //    - Nombre y Apellido: salen de la clave del grupo (g.Key)
+                //    - Cantidad: cuántas ventas tiene el grupo (Count)
+                //    - Total: la suma del importe de esas ventas (Sum)
+                .Select(g => new
+                {
+                    Nombre = g.Key.Nombre,
+                    Apellido = g.Key.Apellido,
+                    Cantidad = g.Count(),
+                    Total = g.Sum(v => v.Total)
+                })
+
+                // 3) ORDENAR: el vendedor con más ventas queda primero.
+                .OrderByDescending(x => x.Cantidad)
+
+                // 4) PASAR A MEMORIA: hasta acá todo lo resolvió SQL Server (agrupar, contar y sumar).
+                //    Desde acá en adelante se trabaja en C#, con las pocas filas que ya devolvió la base
+                //    (una por vendedor).
+                .AsEnumerable()
+
+                // 5) ARMAR LA TUPLA: une nombre y apellido en un solo texto ("Camila Duarte") y deja
+                //    la cantidad y el total. Es el formato que declara la firma del método.
+                .Select(x => ($"{x.Nombre} {x.Apellido}", x.Cantidad, x.Total))
+
+                // 6) EJECUTAR: convierte el resultado en una lista. Recién ACÁ se manda la consulta
+                //    a la base de datos y se traen los datos.
                 .ToList();
         }
 
