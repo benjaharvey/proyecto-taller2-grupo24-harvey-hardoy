@@ -361,6 +361,38 @@ namespace Datos.Repositorios
                 .ToList();
         }
 
+            public List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMenosVendidos(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            // Se arranca por los renglones de venta: lo que se agrupa y se suma está acá.
+            var query = context.VentasDetalle
+                .Where(d => d.Venta!.Estado == EstadoVenta.CONFIRMADA
+                         && d.Venta.CreatedAt >= desde
+                         && d.Venta.CreatedAt < hastaExclusivo);
+
+            // Filtro opcional: solo se agrega si el usuario eligió una sucursal.
+            if (sucursalId.HasValue)
+                query = query.Where(d => d.Venta!.SucursalId == sucursalId.Value);
+
+            // El GROUP BY, los SUM, el ORDER BY y el TOP se ejecutan en SQL Server.
+            return query
+                .GroupBy(d => d.Producto!.Nombre)
+                .Select(g => new
+                {
+                    Nombre = g.Key,
+                    Unidades = g.Sum(d => d.Cantidad),
+                    Recaudado = g.Sum(d => d.Cantidad * d.PrecioUnit)
+                })
+                .OrderBy(x => x.Unidades)
+                .ThenBy(x => x.Nombre)
+                .Take(top)
+                .AsEnumerable()
+                .Select(x => (x.Nombre, x.Unidades, x.Recaudado))
+                .ToList();
+        }
+
         public List<(string NombreSucursal, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorSucursal(
             DateTime desde, DateTime hastaExclusivo)
         {

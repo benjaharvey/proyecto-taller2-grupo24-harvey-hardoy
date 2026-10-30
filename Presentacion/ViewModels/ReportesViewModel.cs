@@ -85,8 +85,19 @@ public partial class ReportesViewModel : ObservableObject
     public ObservableCollection<string> Sucursales { get; } = new();
 
     // ---- Ranking de productos más vendidos (datos reales) ----
+
+    public string TituloRanking => MostrarMenosVendidos
+        ? "📉 Ranking de Productos Menos Vendidos"
+        : "🏆 Ranking de Productos Más Vendidos";
+
+    // El botón ofrece pasar al otro modo.
+    public string TextoBotonRanking => MostrarMenosVendidos
+        ? "Ver más vendidos"
+        : "Ver menos vendidos";
+
     private const int CantidadEnRanking = 10;
     private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
+    private readonly ObtenerProductosMenosVendidos _obtenerProductosMenosVendidos;
     private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
     private readonly ObtenerResumenVentas _obtenerResumenVentas;
     private readonly List<SucursalDTO> _sucursalesDb = new();
@@ -99,6 +110,11 @@ public partial class ReportesViewModel : ObservableObject
 
     [ObservableProperty]
     private DateTime? _produccionHasta = DateTime.Today;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TituloRanking))]
+    [NotifyPropertyChangedFor(nameof(TextoBotonRanking))]
+    private bool _mostrarMenosVendidos = false;
 
     // El primer elemento de cada lista es la opción "Todos" (Id = 0): equivale a no filtrar.
     [ObservableProperty]
@@ -128,6 +144,7 @@ public partial class ReportesViewModel : ObservableObject
     public ReportesViewModel(
         ObtenerProduccionPorProducto obtenerProduccionPorProducto,
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
+        ObtenerProductosMenosVendidos obtenerProductosMenosVendidos,
         ObtenerVentasPorSucursal obtenerVentasPorSucursal,
         ObtenerResumenVentas obtenerResumenVentas,
         ListarProductos listarProductos,
@@ -135,6 +152,7 @@ public partial class ReportesViewModel : ObservableObject
     {
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
+        _obtenerProductosMenosVendidos = obtenerProductosMenosVendidos;
         _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
         _obtenerResumenVentas = obtenerResumenVentas;
 
@@ -196,7 +214,13 @@ public partial class ReportesViewModel : ObservableObject
         List<ProductoMasVendidoDTO> datos;
         try
         {
-            datos = _obtenerProductosMasVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+            if(MostrarMenosVendidos == true)
+            {
+                datos = _obtenerProductosMenosVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+            } else
+            {
+                datos = _obtenerProductosMasVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+            }
         }
         catch (InvalidOperationException ex)
         {
@@ -331,8 +355,9 @@ public partial class ReportesViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ExportarReporte()
+    private void AlternarRanking()
     {
-        // Mock export action
+        MostrarMenosVendidos = !MostrarMenosVendidos;
+        CargarRankingProductos();
     }
 }

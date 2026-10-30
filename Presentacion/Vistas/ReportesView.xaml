@@ -177,7 +177,17 @@
                 <!-- Top Products -->
                 <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,12,0" Padding="16">
                     <StackPanel>
-                        <TextBlock Text="🏆 Ranking de Productos Más Vendidos" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+                        <!-- El botón va primero y pegado a la derecha; el título ocupa el espacio que queda. -->
+                        <DockPanel Margin="0,0,0,14">
+                            <Button Content="{Binding TextoBotonRanking}"
+                                    Command="{Binding AlternarRankingCommand}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    DockPanel.Dock="Right"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"/>
+
+                            <TextBlock Text="{Binding TituloRanking}" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" VerticalAlignment="Center"/>
+                        </DockPanel>
 
                         <ItemsControl ItemsSource="{Binding TopProductos}">
                             <ItemsControl.ItemTemplate>
