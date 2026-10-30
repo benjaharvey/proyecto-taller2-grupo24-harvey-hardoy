@@ -34,5 +34,7 @@ namespace Dominio.Interfaces
         // (venta menos costo), cuántas ventas fueron y cuántas unidades. sucursalId null = todas.
         (decimal Facturado, decimal Ganancia, int CantidadVentas, int Unidades) ObtenerResumenVentas(
             DateTime desde, DateTime hastaExclusivo, int? sucursalId);
+
+        List<(string NombreVendedor, int CantidadVentas, decimal TotalRecaudado)> ObtenerVentasPorVendedor(DateTime desde, DateTime hastaExclusivo, int? sucursalId);
     }
 }

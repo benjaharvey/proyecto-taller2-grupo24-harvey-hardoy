@@ -29,16 +29,6 @@ public class SucursalVentaReporteItem
     public double PorcentajeParticipacion { get; set; }
 }
 
-public class DetalleConsolidadoReporteItem
-{
-    public string Producto { get; set; } = string.Empty;
-    public string Categoria { get; set; } = string.Empty;
-    public int UnidadesElaboradas { get; set; }
-    public int UnidadesVendidas { get; set; }
-    public int StockDisponible { get; set; }
-    public decimal TotalRecaudado { get; set; }
-}
-
 public partial class ReportesViewModel : ObservableObject
 {
     // Filtros de la barra superior: ya gobiernan el ranking de más vendidos.
@@ -78,9 +68,6 @@ public partial class ReportesViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<SucursalVentaReporteItem> _ventasPorSucursal = new();
 
-    [ObservableProperty]
-    private ObservableCollection<DetalleConsolidadoReporteItem> _tablaConsolidada = new();
-
     // Se llena en el constructor con las sucursales reales de la base.
     public ObservableCollection<string> Sucursales { get; } = new();
 
@@ -100,6 +87,8 @@ public partial class ReportesViewModel : ObservableObject
     private readonly ObtenerProductosMenosVendidos _obtenerProductosMenosVendidos;
     private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
     private readonly ObtenerResumenVentas _obtenerResumenVentas;
+
+    private readonly ObtenerVentasPorVendedor _obtenerVentasPorVendedor;
     private readonly List<SucursalDTO> _sucursalesDb = new();
 
     // ---- Reporte: producción por producto (datos reales) ----
@@ -115,6 +104,12 @@ public partial class ReportesViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(TituloRanking))]
     [NotifyPropertyChangedFor(nameof(TextoBotonRanking))]
     private bool _mostrarMenosVendidos = false;
+
+    [ObservableProperty]
+    private ISeries[] _vendedorSeries = Array.Empty<ISeries>();
+
+    [ObservableProperty]
+    private bool _vendedoresSinDatos;
 
     // El primer elemento de cada lista es la opción "Todos" (Id = 0): equivale a no filtrar.
     [ObservableProperty]
@@ -146,6 +141,7 @@ public partial class ReportesViewModel : ObservableObject
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
         ObtenerProductosMenosVendidos obtenerProductosMenosVendidos,
         ObtenerVentasPorSucursal obtenerVentasPorSucursal,
+        ObtenerVentasPorVendedor obtenerVentasPorVendedor,
         ObtenerResumenVentas obtenerResumenVentas,
         ListarProductos listarProductos,
         ListarSucursales listarSucursales)
@@ -155,6 +151,8 @@ public partial class ReportesViewModel : ObservableObject
         _obtenerProductosMenosVendidos = obtenerProductosMenosVendidos;
         _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
         _obtenerResumenVentas = obtenerResumenVentas;
+        _obtenerVentasPorVendedor = obtenerVentasPorVendedor;
+
 
         // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
         _sucursalesDb = listarSucursales.Ejecutar();
@@ -177,6 +175,7 @@ public partial class ReportesViewModel : ObservableObject
         CargarRankingProductos();
         CargarVentasPorSucursal();
         CargarResumenVentas();
+        CargarVentasPorVendedor();
     }
     private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
@@ -202,6 +201,8 @@ public partial class ReportesViewModel : ObservableObject
     {
         CargarRankingProductos();
         CargarResumenVentas();
+        CargarResumenVentas();
+        CargarVentasPorVendedor();
     }
 
     private void CargarRankingProductos()
@@ -299,12 +300,43 @@ public partial class ReportesViewModel : ObservableObject
 
     }
 
+    private void CargarVentasPorVendedor()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        List<VentaPorVendedorDTO> datos;
+
+        try
+        {
+            datos = _obtenerVentasPorVendedor.Ejecutar(desde, hasta, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        VendedoresSinDatos = datos.Count == 0;
+
+        VendedorSeries = datos
+            .Select(d => new PieSeries<int>
+            {
+                Name = d.NombreVendedor,
+                Values = new[] { d.CantidadVentas }
+            })
+            .ToArray();
+    }
+
     [RelayCommand]
     private void AplicarFiltros()
     {
         CargarRankingProductos();
         CargarVentasPorSucursal();
         CargarResumenVentas();
+        CargarResumenVentas();
+        CargarVentasPorVendedor();
     }
 
     [RelayCommand]
