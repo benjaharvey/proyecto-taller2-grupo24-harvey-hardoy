@@ -30,16 +30,6 @@ public class SucursalVentaReporteItem
     public double PorcentajeParticipacion { get; set; }
 }
 
-public class DetalleConsolidadoReporteItem
-{
-    public string Producto { get; set; } = string.Empty;
-    public string Categoria { get; set; } = string.Empty;
-    public int UnidadesElaboradas { get; set; }
-    public int UnidadesVendidas { get; set; }
-    public int StockDisponible { get; set; }
-    public decimal TotalRecaudado { get; set; }
-}
-
 public partial class ReportesViewModel : ObservableObject
 {
     // Filtros de la barra superior: ya gobiernan el ranking de más vendidos.
@@ -78,9 +68,6 @@ public partial class ReportesViewModel : ObservableObject
 
     [ObservableProperty]
     private ObservableCollection<SucursalVentaReporteItem> _ventasPorSucursal = new();
-
-    [ObservableProperty]
-    private ObservableCollection<DetalleConsolidadoReporteItem> _tablaConsolidada = new();
 
     // ---- Reporte: recaudación por método de pago
     [ObservableProperty]
@@ -156,13 +143,26 @@ public partial class ReportesViewModel : ObservableObject
 
 
     // ---- Ranking de productos más vendidos (datos reales) ----
+
+    public string TituloRanking => MostrarMenosVendidos
+        ? "📉 Ranking de Productos Menos Vendidos"
+        : "🏆 Ranking de Productos Más Vendidos";
+
+    // El botón ofrece pasar al otro modo.
+    public string TextoBotonRanking => MostrarMenosVendidos
+        ? "Ver más vendidos"
+        : "Ver menos vendidos";
+
     private const int CantidadEnRanking = 10;
     private readonly ObtenerProductosMasVendidos _obtenerProductosMasVendidos;
+    private readonly ObtenerProductosMenosVendidos _obtenerProductosMenosVendidos;
     private readonly ObtenerVentasPorSucursal _obtenerVentasPorSucursal;
     private readonly ObtenerResumenVentas _obtenerResumenVentas;
     private readonly ObtenerRecaudacionPorMetodoPago _obtenerRecaudacionPorMetodoPago;
     private readonly ObtenerRecaudacionPorCategoria _obtenerRecaudacionPorCategoria;
     private readonly ObtenerStockSinVentas _obtenerStockSinVentas;
+
+    private readonly ObtenerVentasPorVendedor _obtenerVentasPorVendedor;
     private readonly List<SucursalDTO> _sucursalesDb = new();
 
 
@@ -174,6 +174,17 @@ public partial class ReportesViewModel : ObservableObject
 
     [ObservableProperty]
     private DateTime? _produccionHasta = DateTime.Today;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TituloRanking))]
+    [NotifyPropertyChangedFor(nameof(TextoBotonRanking))]
+    private bool _mostrarMenosVendidos = false;
+
+    [ObservableProperty]
+    private ISeries[] _vendedorSeries = Array.Empty<ISeries>();
+
+    [ObservableProperty]
+    private bool _vendedoresSinDatos;
 
     // El primer elemento de cada lista es la opción "Todos" (Id = 0): equivale a no filtrar.
     [ObservableProperty]
@@ -203,7 +214,9 @@ public partial class ReportesViewModel : ObservableObject
     public ReportesViewModel(
         ObtenerProduccionPorProducto obtenerProduccionPorProducto,
         ObtenerProductosMasVendidos obtenerProductosMasVendidos,
+        ObtenerProductosMenosVendidos obtenerProductosMenosVendidos,
         ObtenerVentasPorSucursal obtenerVentasPorSucursal,
+        ObtenerVentasPorVendedor obtenerVentasPorVendedor,
         ObtenerResumenVentas obtenerResumenVentas,
         ObtenerRecaudacionPorMetodoPago obtenerRecaudacionPorMetodoPago,
         ObtenerRecaudacionPorCategoria obtenerRecaudacionPorCategoria,
@@ -214,11 +227,14 @@ public partial class ReportesViewModel : ObservableObject
     {
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
+        _obtenerProductosMenosVendidos = obtenerProductosMenosVendidos;
         _obtenerVentasPorSucursal = obtenerVentasPorSucursal;
         _obtenerResumenVentas = obtenerResumenVentas;
         _obtenerRecaudacionPorMetodoPago = obtenerRecaudacionPorMetodoPago;
         _obtenerRecaudacionPorCategoria = obtenerRecaudacionPorCategoria;
         _obtenerStockSinVentas = obtenerStockSinVentas;
+        _obtenerVentasPorVendedor = obtenerVentasPorVendedor;
+
 
         // Combo de la barra superior: "Todas" + el nombre de cada punto de venta.
         _sucursalesDb = listarSucursales.Ejecutar();
@@ -251,6 +267,7 @@ public partial class ReportesViewModel : ObservableObject
         // El setter de la categoría dispara la carga inicial del reporte de stock
         // (ver OnCategoriaStockFiltroChanged): va último para que todo esté listo.
         CategoriaStockFiltro = CategoriasFiltro[0];
+        CargarVentasPorVendedor();
     }
     private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
@@ -279,6 +296,7 @@ public partial class ReportesViewModel : ObservableObject
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
         CargarStockSinVentas();
+        CargarVentasPorVendedor();
     }
 
     // La categoría solo afecta al reporte de stock: no hay que recargar el resto.
@@ -297,7 +315,13 @@ public partial class ReportesViewModel : ObservableObject
         List<ProductoMasVendidoDTO> datos;
         try
         {
-            datos = _obtenerProductosMasVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+            if(MostrarMenosVendidos == true)
+            {
+                datos = _obtenerProductosMenosVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+            } else
+            {
+                datos = _obtenerProductosMasVendidos.Ejecutar(desde, hasta, sucursalId, CantidadEnRanking);
+            }
         }
         catch (InvalidOperationException ex)
         {
@@ -376,6 +400,35 @@ public partial class ReportesViewModel : ObservableObject
 
     }
 
+    private void CargarVentasPorVendedor()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+
+        List<VentaPorVendedorDTO> datos;
+
+        try
+        {
+            datos = _obtenerVentasPorVendedor.Ejecutar(desde, hasta, sucursalId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        VendedoresSinDatos = datos.Count == 0;
+
+        VendedorSeries = datos
+            .Select(d => new PieSeries<int>
+            {
+                Name = d.NombreVendedor,
+                Values = new[] { d.CantidadVentas }
+            })
+            .ToArray();
+    }
+
     [RelayCommand]
     private void AplicarFiltros()
     {
@@ -385,6 +438,7 @@ public partial class ReportesViewModel : ObservableObject
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
         CargarStockSinVentas();
+        CargarVentasPorVendedor();
     }
 
     // Reporte por metodo de pago
@@ -564,8 +618,9 @@ public partial class ReportesViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void ExportarReporte()
+    private void AlternarRanking()
     {
-        // Mock export action
+        MostrarMenosVendidos = !MostrarMenosVendidos;
+        CargarRankingProductos();
     }
 }
