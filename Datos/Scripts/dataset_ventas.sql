@@ -5,21 +5,26 @@
    REQUISITOS
      1) La base tiene que tener las migraciones aplicadas, incluida AgregarCostos
         (columnas Productos.Costo y VentasDetalle.CostoUnit). Se aplican abriendo la app una vez.
-     2) Tiene que haber al menos: 1 usuario con rol Vendedor, 1 cliente activo y
-        1 producto activo con precio. (Los crea el seeder / datos_prueba.sql.)
+     2) Haber ejecutado antes Datos\Scripts\dataset_pruebas.sql: ese script crea
+        los productos, los clientes y los vendedores que este necesita.
 
    USO (desde la raiz del repo)
-        sqlcmd -S "localhost\SQLEXPRESS" -E -C -d ProyectoCRUD -f 65001 -b -i Datos\Scripts\dataset_ventas.sql
+        sqlcmd -S "localhost\SQLEXPRESS" -E -C -I -d ProyectoCRUD -f 65001 -b -i Datos\Scripts\dataset_ventas.sql
+        El -I es obligatorio: el indice filtrado de ventas PENDIENTE exige
+        QUOTED_IDENTIFIER ON y sqlcmd lo trae apagado por defecto.
 
    QUE HACE (es seguro volver a correrlo)
      - Genera ventas de los ultimos @Dias dias en las sucursales que venden
        (todas las activas menos Casa Central y Fabrica).
      - A los productos activos que tengan Costo = 0 les asigna un costo de produccion
        de entre el 45% y el 70% del precio (determinista por producto). Los productos
-       con un costo ya cargado NO se tocan. Cada renglon de venta guarda ese costo en
-       CostoUnit, para poder calcular la ganancia.
+       con un costo ya cargado NO se tocan. Los que crea dataset_pruebas.sql ya vienen
+       con costo: esto cubre los cargados desde la app o antes de AgregarCostos. Cada
+       renglon de venta guarda ese costo en CostoUnit, para poder calcular la ganancia.
      - Si @CrearSucursalesExtra = 1 y faltan, crea "Sucursal Norte" y "Sucursal Sur"
        (con filas de stock) para poder probar reportes por sucursal.
+     - Agrega vendedores extra repartidos entre esas sucursales (solo los que falten
+       por email), para que los reportes por vendedor no queden con una sola fila.
      - Mas ventas viernes y sabado, pocas los domingos, tendencia levemente creciente,
        productos baratos mas vendidos que los caros, ~8% de ventas CANCELADAS,
        metodos de pago repartidos (efectivo / tarjeta / transferencia).
@@ -34,6 +39,8 @@
         DELETE FROM VentasCabecera WHERE UpdatedAt = '2000-01-01';
 
    NOTAS
+     - Los vendedores extra reutilizan el hash del vendedor del seeder, asi que
+       inician sesion con la misma contrasena (vendedor123).
      - No modifica el stock por las ventas generadas: son datos para probar reportes,
        no una simulacion contable. (Si crea sucursales extra, si les crea filas de stock.)
      - Cumple las restricciones CHECK de la base: las confirmadas y canceladas tienen
@@ -74,7 +81,28 @@ BEGIN
     WHERE NOT EXISTS (SELECT 1 FROM Sucursales s WHERE s.Nombre = v.Nombre);
 END
 
--- 2) Stock de producto/sucursal para los pares que no tengan fila ----------------
+-- 2) Vendedores extra (para que los reportes por vendedor tengan variedad) --------
+-- Reutilizan el hash del vendedor del seeder para poder iniciar sesion con vendedor123.
+DECLARE @PassDemo NVARCHAR(200) = (
+    SELECT TOP 1 Password FROM Usuarios WHERE Email = N'vendedor@test.com'
+);
+IF @PassDemo IS NULL
+    SET @PassDemo = (SELECT TOP 1 Password FROM Usuarios WHERE Email = N'admin@test.com');
+IF @PassDemo IS NULL
+    SET @PassDemo = (SELECT TOP 1 Password FROM Usuarios ORDER BY Id);
+
+INSERT INTO Usuarios (Nombre, Apellido, Dni, Email, Password, FechaNacimiento, Direccion, RolId, SucursalId, CreatedAt)
+SELECT u.Nombre, u.Apellido, u.Dni, u.Email, @PassDemo, u.FechaNacimiento, u.Direccion, r.Id, s.Id, @Ahora
+FROM (VALUES
+    (N'Micaela', N'Ledesma',   N'33124567', N'micaela.ledesma@test.com',   CAST('1991-02-11' AS DATE), N'Av. Libertad 250',  N'Sucursal Norte'),
+    (N'Ramiro',  N'Paz',       N'29876543', N'ramiro.paz@test.com',        CAST('1985-06-27' AS DATE), N'Belgrano 1890',     N'Sucursal Sur'),
+    (N'Carla',   N'Dominguez', N'40512876', N'carla.dominguez@test.com',   CAST('2000-09-03' AS DATE), N'San Lorenzo 640',   N'Sucursal Centro')
+) AS u(Nombre, Apellido, Dni, Email, FechaNacimiento, Direccion, Sucursal)
+JOIN Roles      r ON r.Nombre = N'Vendedor' AND r.DeletedAt IS NULL
+JOIN Sucursales s ON s.Nombre = u.Sucursal  AND s.DeletedAt IS NULL
+WHERE NOT EXISTS (SELECT 1 FROM Usuarios x WHERE x.Email = u.Email);
+
+-- 3) Stock de producto/sucursal para los pares que no tengan fila ----------------
 INSERT INTO StocksSucursal (Cantidad, CreatedAt, UpdatedAt, ProductoId, SucursalId)
 SELECT (CHECKSUM(p.Id, s.Id, 99) & 0x7FFFFFFF) % 121, @Ahora, NULL, p.Id, s.Id
 FROM Productos p
@@ -82,12 +110,12 @@ CROSS JOIN Sucursales s
 WHERE p.DeletedAt IS NULL AND s.DeletedAt IS NULL
   AND NOT EXISTS (SELECT 1 FROM StocksSucursal ss WHERE ss.ProductoId = p.Id AND ss.SucursalId = s.Id);
 
--- 2b) Costos de produccion: solo para los productos activos que todavia no tienen costo ----
+-- 3b) Costos de produccion: respaldo para productos sin costo (los del dataset ya vienen con costo) ----
 UPDATE Productos
 SET Costo = ROUND(Precio * (45 + (Id * 7) % 26) / 100.0, 0)
 WHERE DeletedAt IS NULL AND Costo = 0;
 
--- 3) Tablas auxiliares: quienes participan ---------------------------------------
+-- 4) Tablas auxiliares: quienes participan ---------------------------------------
 -- Sucursales que venden (Casa Central y Fabrica son administracion / produccion).
 SELECT ROW_NUMBER() OVER (ORDER BY s.Id) AS Orden, s.Id AS SucursalId
 INTO #Suc
@@ -118,9 +146,9 @@ DECLARE @NCli  INT = (SELECT COUNT(*) FROM #Cli);
 DECLARE @NVen  INT = (SELECT COUNT(*) FROM #Ven);
 
 IF @NSuc = 0 OR @NProd = 0 OR @NCli = 0 OR @NVen = 0
-    THROW 50011, 'Faltan datos base: hace falta al menos 1 sucursal que venda, 1 producto con precio, 1 cliente y 1 vendedor.', 1;
+    THROW 50011, 'Faltan datos base: hace falta al menos 1 sucursal que venda, 1 producto con precio, 1 cliente y 1 vendedor. Ejecuta antes Datos\Scripts\dataset_pruebas.sql.', 1;
 
--- 4) Tickets: cuantas ventas hay por dia y sucursal ------------------------------
+-- 5) Tickets: cuantas ventas hay por dia y sucursal ------------------------------
 ;WITH Dias AS (
     -- 0 = hoy, 1 = ayer, ...
     SELECT TOP (@Dias) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS Desfase
@@ -168,7 +196,7 @@ JOIN Ks k ON k.K <= n.NTickets;
 -- nada en el futuro
 DELETE FROM #Tickets WHERE Fecha > @Ahora;
 
--- 5) Cabeceras: MERGE con ON 1=0 para poder devolver el Id nuevo de cada ticket ----
+-- 6) Cabeceras: MERGE con ON 1=0 para poder devolver el Id nuevo de cada ticket ----
 CREATE TABLE #Mapa (TicketId BIGINT NOT NULL, VentaId INT NOT NULL);
 
 MERGE VentasCabecera AS destino
@@ -195,7 +223,7 @@ WHEN NOT MATCHED THEN
         @Marca)
 OUTPUT origen.TicketId, inserted.Id INTO #Mapa (TicketId, VentaId);
 
--- 6) Detalles: 1 a 4 productos por ticket, sesgados hacia los primeros del catalogo ---
+-- 7) Detalles: 1 a 4 productos por ticket, sesgados hacia los primeros del catalogo ---
 ;WITH Js AS (
     SELECT TOP (4) ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS J
     FROM sys.all_objects
@@ -220,7 +248,7 @@ JOIN #Mapa m ON m.TicketId = e.TicketId
 JOIN #Prod p ON p.Orden = e.PIdx
 GROUP BY m.VentaId, p.ProductoId, p.Precio, p.Costo;
 
--- 7) Total de cada cabecera = suma de sus detalles -------------------------------
+-- 8) Total de cada cabecera = suma de sus detalles -------------------------------
 UPDATE c
 SET Total = x.Tot
 FROM VentasCabecera c
@@ -242,7 +270,9 @@ SELECT
     (SELECT MAX(CAST(CreatedAt AS DATE)) FROM VentasCabecera WHERE UpdatedAt = @Marca)              AS HastaFecha,
     (SELECT COUNT(DISTINCT CAST(CreatedAt AS DATE)) FROM VentasCabecera WHERE UpdatedAt = @Marca)   AS DiasConDatos,
     (SELECT SUM(Total) FROM VentasCabecera WHERE UpdatedAt = @Marca AND Estado = N'CONFIRMADA')     AS IngresosConfirmadas,
-    (SELECT COUNT(*) FROM VentasCabecera WHERE UpdatedAt IS NULL OR UpdatedAt <> @Marca)            AS VentasReales;
+    (SELECT COUNT(*) FROM VentasCabecera WHERE UpdatedAt IS NULL OR UpdatedAt <> @Marca)            AS VentasReales,
+    (SELECT COUNT(*) FROM Usuarios u JOIN Roles r ON r.Id = u.RolId
+      WHERE u.DeletedAt IS NULL AND r.Nombre = N'Vendedor')                                         AS Vendedores;
 
 DROP TABLE #Mapa;
 DROP TABLE #Tickets;

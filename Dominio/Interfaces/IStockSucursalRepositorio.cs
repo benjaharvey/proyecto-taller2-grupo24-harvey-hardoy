@@ -1,3 +1,4 @@
+using Dominio.Consultas;
 using Dominio.Entidades;
 
 namespace Dominio.Interfaces
@@ -13,5 +14,8 @@ namespace Dominio.Interfaces
         StockSucursal Ajustar(int sucursalId, int productoId, int cantidadResultante);
 
         void Incrementar(int sucursalId, int productoId, int cantidad);
+
+        List<StockSinVentaItem> ObtenerConStockSinVentas(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId, int? categoriaId);
     }
 }

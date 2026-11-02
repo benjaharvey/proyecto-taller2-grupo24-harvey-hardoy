@@ -22,11 +22,19 @@
             <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
         </Style>
+
+        <!-- Celdas numéricas/fecha: alineadas a la derecha para poder comparar de un vistazo. -->
+        <Style x:Key="ReporteNumeroCellStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,20,0">
         <Grid Margin="0,0,10,24">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -316,8 +324,85 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 6: Mid Row: Top Products Ranking & Branch Distribution -->
-            <Grid Grid.Row="6" Margin="0,0,0,20">
+            <!-- Row 6: Productos con stock sin ventas -->
+            <Border Grid.Row="6" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <!-- El combo va a la derecha; el título ocupa el resto. -->
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                            <TextBlock Text="Categoría:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox ItemsSource="{Binding CategoriasFiltro}"
+                                      SelectedItem="{Binding CategoriaStockFiltro}"
+                                      DisplayMemberPath="Nombre"
+                                      Width="200" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock Text="🧊 Productos con Stock sin Ventas"
+                                   Style="{StaticResource SubheaderTitleStyle}"
+                                   FontSize="15" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Productos sin rotación" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                                <TextBlock Text="{Binding ProductosSinVenta}"
+                                           FontFamily="Noto Serif" FontSize="20" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="8,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Stock valorizado a precio de venta" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                                <TextBlock Text="{Binding ValorizadoSinVenta, StringFormat='${0:N2}'}"
+                                           FontFamily="Noto Serif" FontSize="20" FontWeight="Bold"
+                                           Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding StockSinVenta}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#EFECE6"
+                                  Background="White"
+                                  BorderThickness="0"
+                                  RowHeight="38"
+                                  MinHeight="80"
+                                  SelectionMode="Single"
+                                  ColumnHeaderStyle="{StaticResource ReporteColumnHeaderStyle}">
+                            <DataGrid.Columns>
+                                <!-- Todo con * para que las columnas se repartan el ancho: con Auto las
+                                     numéricas se apretaban y el producto se quedaba con el espacio. -->
+                                <DataGridTextColumn Header="Producto" Binding="{Binding NombreProducto}" Width="1.5*" />
+                                <DataGridTextColumn Header="Categoría" Binding="{Binding NombreCategoria}" Width="1*" />
+                                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="0.6*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="Valorizado" Binding="{Binding Valorizado, StringFormat='${0:N2}'}" Width="1.1*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="Última venta" Binding="{Binding UltimaVentaTexto}" Width="1*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="Días" Binding="{Binding DiasSinVender}" Width="0.6*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="En otras suc." Binding="{Binding VendidasOtrasSucursales}" Width="0.9*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Text="Todos los productos con stock vendieron en el período."
+                                   Style="{StaticResource BodyTextStyle}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Visibility="{Binding StockSinVentaSinDatos, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 7: Mid Row: Top Products Ranking & Branch Distribution -->
+            <Grid Grid.Row="7" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.4*" />
                     <ColumnDefinition Width="*" />
@@ -388,8 +473,8 @@
                 </Border>
             </Grid>
 
-            <!-- Row 7: Bottom Table: Consolidated Detail -->
-            <Border Grid.Row="7" Style="{StaticResource MaieCardStyle}" Padding="0">
+            <!-- Row 8: Bottom Table: Consolidated Detail -->
+            <Border Grid.Row="8" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />

@@ -129,8 +129,31 @@ public partial class ReportesViewModel : ObservableObject
         new Axis { MinLimit = 0, Name = "Recaudado" }
     };
 
+    // Reporte: productos con stock sin ventas
+    [ObservableProperty]
+    private ObservableCollection<StockSinVentaDTO> _stockSinVenta = new();
+
+    [ObservableProperty]
+    private CategoriaDTO? _categoriaStockFiltro;
+
+    [ObservableProperty]
+    private bool _stockSinVentaSinDatos;
+
+    [ObservableProperty]
+    private int _productosSinVenta = 0;
+
+    [ObservableProperty]
+    private decimal _valorizadoSinVenta = 0;
+
+    public ObservableCollection<CategoriaDTO> CategoriasFiltro { get; } = new();
+
+    // Casa Central y Fábrica son administrativa/producción, no puntos de venta.
+    // Cuando el modelo tenga un TipoSucursal, esta lista se reemplaza.
+    private static readonly string[] SucursalesSinVenta = { "Casa Central", "Fábrica" };
+
     // Se llena en el constructor con las sucursales reales de la base.
     public ObservableCollection<string> Sucursales { get; } = new();
+
 
     // ---- Ranking de productos más vendidos (datos reales) ----
     private const int CantidadEnRanking = 10;
@@ -139,9 +162,11 @@ public partial class ReportesViewModel : ObservableObject
     private readonly ObtenerResumenVentas _obtenerResumenVentas;
     private readonly ObtenerRecaudacionPorMetodoPago _obtenerRecaudacionPorMetodoPago;
     private readonly ObtenerRecaudacionPorCategoria _obtenerRecaudacionPorCategoria;
+    private readonly ObtenerStockSinVentas _obtenerStockSinVentas;
     private readonly List<SucursalDTO> _sucursalesDb = new();
 
-    // ---- Reporte: producción por producto (datos reales) ----
+
+    // Reporte: producción por producto (datos reales)
     private readonly ObtenerProduccionPorProducto _obtenerProduccionPorProducto;
 
     [ObservableProperty]
@@ -182,8 +207,10 @@ public partial class ReportesViewModel : ObservableObject
         ObtenerResumenVentas obtenerResumenVentas,
         ObtenerRecaudacionPorMetodoPago obtenerRecaudacionPorMetodoPago,
         ObtenerRecaudacionPorCategoria obtenerRecaudacionPorCategoria,
+        ObtenerStockSinVentas obtenerStockSinVentas,
         ListarProductos listarProductos,
-        ListarSucursales listarSucursales)
+        ListarSucursales listarSucursales,
+        ListarCategorias listarCategorias)
     {
         _obtenerProduccionPorProducto = obtenerProduccionPorProducto;
         _obtenerProductosMasVendidos = obtenerProductosMasVendidos;
@@ -191,11 +218,12 @@ public partial class ReportesViewModel : ObservableObject
         _obtenerResumenVentas = obtenerResumenVentas;
         _obtenerRecaudacionPorMetodoPago = obtenerRecaudacionPorMetodoPago;
         _obtenerRecaudacionPorCategoria = obtenerRecaudacionPorCategoria;
+        _obtenerStockSinVentas = obtenerStockSinVentas;
 
-        // Combo de la barra superior: "Todas" + el nombre de cada sucursal.
+        // Combo de la barra superior: "Todas" + el nombre de cada punto de venta.
         _sucursalesDb = listarSucursales.Ejecutar();
         Sucursales.Add(TodasLasSucursales);
-        foreach (var s in _sucursalesDb)
+        foreach (var s in _sucursalesDb.Where(s => !SucursalesSinVenta.Contains(s.Nombre)))
             Sucursales.Add(s.Nombre);
 
         ProductosFiltro.Add(new ProductoDTO { Id = 0, Nombre = "Todos los productos" });
@@ -203,8 +231,12 @@ public partial class ReportesViewModel : ObservableObject
             ProductosFiltro.Add(p);
 
         SucursalesFiltro.Add(new SucursalDTO { Id = 0, Nombre = "Todas las sucursales" });
-        foreach (var s in listarSucursales.Ejecutar())
+        foreach (var s in listarSucursales.Ejecutar().Where(s => !SucursalesSinVenta.Contains(s.Nombre)))
             SucursalesFiltro.Add(s);
+
+        CategoriasFiltro.Add(new CategoriaDTO { Id = 0, Nombre = "Todas las categorías" });
+        foreach (var c in listarCategorias.Ejecutar())
+            CategoriasFiltro.Add(c);
 
         ProduccionProductoFiltro = ProductosFiltro[0];
         ProduccionSucursalFiltro = SucursalesFiltro[0];
@@ -215,6 +247,10 @@ public partial class ReportesViewModel : ObservableObject
         CargarResumenVentas();
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
+
+        // El setter de la categoría dispara la carga inicial del reporte de stock
+        // (ver OnCategoriaStockFiltroChanged): va último para que todo esté listo.
+        CategoriaStockFiltro = CategoriasFiltro[0];
     }
     private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
@@ -242,6 +278,13 @@ public partial class ReportesViewModel : ObservableObject
         CargarResumenVentas();
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
+        CargarStockSinVentas();
+    }
+
+    // La categoría solo afecta al reporte de stock: no hay que recargar el resto.
+    partial void OnCategoriaStockFiltroChanged(CategoriaDTO? value)
+    {
+        CargarStockSinVentas();
     }
 
     private void CargarRankingProductos()
@@ -341,6 +384,7 @@ public partial class ReportesViewModel : ObservableObject
         CargarResumenVentas();
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
+        CargarStockSinVentas();
     }
 
     // Reporte por metodo de pago
@@ -445,6 +489,31 @@ public partial class ReportesViewModel : ObservableObject
         {
             new Axis { Labels = datos.Select(d => d.NombreCategoria).ToArray() }
         };
+    }
+
+    // Reporte de stock sin ventas
+    private void CargarStockSinVentas()
+    {
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
+
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+        int? categoriaId = CategoriaStockFiltro is { Id: > 0 } ? CategoriaStockFiltro.Id : null;
+
+        List<StockSinVentaDTO> datos;
+        try
+        {
+            datos = _obtenerStockSinVentas.Ejecutar(desde, hasta, sucursalId, categoriaId);
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        StockSinVenta = new ObservableCollection<StockSinVentaDTO>(datos);
+        ProductosSinVenta = datos.Count;
+        ValorizadoSinVenta = datos.Sum(d => d.Valorizado);
+        StockSinVentaSinDatos = datos.Count == 0;
     }
 
     [RelayCommand]

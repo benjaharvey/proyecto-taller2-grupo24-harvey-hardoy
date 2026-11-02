@@ -330,6 +330,11 @@ namespace Datos.Repositorios
                 .ToList();
         }
 
+
+        // ---------------------------------------------------------------
+        // Consultas para los reportes
+        // ---------------------------------------------------------------
+
         public List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMasVendidos(
             DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top)
         {
