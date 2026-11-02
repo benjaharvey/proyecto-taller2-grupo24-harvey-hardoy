@@ -11,6 +11,24 @@
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- Encabezado de las grillas de reportes: mismo look que la tabla consolidada. -->
+        <Style x:Key="ReporteColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFamily" Value="Noto Serif" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+        </Style>
+
+        <!-- Celdas numéricas/fecha: alineadas a la derecha para poder comparar de un vistazo. -->
+        <Style x:Key="ReporteNumeroCellStyle" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,20,0">
@@ -21,7 +39,10 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <!-- Row 0: Header Section -->
@@ -167,8 +188,221 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 4: Mid Row: Top Products Ranking & Branch Distribution -->
-            <Grid Grid.Row="4" Margin="0,0,0,20">
+            <!-- Row 4: Recaudación por método de pago (datos reales) -->
+            <Border Grid.Row="4" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="💳 Recaudación por Medio de Pago" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.1*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Doughnut: 3 porciones, el punto es la composición del total -->
+                        <Grid Grid.Column="0" Height="260" Margin="0,0,20,0">
+                            <lvc:PieChart Series="{Binding MetodoPagoSeries}" LegendPosition="Right" />
+                            <TextBlock Text="No hay ventas confirmadas en el período seleccionado."
+                                       Style="{StaticResource BodyTextStyle}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Visibility="{Binding MetodoPagoSinDatos, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
+
+                        <StackPanel Grid.Column="1">
+                            <DataGrid ItemsSource="{Binding MetodosPago}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#EFECE6"
+                                      Background="White"
+                                      BorderThickness="0"
+                                      RowHeight="38"
+                                      SelectionMode="Single"
+                                      ColumnHeaderStyle="{StaticResource ReporteColumnHeaderStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Método" Binding="{Binding Nombre}" Width="1.2*" />
+                                    <DataGridTextColumn Header="Recaudado" Binding="{Binding TotalRecaudado, StringFormat='${0:N2}'}" Width="*" />
+                                    <DataGridTextColumn Header="Tickets" Binding="{Binding CantidadVentas}" Width="Auto" />
+                                    <DataGridTextColumn Header="Ticket prom." Binding="{Binding TicketPromedio, StringFormat='${0:N2}'}" Width="Auto" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- efectivo vs. digital y total del período -->
+                            <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding TotalRecaudadoMetodoPago, StringFormat='Total del período: ${0:N2}'}"
+                                               FontWeight="SemiBold" FontSize="13"
+                                               Foreground="{StaticResource PrimaryBrush}" />
+
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Efectivo" FontSize="11" Foreground="{StaticResource TextBodyBrush}" />
+                                            <TextBlock Text="{Binding ParticipacionEfectivo, StringFormat='{}{0}%'}"
+                                                       FontSize="16" FontWeight="Bold"
+                                                       Foreground="{StaticResource PrimaryBrush}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Digital (tarjeta + transf.)" FontSize="11" Foreground="{StaticResource TextBodyBrush}" />
+                                            <TextBlock Text="{Binding ParticipacionDigital, StringFormat='{}{0}%'}"
+                                                       FontSize="16" FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 5: Recaudación por categoría (datos reales) -->
+            <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="🏷️ Recaudación por Categoría" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.1*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Barras: comparar longitudes es más preciso que comparar ángulos -->
+                        <Grid Grid.Column="0" Height="260" Margin="0,0,20,0">
+                            <lvc:CartesianChart Series="{Binding CategoriaSeries}"
+                                                XAxes="{Binding CategoriaXAxes}"
+                                                YAxes="{Binding CategoriaYAxes}" />
+                            <TextBlock Text="No hay ventas confirmadas en el período seleccionado."
+                                       Style="{StaticResource BodyTextStyle}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Visibility="{Binding CategoriaSinDatos, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
+
+                        <StackPanel Grid.Column="1">
+                            <DataGrid ItemsSource="{Binding Categorias}"
+                                      AutoGenerateColumns="False"
+                                      IsReadOnly="True"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#EFECE6"
+                                      Background="White"
+                                      BorderThickness="0"
+                                      RowHeight="38"
+                                      SelectionMode="Single"
+                                      ColumnHeaderStyle="{StaticResource ReporteColumnHeaderStyle}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Categoría" Binding="{Binding NombreCategoria}" Width="*" />
+                                    <DataGridTextColumn Header="Recaudado" Binding="{Binding TotalRecaudado, StringFormat='${0:N2}'}" Width="Auto" />
+                                    <DataGridTextColumn Header="%" Binding="{Binding Participacion, StringFormat='{}{0}%'}" Width="Auto" />
+                                    <DataGridTextColumn Header="Unidades" Binding="{Binding Unidades}" Width="Auto" />
+                                    <DataGridTextColumn Header="Precio prom." Binding="{Binding PrecioPromedio, StringFormat='${0:N2}'}" Width="Auto" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding TotalRecaudadoCategorias, StringFormat='Total del período: ${0:N2}'}"
+                                               FontWeight="SemiBold" FontSize="13"
+                                               Foreground="{StaticResource PrimaryBrush}" />
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <TextBlock Text="Categoría líder: " FontSize="12" Foreground="{StaticResource TextBodyBrush}" />
+                                        <TextBlock Text="{Binding CategoriaLider}" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding ParticipacionCategoriaLider, StringFormat='{}{0}% del total recaudado'}"
+                                               FontSize="11" Foreground="{StaticResource TextBodyBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 6: Productos con stock sin ventas -->
+            <Border Grid.Row="6" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <!-- El combo va a la derecha; el título ocupa el resto. -->
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                            <TextBlock Text="Categoría:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox ItemsSource="{Binding CategoriasFiltro}"
+                                      SelectedItem="{Binding CategoriaStockFiltro}"
+                                      DisplayMemberPath="Nombre"
+                                      Width="200" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock Text="🧊 Productos con Stock sin Ventas"
+                                   Style="{StaticResource SubheaderTitleStyle}"
+                                   FontSize="15" VerticalAlignment="Center"/>
+                    </DockPanel>
+
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+                            <StackPanel>
+                                <TextBlock Text="Productos sin rotación" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                                <TextBlock Text="{Binding ProductosSinVenta}"
+                                           FontFamily="Noto Serif" FontSize="20" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="8,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Stock valorizado a precio de venta" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
+                                <TextBlock Text="{Binding ValorizadoSinVenta, StringFormat='${0:N2}'}"
+                                           FontFamily="Noto Serif" FontSize="20" FontWeight="Bold"
+                                           Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding StockSinVenta}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#EFECE6"
+                                  Background="White"
+                                  BorderThickness="0"
+                                  RowHeight="38"
+                                  MinHeight="80"
+                                  SelectionMode="Single"
+                                  ColumnHeaderStyle="{StaticResource ReporteColumnHeaderStyle}">
+                            <DataGrid.Columns>
+                                <!-- Todo con * para que las columnas se repartan el ancho: con Auto las
+                                     numéricas se apretaban y el producto se quedaba con el espacio. -->
+                                <DataGridTextColumn Header="Producto" Binding="{Binding NombreProducto}" Width="1.5*" />
+                                <DataGridTextColumn Header="Categoría" Binding="{Binding NombreCategoria}" Width="1*" />
+                                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="0.6*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="Valorizado" Binding="{Binding Valorizado, StringFormat='${0:N2}'}" Width="1.1*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="Última venta" Binding="{Binding UltimaVentaTexto}" Width="1*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="Días" Binding="{Binding DiasSinVender}" Width="0.6*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                                <DataGridTextColumn Header="En otras suc." Binding="{Binding VendidasOtrasSucursales}" Width="0.9*" ElementStyle="{StaticResource ReporteNumeroCellStyle}" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Text="Todos los productos con stock vendieron en el período."
+                                   Style="{StaticResource BodyTextStyle}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Visibility="{Binding StockSinVentaSinDatos, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Row 7: Mid Row: Top Products Ranking & Branch Distribution -->
+            <Grid Grid.Row="7" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.4*" />
                     <ColumnDefinition Width="*" />
@@ -249,8 +483,8 @@
                 </Border>
             </Grid>
 
-            <!-- Row 5: Ventas por vendedor (torta) -->
-            <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Padding="20">
+            <!-- Row 8: Ventas por vendedor (torta) -->
+            <Border Grid.Row="8" Style="{StaticResource MaieCardStyle}" Padding="20" Margin="0,0,0,20">
                 <StackPanel>
                     <TextBlock Text="Ventas por vendedor"
                         Style="{StaticResource SubheaderTitleStyle}"

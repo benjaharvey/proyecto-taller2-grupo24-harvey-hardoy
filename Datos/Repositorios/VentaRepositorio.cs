@@ -330,6 +330,11 @@ namespace Datos.Repositorios
                 .ToList();
         }
 
+
+        // ---------------------------------------------------------------
+        // Consultas para los reportes
+        // ---------------------------------------------------------------
+
         public List<(string NombreProducto, int Unidades, decimal Recaudado)> ObtenerProductosMasVendidos(
             DateTime desde, DateTime hastaExclusivo, int? sucursalId, int top)
         {
@@ -495,6 +500,60 @@ namespace Datos.Repositorios
             var ganancia = renglones.Sum(d => d.Cantidad * (d.PrecioUnit - d.CostoUnit));
 
             return (facturado, ganancia, cantidadVentas, unidades);
+        }
+
+        public List<(MetodoPago Metodo, int CantidadVentas, decimal TotalRecaudado)> ObtenerRecaudacionPorMetodoPago(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var query = context.VentasCabecera
+                .Where(v => v.Estado == EstadoVenta.CONFIRMADA
+                         && v.CreatedAt >= desde
+                         && v.CreatedAt < hastaExclusivo);
+
+            if (sucursalId.HasValue)
+                query = query.Where(v => v.SucursalId == sucursalId.Value);
+
+            return query
+                .GroupBy(v => v.MetodoPago)
+                .Select(g => new
+                {
+                    Metodo = g.Key,
+                    Cantidad = g.Count(),
+                    Total = g.Sum(v => v.Total)
+                })
+                .AsEnumerable()
+                .Where(x => x.Metodo.HasValue)
+                .Select(x => (x.Metodo!.Value, x.Cantidad, x.Total))
+                .ToList();
+        }
+
+        public List<(string NombreCategoria, int Unidades, decimal TotalRecaudado)> ObtenerRecaudacionPorCategoria(
+            DateTime desde, DateTime hastaExclusivo, int? sucursalId)
+        {
+            using var context = _contextFactory.CreateDbContext();
+
+            var query = context.VentasDetalle
+                .Where(d => d.Venta!.Estado == EstadoVenta.CONFIRMADA
+                         && d.Venta.CreatedAt >= desde
+                         && d.Venta.CreatedAt < hastaExclusivo);
+
+            if (sucursalId.HasValue)
+                query = query.Where(d => d.Venta!.SucursalId == sucursalId.Value);
+
+            return query
+                .GroupBy(d => d.Producto!.Categoria!.Nombre)
+                .Select(g => new
+                {
+                    Nombre = g.Key,
+                    Unidades = g.Sum(d => d.Cantidad),
+                    Total = g.Sum(d => d.Cantidad * d.PrecioUnit)
+                })
+                .OrderByDescending(x => x.Total)
+                .AsEnumerable()
+                .Select(x => (x.Nombre, x.Unidades, x.Total))
+                .ToList();
         }
 
         // ---------------------------------------------------------------

@@ -31,7 +31,7 @@
                                   DisplayMemberPath="Nombre"
                                   SelectedValuePath="Id"
                                   SelectedValue="{Binding FiltroSucursalId}"
-                                  Padding="8,5"/>
+                                  Padding="8,5" Height="36"/>
                     </StackPanel>
 
                     <StackPanel Width="150" Margin="0,0,12,10">
@@ -47,7 +47,7 @@
                     <StackPanel Width="220" Margin="0,0,12,10">
                         <TextBlock Text="Cliente (nombre o DNI)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding FiltroClienteTexto, UpdateSourceTrigger=PropertyChanged}"
-                                 Padding="8,5" BorderBrush="{StaticResource SecondaryBrush}"/>
+                                 Padding="8,5" BorderBrush="{StaticResource SecondaryBrush}" Height="36"/>
                     </StackPanel>
 
                     <StackPanel Width="200" Margin="0,0,12,10">
@@ -56,14 +56,14 @@
                                   DisplayMemberPath="NombreCompleto"
                                   SelectedValuePath="Id"
                                   SelectedValue="{Binding FiltroUsuarioId}"
-                                  Padding="8,5"/>
+                                  Padding="8,5" Height="36"/>
                     </StackPanel>
 
                     <StackPanel Width="160" Margin="0,0,12,10">
                         <TextBlock Text="Método de pago" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <ComboBox ItemsSource="{Binding MetodosPago}"
                                   SelectedItem="{Binding FiltroMetodoPago}"
-                                  Padding="8,5"/>
+                                  Padding="8,5" Height="36"/>
                     </StackPanel>
                 </WrapPanel>
 

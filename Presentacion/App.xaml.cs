@@ -15,17 +15,13 @@ using QuestPDF.Infrastructure;
 
 namespace Presentacion;
 
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
 public partial class App : Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // WPF interpreta los bindings con cultura en-US por defecto. Forzamos la cultura
-        // del sistema para que los decimales se parseen y formateen con coma (es-AR).
+        // Forzamos que el sistema formatee y parsee los decimales con coma 
         FrameworkElement.LanguageProperty.OverrideMetadata(
             typeof(FrameworkElement),
             new FrameworkPropertyMetadata(
@@ -33,8 +29,7 @@ public partial class App : Application
 
         base.OnStartup(e);
 
-        // QuestPDF exige declarar la licencia antes de generar el primer documento.
-        // Community: gratuita para uso no comercial / facturación anual menor a 1M USD.
+        // Configuracion de la biblioteca para generar los comprobantes
         QuestPDF.Settings.License = LicenseType.Community;
 
         var services = new ServiceCollection();
@@ -105,6 +100,9 @@ public partial class App : Application
         services.AddTransient<ObtenerProductosMasVendidos>();
         services.AddTransient<ObtenerProductosMenosVendidos>();
         services.AddTransient<ObtenerVentasPorSucursal>();
+        services.AddTransient<ObtenerRecaudacionPorMetodoPago>();
+        services.AddTransient<ObtenerRecaudacionPorCategoria>();
+        services.AddTransient<ObtenerStockSinVentas>();
         services.AddTransient<ObtenerResumenVentas>();
         services.AddTransient<ObtenerVentasPorVendedor>();
 
