@@ -111,7 +111,9 @@ public partial class VentasViewModel : ObservableObject, ISeccionRecargable
     // Propiedades relacionadas al catalogo de productos
     [ObservableProperty] private string _busquedaCatalogo = string.Empty;
     [ObservableProperty] private string _categoriaFiltro = "Todas";
+    // Catalogo es la lista completa; CatalogoFiltrado es la que muestra la pantalla
     [ObservableProperty] private ObservableCollection<CatalogoVentaItem> _catalogo = new();
+    [ObservableProperty] private ObservableCollection<CatalogoVentaItem> _catalogoFiltrado = new();
 
     [ObservableProperty] private ObservableCollection<DetalleVentaItem> _carrito = new();
 
@@ -221,6 +223,31 @@ public partial class VentasViewModel : ObservableObject, ISeccionRecargable
         {
             Categorias.Add(categoria);
         }
+
+        // Al vaciar Categorias el combo puede dejar el filtro en null
+        if (string.IsNullOrEmpty(CategoriaFiltro) || !Categorias.Contains(CategoriaFiltro))
+            CategoriaFiltro = "Todas";
+
+        AplicarFiltroCatalogo();
+    }
+
+    partial void OnBusquedaCatalogoChanged(string value) => AplicarFiltroCatalogo();
+
+    partial void OnCategoriaFiltroChanged(string value) => AplicarFiltroCatalogo();
+
+    // Arma CatalogoFiltrado desde Catalogo combinando el texto buscado y la categoria elegida
+    private void AplicarFiltroCatalogo()
+    {
+        var texto = BusquedaCatalogo?.Trim() ?? string.Empty;
+        var todas = string.IsNullOrEmpty(CategoriaFiltro) || CategoriaFiltro == "Todas";
+
+        var filtrados = Catalogo.Where(c =>
+            (todas || c.Categoria == CategoriaFiltro) &&
+            (texto.Length == 0 ||
+             c.Nombre.Contains(texto, StringComparison.OrdinalIgnoreCase) ||
+             c.Codigo.Contains(texto, StringComparison.OrdinalIgnoreCase)));
+
+        CatalogoFiltrado = new ObservableCollection<CatalogoVentaItem>(filtrados);
     }
 
     // Refresca catálogo (stock/precios) y clientes al volver a la sección.

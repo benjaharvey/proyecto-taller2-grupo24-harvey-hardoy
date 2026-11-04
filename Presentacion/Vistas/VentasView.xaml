@@ -75,7 +75,7 @@
 
                 <!-- Product Items List (Single Line Rows) -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
-                    <ItemsControl ItemsSource="{Binding Catalogo}">
+                    <ItemsControl ItemsSource="{Binding CatalogoFiltrado}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,0,0,8" 
