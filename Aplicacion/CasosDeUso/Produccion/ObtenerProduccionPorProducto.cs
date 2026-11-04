@@ -13,7 +13,7 @@ namespace Aplicacion.CasosDeUso
         }
 
         public List<ProduccionPorProductoDTO> Ejecutar(
-            DateTime desde, DateTime hasta, int? productoId = null, int? sucursalId = null)
+            DateTime desde, DateTime hasta, int? productoId = null, int? sucursalId = null, int? categoriaId = null)
         {
             if (desde.Date > hasta.Date)
             {
@@ -24,7 +24,7 @@ namespace Aplicacion.CasosDeUso
             var hastaExclusivo = hasta.Date.AddDays(1);
 
             return _repositorio
-                .ObtenerTotalesPorProducto(desde.Date, hastaExclusivo, productoId, sucursalId)
+                .ObtenerTotalesPorProducto(desde.Date, hastaExclusivo, productoId, sucursalId, categoriaId)
                 .Select(t => new ProduccionPorProductoDTO
                 {
                     NombreProducto = t.NombreProducto,

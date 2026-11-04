@@ -29,9 +29,19 @@ namespace Presentacion
 
         private void btnIngresar_Click(object sender, RoutedEventArgs e)
         {
+            string email = txtEmail.Text.Trim();
+            string password = txtPassword.Password;
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Ingresá tu email y contraseña.", "Inicio de sesión",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
-                var usuario = _iniciarSesion.Ejecutar(txtEmail.Text, txtPassword.Password);
+                var usuario = _iniciarSesion.Ejecutar(email, password);
                 SesionActual.UsuarioLogueado = usuario;
 
                 var mainWindow = App.Services.GetRequiredService<MainWindow>();
@@ -41,6 +51,11 @@ namespace Presentacion
             catch (InvalidOperationException ex)
             {
                 MessageBox.Show(ex.Message, "Error de inicio de sesión", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo iniciar sesión.\n\nDetalle: {ex.Message}", "Error inesperado",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

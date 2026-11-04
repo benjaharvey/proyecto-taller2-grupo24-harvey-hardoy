@@ -32,6 +32,7 @@
 
                 <TextBlock Text="E-mail" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                 <TextBox x:Name="txtEmail"
+                         MaxLength="100"
                          Padding="8,6"
                          Margin="0,0,0,16"
                          BorderBrush="{StaticResource SecondaryBrush}"
@@ -39,6 +40,7 @@
 
                 <TextBlock Text="Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                 <PasswordBox x:Name="txtPassword"
+                             MaxLength="64"
                              Padding="8,6"
                              Margin="0,0,0,24"
                              BorderBrush="{StaticResource SecondaryBrush}"

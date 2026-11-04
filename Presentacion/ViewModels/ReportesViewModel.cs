@@ -30,7 +30,7 @@ public class SucursalVentaReporteItem
     public double PorcentajeParticipacion { get; set; }
 }
 
-public partial class ReportesViewModel : ObservableObject
+public partial class ReportesViewModel : ObservableObject, ISeccionRecargable
 {
     // Filtros de la barra superior: ya gobiernan el ranking de más vendidos.
     // Cada vez que cambian se vuelve a calcular (ver los métodos On...Changed más abajo).
@@ -170,12 +170,6 @@ public partial class ReportesViewModel : ObservableObject
     private readonly ObtenerProduccionPorProducto _obtenerProduccionPorProducto;
 
     [ObservableProperty]
-    private DateTime? _produccionDesde = DateTime.Today.AddDays(-30);
-
-    [ObservableProperty]
-    private DateTime? _produccionHasta = DateTime.Today;
-
-    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TituloRanking))]
     [NotifyPropertyChangedFor(nameof(TextoBotonRanking))]
     private bool _mostrarMenosVendidos = false;
@@ -186,13 +180,6 @@ public partial class ReportesViewModel : ObservableObject
     [ObservableProperty]
     private bool _vendedoresSinDatos;
 
-    // El primer elemento de cada lista es la opción "Todos" (Id = 0): equivale a no filtrar.
-    [ObservableProperty]
-    private ProductoDTO? _produccionProductoFiltro;
-
-    [ObservableProperty]
-    private SucursalDTO? _produccionSucursalFiltro;
-
     [ObservableProperty]
     private ISeries[] _produccionSeries = Array.Empty<ISeries>();
 
@@ -202,8 +189,8 @@ public partial class ReportesViewModel : ObservableObject
     [ObservableProperty]
     private bool _produccionSinDatos;
 
-    public ObservableCollection<ProductoDTO> ProductosFiltro { get; } = new();
-    public ObservableCollection<SucursalDTO> SucursalesFiltro { get; } = new();
+    [ObservableProperty]
+    private CategoriaDTO? _produccionCategoriaFiltro;
 
     // El eje Y arranca en 0 y avanza de a 1 (son unidades enteras).
     public Axis[] ProduccionYAxes { get; } =
@@ -221,7 +208,6 @@ public partial class ReportesViewModel : ObservableObject
         ObtenerRecaudacionPorMetodoPago obtenerRecaudacionPorMetodoPago,
         ObtenerRecaudacionPorCategoria obtenerRecaudacionPorCategoria,
         ObtenerStockSinVentas obtenerStockSinVentas,
-        ListarProductos listarProductos,
         ListarSucursales listarSucursales,
         ListarCategorias listarCategorias)
     {
@@ -242,22 +228,14 @@ public partial class ReportesViewModel : ObservableObject
         foreach (var s in _sucursalesDb.Where(s => !SucursalesSinVenta.Contains(s.Nombre)))
             Sucursales.Add(s.Nombre);
 
-        ProductosFiltro.Add(new ProductoDTO { Id = 0, Nombre = "Todos los productos" });
-        foreach (var p in listarProductos.Ejecutar())
-            ProductosFiltro.Add(p);
-
-        SucursalesFiltro.Add(new SucursalDTO { Id = 0, Nombre = "Todas las sucursales" });
-        foreach (var s in listarSucursales.Ejecutar().Where(s => !SucursalesSinVenta.Contains(s.Nombre)))
-            SucursalesFiltro.Add(s);
-
         CategoriasFiltro.Add(new CategoriaDTO { Id = 0, Nombre = "Todas las categorías" });
         foreach (var c in listarCategorias.Ejecutar())
             CategoriasFiltro.Add(c);
 
-        ProduccionProductoFiltro = ProductosFiltro[0];
-        ProduccionSucursalFiltro = SucursalesFiltro[0];
+        // Asignar la categoría dispara la carga inicial del reporte de producción
+        // (ver OnProduccionCategoriaFiltroChanged).
+        ProduccionCategoriaFiltro = CategoriasFiltro[0];
 
-        GenerarReporteProduccion();
         CargarRankingProductos();
         CargarVentasPorSucursal();
         CargarResumenVentas();
@@ -269,6 +247,15 @@ public partial class ReportesViewModel : ObservableObject
         CategoriaStockFiltro = CategoriasFiltro[0];
         CargarVentasPorVendedor();
     }
+
+    public void Recargar()
+    {
+        // Sin rango completo no hay nada que consultar y no conviene molestar al entrar a la sección.
+        if (FechaDesde == null || FechaHasta == null) return;
+
+        RefrescarReportes();
+    }
+
     private bool TryObtenerRango(out DateTime desde, out DateTime hasta)
     {
         if (FechaDesde == null || FechaHasta == null)
@@ -285,24 +272,59 @@ public partial class ReportesViewModel : ObservableObject
             desde = FechaDesde.Value;
             hasta = FechaHasta.Value;
 
+            if (desde.Date > hasta.Date)
+            {
+                MessageBox.Show("La fecha 'desde' no puede ser posterior a la fecha 'hasta'.", "Reportes",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                return false;
+            }
+
             return true;
         }
     }
     // El ranking y las tarjetas dependen de la sucursal elegida (ventas por sucursal compara todas).
     partial void OnSucursalFiltroChanged(string value)
     {
-        CargarRankingProductos();
-        CargarResumenVentas();
-        CargarRecaudacionPorMetodoPago();
-        CargarRecaudacionPorCategoria();
-        CargarStockSinVentas();
-        CargarVentasPorVendedor();
+        RefrescarReportes(incluirVentasPorSucursal: false);
+    }
+
+    // Las fechas se aplican solas al elegirlas: no hace falta un botón de "Aplicar".
+    partial void OnFechaDesdeChanged(DateTime? value)
+    {
+        AplicarFiltrosDeFecha();
+    }
+
+    partial void OnFechaHastaChanged(DateTime? value)
+    {
+        AplicarFiltrosDeFecha();
+    }
+
+    private void AplicarFiltrosDeFecha()
+    {
+        // Mientras el usuario completa el rango no se consulta.
+        if (FechaDesde is not DateTime desde || FechaHasta is not DateTime hasta) return;
+
+        if (desde.Date > hasta.Date)
+        {
+            MessageBox.Show("La fecha 'desde' no puede ser posterior a la fecha 'hasta'.", "Reportes",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        RefrescarReportes();
     }
 
     // La categoría solo afecta al reporte de stock: no hay que recargar el resto.
     partial void OnCategoriaStockFiltroChanged(CategoriaDTO? value)
     {
         CargarStockSinVentas();
+    }
+
+    // La categoría de producción solo afecta a ese reporte.
+    partial void OnProduccionCategoriaFiltroChanged(CategoriaDTO? value)
+    {
+        CargarProduccion();
     }
 
     private void CargarRankingProductos()
@@ -326,6 +348,11 @@ public partial class ReportesViewModel : ObservableObject
         catch (InvalidOperationException ex)
         {
             MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo generar el reporte.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
@@ -391,6 +418,11 @@ public partial class ReportesViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo generar el reporte.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
 
         TotalGanancia = resumen.Ganancia;
         TotalIngresosVentas = resumen.Facturado;
@@ -417,6 +449,11 @@ public partial class ReportesViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo generar el reporte.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
 
         VendedoresSinDatos = datos.Count == 0;
 
@@ -429,11 +466,15 @@ public partial class ReportesViewModel : ObservableObject
             .ToArray();
     }
 
-    [RelayCommand]
-    private void AplicarFiltros()
+    private void RefrescarReportes(bool incluirVentasPorSucursal = true)
     {
+        // Se valida una sola vez: si el rango no sirve, no se disparan siete mensajes iguales.
+        if (!TryObtenerRango(out _, out _)) return;
+
+        CargarProduccion();
         CargarRankingProductos();
-        CargarVentasPorSucursal();
+        if (incluirVentasPorSucursal)
+            CargarVentasPorSucursal();
         CargarResumenVentas();
         CargarRecaudacionPorMetodoPago();
         CargarRecaudacionPorCategoria();
@@ -464,6 +505,11 @@ public partial class ReportesViewModel : ObservableObject
         catch (InvalidOperationException ex)
         {
             MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo generar el reporte.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
@@ -518,6 +564,11 @@ public partial class ReportesViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo generar el reporte.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
 
         Categorias = new ObservableCollection<RecaudacionPorCategoriaDTO>(datos);
 
@@ -563,6 +614,11 @@ public partial class ReportesViewModel : ObservableObject
             MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo generar el reporte.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
 
         StockSinVenta = new ObservableCollection<StockSinVentaDTO>(datos);
         ProductosSinVenta = datos.Count;
@@ -570,30 +626,28 @@ public partial class ReportesViewModel : ObservableObject
         StockSinVentaSinDatos = datos.Count == 0;
     }
 
-    [RelayCommand]
-    private void GenerarReporteProduccion()
+    // Producción por producto: usa los filtros globales (fechas + sucursal) de la barra superior.
+    private void CargarProduccion()
     {
-        // Un DatePicker vacío entrega null: se valida antes de consultar.
-        if (ProduccionDesde == null || ProduccionHasta == null)
-        {
-            MessageBox.Show("Elegí la fecha desde y la fecha hasta.", "Reportes",
-                MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
+        if (!TryObtenerRango(out var desde, out var hasta)) return;
 
-        // Id = 0 (la opción "Todos") se traduce a null = sin filtro.
-        int? productoId = ProduccionProductoFiltro is { Id: > 0 } ? ProduccionProductoFiltro.Id : null;
-        int? sucursalId = ProduccionSucursalFiltro is { Id: > 0 } ? ProduccionSucursalFiltro.Id : null;
+        // "Todas las Sucursales" (o un nombre que no se encuentre) = sin filtro (null).
+        int? sucursalId = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalFiltro)?.Id;
+        int? categoriaId = ProduccionCategoriaFiltro is { Id: > 0 } ? ProduccionCategoriaFiltro.Id : null;
 
         List<ProduccionPorProductoDTO> datos;
         try
         {
-            datos = _obtenerProduccionPorProducto.Ejecutar(
-                ProduccionDesde.Value, ProduccionHasta.Value, productoId, sucursalId);
+            datos = _obtenerProduccionPorProducto.Ejecutar(desde, hasta, null, sucursalId, categoriaId);
         }
         catch (InvalidOperationException ex)
         {
             MessageBox.Show(ex.Message, "Reportes", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo generar el reporte.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
@@ -611,9 +665,15 @@ public partial class ReportesViewModel : ObservableObject
         };
 
         // Las etiquetas del eje X van en el mismo orden que los valores.
+        // Rotadas para que los nombres largos no se solapen entre sí.
         ProduccionXAxes = new Axis[]
         {
-            new Axis { Labels = datos.Select(d => d.NombreProducto).ToArray() }
+            new Axis
+            {
+                Labels = datos.Select(d => d.NombreProducto).ToArray(),
+                LabelsRotation = -45,
+                TextSize = 10
+            }
         };
     }
 

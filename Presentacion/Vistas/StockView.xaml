@@ -116,6 +116,7 @@
                 <!-- Search -->
                 <TextBox Grid.Column="0" 
                          Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="100"
                          Padding="12,8"
                          Margin="0,0,10,0"
                          BorderBrush="{StaticResource SecondaryBrush}"
@@ -441,7 +442,7 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Nueva Existencia (*)" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
-                            <TextBox Text="{Binding NuevoStockProducto}" Padding="6,4" Margin="0,4,0,0" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding NuevoStockProducto}" MaxLength="7" Padding="6,4" Margin="0,4,0,0" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                     </Grid>
 
@@ -493,7 +494,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,8,0">
                             <TextBlock Text="Cantidad a Ingresar (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding InsumosVM.CantidadIngresoInsumo, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding InsumosVM.CantidadIngresoInsumo, UpdateSourceTrigger=PropertyChanged}" MaxLength="9" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="0,0,0,4">
                             <TextBlock Text="{Binding InsumosVM.InsumoSeleccionadoIngreso.Unidad}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/>
@@ -534,7 +535,7 @@
                     <TextBlock Text="Dar de alta un nuevo ingrediente o insumo para cocina" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
 
                     <TextBlock Text="Nombre del Insumo (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding InsumosVM.FormNombre, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <TextBox Text="{Binding InsumosVM.FormNombre, UpdateSourceTrigger=PropertyChanged}" MaxLength="50" Padding="6,4" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                     <TextBlock Text="Unidad de Medida (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <ComboBox ItemsSource="{Binding InsumosVM.UnidadesSugeridas}" SelectedItem="{Binding InsumosVM.FormUnidad}" IsEditable="True" Padding="6,4" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
@@ -546,11 +547,11 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,6,0">
                             <TextBlock Text="Stock Inicial" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding InsumosVM.FormStock, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding InsumosVM.FormStock, UpdateSourceTrigger=PropertyChanged}" MaxLength="9" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Margin="6,0,0,0">
                             <TextBlock Text="Stock Mínimo (Alerta)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding InsumosVM.FormStockMinimo, UpdateSourceTrigger=PropertyChanged}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding InsumosVM.FormStockMinimo, UpdateSourceTrigger=PropertyChanged}" MaxLength="9" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                     </Grid>
 

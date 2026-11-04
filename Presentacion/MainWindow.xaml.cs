@@ -28,6 +28,7 @@ public partial class MainWindow : FluentWindow
                 if (e.PropertyName == nameof(MainViewModel.CurrentSection))
                 {
                     SincronizarRadioButtons(vm.CurrentSection);
+                    RecargarSeccion(vm.CurrentSection);
                 }
             };
             SincronizarRadioButtons(vm.CurrentSection);
@@ -139,6 +140,40 @@ public partial class MainWindow : FluentWindow
         if (usuario != null)
         {
             TxtInfoSesion.Text = $"{usuario.Nombre} {usuario.Apellido} ({usuario.NombreRol})";
+        }
+    }
+
+    private void RecargarSeccion(string section)
+    {
+        FrameworkElement? vista = section switch
+        {
+            "Productos" => VistaProductos,
+            "Ventas" => VistaVentas,
+            "Historial" => VistaHistorial,
+            "Stock" => VistaStock,
+            "Cocina" => VistaCocina,
+            "Reportes" => VistaReportes,
+            "Usuario" => VistaUsuario,
+            "Sucursales" => VistaSucursales,
+            "Clientes" => VistaClientes,
+            "Backup" => VistaBackup,
+            _ => null
+        };
+
+        if (vista?.DataContext is not ISeccionRecargable recargable) return;
+
+        try
+        {
+            recargable.Recargar();
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show(
+                this,
+                $"No se pudieron actualizar los datos de la sección.\n\nDetalle: {ex.Message}",
+                "Actualización",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Warning);
         }
     }
 

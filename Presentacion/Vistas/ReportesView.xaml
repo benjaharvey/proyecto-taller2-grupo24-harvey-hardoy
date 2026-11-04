@@ -51,33 +51,24 @@
                 <TextBlock Text="Métricas consolidadas de ventas por mostrador y producción en cocina" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <!-- Row 1: Filters Bar -->
+            <!-- Row 1: Filters Bar (se aplican solos al cambiar) -->
             <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,24" Padding="16,14">
-                <DockPanel>
-                    <!-- El botón va primero y pegado a la derecha; el resto de los filtros ocupa el espacio que queda. -->
-                    <Button Content="Aplicar"
-                            Command="{Binding AplicarFiltrosCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            DockPanel.Dock="Right"
-                            VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Filtrar por:" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="13"/>
+                    
+                    <TextBlock Text="Desde:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <DatePicker SelectedDate="{Binding FechaDesde}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-                        <TextBlock Text="Filtrar por:" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="13"/>
-                        
-                        <TextBlock Text="Desde:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <DatePicker SelectedDate="{Binding FechaDesde}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <TextBlock Text="Hasta:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <DatePicker SelectedDate="{Binding FechaHasta}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
-                        <TextBlock Text="Hasta:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <DatePicker SelectedDate="{Binding FechaHasta}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
-
-                        <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox ItemsSource="{Binding Sucursales}" 
-                                  SelectedItem="{Binding SucursalFiltro}"
-                                  Padding="10,6"
-                                  Width="230"
-                                  BorderBrush="{StaticResource SecondaryBrush}"/>
-                    </StackPanel>
-                </DockPanel>
+                    <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox ItemsSource="{Binding Sucursales}" 
+                              SelectedItem="{Binding SucursalFiltro}"
+                              Padding="10,6"
+                              Width="230"
+                              BorderBrush="{StaticResource SecondaryBrush}"/>
+                </StackPanel>
             </Border>
 
             <!-- Row 2: KPI Cards Row -->
@@ -146,37 +137,24 @@
                 </Border>
             </Grid>
 
-            <!-- Row 3: Producción por producto (datos reales, con filtros elegidos por el usuario) -->
+            <!-- Row 3: Producción por producto (usa los filtros globales de la barra superior) -->
             <Border Grid.Row="3" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
                 <StackPanel>
-                    <TextBlock Text="🧑‍🍳 Producción por Producto" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
+                    <DockPanel Margin="0,0,0,14">
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                            <TextBlock Text="Categoría:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <ComboBox ItemsSource="{Binding CategoriasFiltro}"
+                                      SelectedItem="{Binding ProduccionCategoriaFiltro}"
+                                      DisplayMemberPath="Nombre"
+                                      Width="200" VerticalAlignment="Center"/>
+                        </StackPanel>
 
-                    <WrapPanel Margin="0,0,0,14">
-                        <TextBlock Text="Desde:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <DatePicker SelectedDate="{Binding ProduccionDesde}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                        <TextBlock Text="🧑‍🍳 Producción por Producto"
+                                   Style="{StaticResource SubheaderTitleStyle}"
+                                   FontSize="15" VerticalAlignment="Center"/>
+                    </DockPanel>
 
-                        <TextBlock Text="Hasta:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <DatePicker SelectedDate="{Binding ProduccionHasta}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
-
-                        <TextBlock Text="Producto:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox ItemsSource="{Binding ProductosFiltro}"
-                                  SelectedItem="{Binding ProduccionProductoFiltro}"
-                                  DisplayMemberPath="Nombre"
-                                  Width="200" VerticalAlignment="Center" Margin="0,0,16,0"/>
-
-                        <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox ItemsSource="{Binding SucursalesFiltro}"
-                                  SelectedItem="{Binding ProduccionSucursalFiltro}"
-                                  DisplayMemberPath="Nombre"
-                                  Width="200" VerticalAlignment="Center" Margin="0,0,16,0"/>
-
-                        <Button Content="Generar"
-                                Command="{Binding GenerarReporteProduccionCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                VerticalAlignment="Center"/>
-                    </WrapPanel>
-
-                    <Grid Height="300">
+                    <Grid Height="320">
                         <lvc:CartesianChart Series="{Binding ProduccionSeries}"
                                             XAxes="{Binding ProduccionXAxes}"
                                             YAxes="{Binding ProduccionYAxes}"/>

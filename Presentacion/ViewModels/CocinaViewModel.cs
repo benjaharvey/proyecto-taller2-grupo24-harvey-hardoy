@@ -40,7 +40,7 @@ public class ProduccionHistoricaItem
     public string Cocinero { get; set; } = string.Empty;
 }
 
-public partial class CocinaViewModel : ObservableObject
+public partial class CocinaViewModel : ObservableObject, ISeccionRecargable
 {
     private readonly ListarProductos _listarProductos;
     private readonly ListarInsumos _listarInsumos;
@@ -161,6 +161,14 @@ public partial class CocinaViewModel : ObservableObject
         }
     }
 
+    public void Recargar()
+    {
+        CargarSucursales();
+        CargarProductos();
+        CargarHistorial();
+        ActualizarFactibilidad();
+    }
+
     partial void OnProductoSeleccionadoChanged(ProductoElaborableItem? value)
     {
         ActualizarFactibilidad();
@@ -221,6 +229,13 @@ public partial class CocinaViewModel : ObservableObject
     {
         if (!EsProduccionFactible || ProductoSeleccionado == null || CantidadAElaborar <= 0) return;
 
+        if (CantidadAElaborar > 1000000)
+        {
+            MessageBox.Show("La cantidad a producir no puede superar 1.000.000 unidades.", "Producción",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
         var sucursal = _sucursalesDb.FirstOrDefault(s => s.Nombre == SucursalDestino);
         if (sucursal == null)
         {
@@ -250,6 +265,12 @@ public partial class CocinaViewModel : ObservableObject
         {
             MessageBox.Show(ex.Message, "Producción",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo registrar la producción.\n\nDetalle: {ex.Message}", "Error inesperado",
+                MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 

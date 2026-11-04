@@ -42,6 +42,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0" 
                                  Text="{Binding BusquedaCatalogo, UpdateSourceTrigger=PropertyChanged}"
+                                 MaxLength="100"
                                  Padding="12,8"
                                  Margin="0,0,10,0"
                                  BorderBrush="{StaticResource SecondaryBrush}"
@@ -222,6 +223,8 @@
                                                         Style="{StaticResource SecondaryButtonStyle}"
                                                         Width="24" Height="24" Padding="0"/>
                                                 <TextBox Text="{Binding Cantidad, UpdateSourceTrigger=LostFocus}"
+                                                         MaxLength="6"
+                                                        
                                                          Width="44" Margin="6,0"
                                                          TextAlignment="Center" VerticalContentAlignment="Center"
                                                          FontWeight="Bold" FontSize="12"
@@ -348,6 +351,7 @@
                     <!-- Search Input -->
                     <TextBox Grid.Row="1" 
                              Text="{Binding BusquedaClienteTexto, UpdateSourceTrigger=PropertyChanged}"
+                             MaxLength="100"
                              Padding="12,8"
                              Margin="0,0,0,12"
                              BorderBrush="{StaticResource SecondaryBrush}"
@@ -436,16 +440,16 @@
                     <TextBlock Text="Ingrese los datos para asociarlo a la venta actual" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
 
                     <TextBlock Text="Nombre (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding NuevoClienteNombre}" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <TextBox Text="{Binding NuevoClienteNombre}" MaxLength="50" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                     <TextBlock Text="Apellido (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding NuevoClienteApellido}" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <TextBox Text="{Binding NuevoClienteApellido}" MaxLength="50" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                     <TextBlock Text="Documento (DNI) (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding NuevoClienteDni}" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <TextBox Text="{Binding NuevoClienteDni}" MaxLength="8" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                     <TextBlock Text="Correo Electrónico (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                    <TextBox Text="{Binding NuevoClienteEmail}" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
+                    <TextBox Text="{Binding NuevoClienteEmail}" MaxLength="100" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                     <!-- Fecha de nacimiento: ValidadorCliente la exige al dar de alta -->
                     <TextBlock Text="Fecha de Nacimiento (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>

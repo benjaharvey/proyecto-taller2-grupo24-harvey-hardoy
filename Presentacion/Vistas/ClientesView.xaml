@@ -44,19 +44,19 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Margin="0,0,6,0">
                                 <TextBlock Text="Nombre *" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding FormNombre, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                                <TextBox Text="{Binding FormNombre, UpdateSourceTrigger=PropertyChanged}" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Margin="6,0,0,0">
                                 <TextBlock Text="Apellido *" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding FormApellido, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                                <TextBox Text="{Binding FormApellido, UpdateSourceTrigger=PropertyChanged}" MaxLength="50" Padding="8,6" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
                             </StackPanel>
                         </Grid>
 
                         <TextBlock Text="DNI / Documento *" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                        <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                         <TextBlock Text="Correo Electrónico" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
+                        <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
                         <TextBlock Text="Fecha de Nacimiento" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <DatePicker SelectedDate="{Binding FormFechaNacimiento, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,20" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
@@ -117,6 +117,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <TextBox Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}" 
+                                 MaxLength="100"
                                  Padding="8,6" 
                                  FontSize="13" 
                                  BorderBrush="{StaticResource SecondaryBrush}"

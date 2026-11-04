@@ -65,7 +65,7 @@ namespace Aplicacion.CasosDeUso
 
             if(valor.Length < 2 || valor.Length > 40)
             {
-                throw new InvalidOperationException("El nombre del producto debe tener entre 5 y 40 caracteres");
+                throw new InvalidOperationException("El nombre del producto debe tener entre 2 y 40 caracteres");
             }
         }
 

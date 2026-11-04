@@ -12,7 +12,7 @@ using Microsoft.Win32;
 
 namespace Presentacion.ViewModels;
 
-public partial class BackupViewModel : ObservableObject
+public partial class BackupViewModel : ObservableObject, ISeccionRecargable
 {
     private readonly GenerarBackup _generarBackup;
     private readonly ListarBackups _listarBackups;
@@ -137,6 +137,11 @@ public partial class BackupViewModel : ObservableObject
             MessageBoxImage.Warning);
     }
 
+    public void Recargar()
+    {
+        _ = CargarBackupsAsync();
+    }
+
     private async Task CargarBackupsAsync()
     {
         try
@@ -165,7 +170,6 @@ public partial class BackupViewModel : ObservableObject
 
     private bool PuedeGenerarBackup()
         => !EstaGenerando && !string.IsNullOrWhiteSpace(RutaDestinoLocal);
-
     private bool PuedeRestaurar()
         => !EstaGenerando && BackupSeleccionado is not null;
 

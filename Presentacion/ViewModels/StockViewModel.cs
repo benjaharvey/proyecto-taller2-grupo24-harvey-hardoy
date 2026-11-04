@@ -22,7 +22,7 @@ public class StockProductoItem
     public string NivelAlerta => StockActual == 0 ? "Crítico (Sin Stock)" : StockActual <= StockMinimo ? "Bajo Stock" : "Óptimo";
 }
 
-public partial class StockViewModel : ObservableObject
+public partial class StockViewModel : ObservableObject, ISeccionRecargable
 {
     private const string TodasConsolidado = "Todas (Consolidado)";
 
@@ -97,14 +97,17 @@ public partial class StockViewModel : ObservableObject
 
     private void CargarSucursales()
     {
+        string seleccionPrevia = FiltroSucursal;
         _sucursalesDb = _listarSucursales.Ejecutar();
+
+        Sucursales.Clear();
 
         if (EsAdmin)
         {
             Sucursales.Add(TodasConsolidado);
             foreach (var s in _sucursalesDb)
                 Sucursales.Add(s.Nombre);
-            FiltroSucursal = TodasConsolidado;
+            FiltroSucursal = Sucursales.Contains(seleccionPrevia) ? seleccionPrevia : TodasConsolidado;
         }
         else
         {
@@ -117,6 +120,13 @@ public partial class StockViewModel : ObservableObject
                 FiltroSucursal = sucursalSesion.Nombre;
             }
         }
+    }
+
+    public void Recargar()
+    {
+        CargarSucursales();
+        InsumosVM.Recargar();
+        CargarStock();
     }
 
     private void CargarStock()
@@ -200,24 +210,48 @@ public partial class StockViewModel : ObservableObject
     [RelayCommand]
     private void GuardarAjusteProducto()
     {
-        if (ProductoAjustando != null && NuevoStockProducto >= 0)
+        if (ProductoAjustando == null)
         {
-            try
-            {
-                // registra fecha/hora y la resultante nunca es negativa.
-                _ajustarStock.Ejecutar(
-                    ProductoAjustando.SucursalId,
-                    ProductoAjustando.ProductoId,
-                    NuevoStockProducto);
+            MostrarDialogoAjusteProducto = false;
+            return;
+        }
 
-                ProductoAjustando.StockActual = NuevoStockProducto;
-                CargarStock();
-            }
-            catch (InvalidOperationException ex)
-            {
-                MessageBox.Show(ex.Message, "Ajuste de stock",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+        if (NuevoStockProducto < 0)
+        {
+            MessageBox.Show("La cantidad no puede ser negativa.", "Ajuste de stock",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (NuevoStockProducto > 1000000)
+        {
+            MessageBox.Show("La cantidad no puede superar 1.000.000 unidades.", "Ajuste de stock",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        try
+        {
+            // registra fecha/hora y la resultante nunca es negativa.
+            _ajustarStock.Ejecutar(
+                ProductoAjustando.SucursalId,
+                ProductoAjustando.ProductoId,
+                NuevoStockProducto);
+
+            ProductoAjustando.StockActual = NuevoStockProducto;
+            CargarStock();
+        }
+        catch (InvalidOperationException ex)
+        {
+            MessageBox.Show(ex.Message, "Ajuste de stock",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo ajustar el stock.\n\nDetalle: {ex.Message}", "Error inesperado",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
         }
 
         MostrarDialogoAjusteProducto = false;

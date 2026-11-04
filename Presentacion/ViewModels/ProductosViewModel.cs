@@ -28,7 +28,7 @@ public class InsumoOpcionItem
     public string UnidadMedida { get; set; } = "gr";
 }
 
-public partial class ProductosViewModel : ObservableObject
+public partial class ProductosViewModel : ObservableObject, ISeccionRecargable
 {
 
     private readonly CrearProducto _crearProducto;
@@ -138,6 +138,11 @@ public partial class ProductosViewModel : ObservableObject
         AplicarFiltro();
     }
 
+    public void Recargar()
+    {
+        CargarGrilla();
+    }
+
     partial void OnBusquedaTextoChanged(string value)
     {
         AplicarFiltro();
@@ -233,24 +238,40 @@ public partial class ProductosViewModel : ObservableObject
     [RelayCommand]
     private void ConfirmarAgregarInsumo()
     {
-        if (InsumoSeleccionadoParaReceta != null && NuevoInsumoCantidad > 0)
+        if (InsumoSeleccionadoParaReceta == null)
         {
-            var existe = FormRecetaInsumos.FirstOrDefault(i => i.InsumoId == InsumoSeleccionadoParaReceta.Id);
-            if (existe != null)
-            {
-                existe.Cantidad += NuevoInsumoCantidad;
-            }
-            else
-            {
-                FormRecetaInsumos.Add(new InsumoRecetaItem
-                {
-                    InsumoId = InsumoSeleccionadoParaReceta.Id,
-                    InsumoNombre = InsumoSeleccionadoParaReceta.Nombre,
-                    Cantidad = NuevoInsumoCantidad,
-                    UnidadMedida = InsumoSeleccionadoParaReceta.UnidadMedida
-                });
-            }
+            MessageBox.Show("Seleccioná un insumo para agregar a la receta.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
         }
+
+        if (NuevoInsumoCantidad <= 0)
+        {
+            MessageBox.Show("La cantidad del insumo debe ser mayor a cero.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (NuevoInsumoCantidad > 1000000)
+        {
+            MessageBox.Show("La cantidad del insumo no puede superar 1.000.000.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var existe = FormRecetaInsumos.FirstOrDefault(i => i.InsumoId == InsumoSeleccionadoParaReceta.Id);
+        if (existe != null)
+        {
+            existe.Cantidad += NuevoInsumoCantidad;
+        }
+        else
+        {
+            FormRecetaInsumos.Add(new InsumoRecetaItem
+            {
+                InsumoId = InsumoSeleccionadoParaReceta.Id,
+                InsumoNombre = InsumoSeleccionadoParaReceta.Nombre,
+                Cantidad = NuevoInsumoCantidad,
+                UnidadMedida = InsumoSeleccionadoParaReceta.UnidadMedida
+            });
+        }
+
         MostrarModalAgregarInsumo = false;
     }
 
@@ -272,18 +293,7 @@ public partial class ProductosViewModel : ObservableObject
     [RelayCommand]
     private void GuardarFormulario()
     {
-        var dto = new ProductoCrearDTO
-        {
-            Nombre = FormNombre?.Trim() ?? string.Empty,
-            Precio = FormPrecio,
-            Costo = FormCosto,
-            CategoriaId = FormCategoria?.Id ?? 0,
-            Receta = FormRecetaInsumos.Select(i => new ProductoInsumoDTO
-            {
-                InsumoId = i.InsumoId,
-                CantidadNecesaria = i.Cantidad
-            }).ToList()
-        };
+        if (!ValidarFormulario(out var dto)) return;
 
         try
         {
@@ -309,6 +319,76 @@ public partial class ProductosViewModel : ObservableObject
         {
             MessageBox.Show($"Ocurrió un error inesperado: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private bool ValidarFormulario(out ProductoCrearDTO dto)
+    {
+        dto = new ProductoCrearDTO();
+
+        string nombre = FormNombre?.Trim() ?? string.Empty;
+
+        if (nombre.Length == 0)
+        {
+            MessageBox.Show("Ingresá el nombre del producto.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (nombre.Length < 2 || nombre.Length > 40)
+        {
+            MessageBox.Show("El nombre del producto debe tener entre 2 y 40 caracteres.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormPrecio <= 0)
+        {
+            MessageBox.Show("El precio debe ser mayor a cero.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormPrecio > 100000000)
+        {
+            MessageBox.Show("El precio ingresado no es válido.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormCosto < 0)
+        {
+            MessageBox.Show("El costo de producción no puede ser negativo.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormCosto > 100000000)
+        {
+            MessageBox.Show("El costo ingresado no es válido.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormCategoria == null)
+        {
+            MessageBox.Show("Seleccioná una categoría.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormRecetaInsumos.Any(i => i.Cantidad <= 0))
+        {
+            MessageBox.Show("La cantidad de cada insumo de la receta debe ser mayor a cero.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        dto = new ProductoCrearDTO
+        {
+            Nombre = nombre,
+            Precio = FormPrecio,
+            Costo = FormCosto,
+            CategoriaId = FormCategoria.Id,
+            Receta = FormRecetaInsumos.Select(i => new ProductoInsumoDTO
+            {
+                InsumoId = i.InsumoId,
+                CantidadNecesaria = i.Cantidad
+            }).ToList()
+        };
+
+        return true;
     }
 
     [RelayCommand]

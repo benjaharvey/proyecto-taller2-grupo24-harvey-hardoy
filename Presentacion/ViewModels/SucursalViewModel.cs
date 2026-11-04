@@ -10,7 +10,7 @@ using Aplicacion.DTOs;
 
 namespace Presentacion.ViewModels;
 
-public partial class SucursalViewModel : ObservableObject
+public partial class SucursalViewModel : ObservableObject, ISeccionRecargable
 {
     private readonly CrearSucursal _crearSucursal;
     private readonly ActualizarSucursal _actualizarSucursal;
@@ -71,6 +71,11 @@ public partial class SucursalViewModel : ObservableObject
         AplicarFiltro();
     }
 
+    public void Recargar()
+    {
+        CargarGrilla();
+    }
+
     partial void OnBusquedaTextoChanged(string value)
     {
         AplicarFiltro();
@@ -117,13 +122,7 @@ public partial class SucursalViewModel : ObservableObject
     [RelayCommand]
     private void Guardar()
     {
-        var dto = new SucursalDTO
-        {
-            Id = EsEdicion && SelectedSucursal != null ? SelectedSucursal.Id : 0,
-            Nombre = FormNombre,
-            Ubicacion = FormUbicacion,
-            Estado = FormEstado
-        };
+        if (!ValidarFormulario(out var dto)) return;
 
         try
         {
@@ -151,10 +150,56 @@ public partial class SucursalViewModel : ObservableObject
         }
     }
 
+    private bool ValidarFormulario(out SucursalDTO dto)
+    {
+        dto = new SucursalDTO();
+
+        string nombre = FormNombre.Trim();
+        string ubicacion = FormUbicacion.Trim();
+
+        if (nombre.Length == 0)
+        {
+            MessageBox.Show("Ingresá el nombre de la sucursal.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (nombre.Length < 3 || nombre.Length > 30)
+        {
+            MessageBox.Show("El nombre de la sucursal debe tener entre 3 y 30 caracteres.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (ubicacion.Length == 0)
+        {
+            MessageBox.Show("Ingresá la ubicación de la sucursal.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (ubicacion.Length < 10 || ubicacion.Length > 150)
+        {
+            MessageBox.Show("La ubicación de la sucursal debe tener entre 10 y 150 caracteres.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        dto = new SucursalDTO
+        {
+            Id = EsEdicion && SelectedSucursal != null ? SelectedSucursal.Id : 0,
+            Nombre = nombre,
+            Ubicacion = ubicacion,
+            Estado = FormEstado
+        };
+
+        return true;
+    }
+
     [RelayCommand]
     private void CambiarEstado()
     {
-        if (SelectedSucursal == null) return;
+        if (SelectedSucursal == null)
+        {
+            MessageBox.Show("Seleccioná una sucursal de la lista.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
 
         var sucursal = SelectedSucursal;
         bool esActiva = sucursal.Estado == "ACTIVA";

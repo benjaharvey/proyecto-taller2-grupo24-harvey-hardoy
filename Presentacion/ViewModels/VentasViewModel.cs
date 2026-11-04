@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Mail;
 using System.Windows;
 using Aplicacion.CasosDeUso;
 using Aplicacion.DTOs;
@@ -57,7 +58,7 @@ public class ClienteRegistradoItem
 }
 
 // ViewModel del Punto de Venta: catalogo, carrito, cliente, cobro y comprobante.
-public partial class VentasViewModel : ObservableObject
+public partial class VentasViewModel : ObservableObject, ISeccionRecargable
 {
     // Los casos de uso que llamamos en el VM
     private readonly AbrirVenta _abrirVenta;
@@ -220,6 +221,15 @@ public partial class VentasViewModel : ObservableObject
         {
             Categorias.Add(categoria);
         }
+    }
+
+    // Refresca catálogo (stock/precios) y clientes al volver a la sección.
+    public void Recargar()
+    {
+        if (!SesionActual.EsVendedor) return;
+
+        CargarCatalogo();
+        CargarClientes();
     }
 
     // Se recarga desde la base para tener el DetalleId y el total que calculo el repositorio
@@ -470,7 +480,17 @@ public partial class VentasViewModel : ObservableObject
     private void AbrirSeleccionarClienteModal()
     {
         BusquedaClienteTexto = string.Empty;
-        CargarClientes();
+
+        try
+        {
+            CargarClientes();
+        }
+        catch (Exception ex)
+        {
+            Error(ex);
+            return;
+        }
+
         MostrarDialogoSeleccionarCliente = true;
     }
 
@@ -505,12 +525,44 @@ public partial class VentasViewModel : ObservableObject
     [RelayCommand]
     private void GuardarNuevoCliente()
     {
+        string nombre = NuevoClienteNombre.Trim();
+        string apellido = NuevoClienteApellido.Trim();
+        string dni = NuevoClienteDni.Trim();
+        string email = NuevoClienteEmail.Trim();
+
+        if (string.IsNullOrEmpty(nombre) || string.IsNullOrEmpty(apellido))
+        {
+            Aviso("Ingresá el nombre y el apellido del cliente.");
+            return;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(dni, @"^\d{7,8}$"))
+        {
+            Aviso("El DNI debe tener 7 u 8 dígitos, sin puntos ni espacios.");
+            return;
+        }
+
+        if (!MailAddress.TryCreate(email, out var direccion)
+            || direccion.Address != email
+            || !direccion.Host.Contains('.')
+            || direccion.Host.EndsWith('.'))
+        {
+            Aviso("El email no tiene un formato válido (ej: nombre@dominio.com).");
+            return;
+        }
+
+        if (NuevoClienteFechaNacimiento.Date > DateTime.Today)
+        {
+            Aviso("La fecha de nacimiento no puede ser futura.");
+            return;
+        }
+
         var dto = new ClienteDTO
         {
-            Nombre = NuevoClienteNombre,
-            Apellido = NuevoClienteApellido,
-            Dni = NuevoClienteDni,
-            Email = NuevoClienteEmail,
+            Nombre = nombre,
+            Apellido = apellido,
+            Dni = dni,
+            Email = email,
             FechaNacimiento = NuevoClienteFechaNacimiento,
             UsuarioId = _usuarioId
         };
@@ -518,6 +570,7 @@ public partial class VentasViewModel : ObservableObject
         try
         {
             _crearCliente.Ejecutar(dto);
+            CargarClientes();
         }
         catch (InvalidOperationException ex)
         {
@@ -529,8 +582,6 @@ public partial class VentasViewModel : ObservableObject
             Error(ex);
             return;
         }
-
-        CargarClientes();
 
         var creado = ClientesRegistrados.FirstOrDefault(c => c.Dni == dto.Dni);
         if (creado != null)

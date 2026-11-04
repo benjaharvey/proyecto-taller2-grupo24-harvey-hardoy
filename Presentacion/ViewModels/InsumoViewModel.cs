@@ -10,7 +10,7 @@ using Aplicacion.DTOs;
 
 namespace Presentacion.ViewModels;
 
-public partial class InsumoViewModel : ObservableObject
+public partial class InsumoViewModel : ObservableObject, ISeccionRecargable
 {
     private readonly CrearInsumo _crearInsumo;
     private readonly ActualizarInsumo _actualizarInsumo;
@@ -92,6 +92,11 @@ public partial class InsumoViewModel : ObservableObject
         AplicarFiltro();
     }
 
+    public void Recargar()
+    {
+        CargarGrilla();
+    }
+
     partial void OnBusquedaTextoChanged(string value)
     {
         AplicarFiltro();
@@ -151,14 +156,7 @@ public partial class InsumoViewModel : ObservableObject
     [RelayCommand]
     private void GuardarNuevoInsumo()
     {
-        var dto = new InsumoDTO
-        {
-            Id = 0,
-            Nombre = FormNombre,
-            Unidad = FormUnidad,
-            Stock = FormStock,
-            StockMinimo = FormStockMinimo
-        };
+        if (!ValidarFormulario(out var dto)) return;
 
         try
         {
@@ -207,12 +205,28 @@ public partial class InsumoViewModel : ObservableObject
             return;
         }
 
+        if (CantidadIngresoInsumo > 1000000)
+        {
+            MessageBox.Show("La cantidad a ingresar no puede superar 1.000.000.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
         try
         {
             var insumo = InsumoSeleccionadoIngreso;
-            insumo.Stock += CantidadIngresoInsumo;
-            _actualizarInsumo.Ejecutar(insumo);
-            MessageBox.Show($"Se incrementó el stock de \"{insumo.Nombre}\" a {insumo.Stock:N3} {insumo.Unidad}.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // Se arma una copia: si la persistencia falla, la grilla no queda con stock inflado.
+            var dto = new InsumoDTO
+            {
+                Id = insumo.Id,
+                Nombre = insumo.Nombre,
+                Unidad = insumo.Unidad,
+                Stock = insumo.Stock + CantidadIngresoInsumo,
+                StockMinimo = insumo.StockMinimo
+            };
+
+            _actualizarInsumo.Ejecutar(dto);
+            MessageBox.Show($"Se incrementó el stock de \"{insumo.Nombre}\" a {dto.Stock:N3} {insumo.Unidad}.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
             MostrarDialogoIngresoInsumo = false;
             CargarGrilla();
         }
@@ -229,14 +243,7 @@ public partial class InsumoViewModel : ObservableObject
     [RelayCommand]
     private void Guardar()
     {
-        var dto = new InsumoDTO
-        {
-            Id = EsEdicion && SelectedInsumo != null ? SelectedInsumo.Id : 0,
-            Nombre = FormNombre,
-            Unidad = FormUnidad,
-            Stock = FormStock,
-            StockMinimo = FormStockMinimo
-        };
+        if (!ValidarFormulario(out var dto)) return;
 
         try
         {
@@ -262,6 +269,73 @@ public partial class InsumoViewModel : ObservableObject
         {
             MessageBox.Show($"Ocurrió un error inesperado: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private bool ValidarFormulario(out InsumoDTO dto)
+    {
+        dto = new InsumoDTO();
+
+        string nombre = FormNombre.Trim();
+        string unidad = FormUnidad.Trim();
+
+        if (nombre.Length == 0)
+        {
+            MessageBox.Show("Ingresá el nombre del insumo.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (nombre.Length < 2 || nombre.Length > 50)
+        {
+            MessageBox.Show("El nombre del insumo debe tener entre 2 y 50 caracteres.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (unidad.Length == 0)
+        {
+            MessageBox.Show("Ingresá la unidad de medida del insumo.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (unidad.Length > 20)
+        {
+            MessageBox.Show("La unidad de medida debe tener entre 1 y 20 caracteres.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormStock < 0)
+        {
+            MessageBox.Show("El stock no puede ser negativo.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormStock > 1000000)
+        {
+            MessageBox.Show("El stock no puede superar 1.000.000.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormStockMinimo < 0)
+        {
+            MessageBox.Show("El stock mínimo no puede ser negativo.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (FormStockMinimo > 1000000)
+        {
+            MessageBox.Show("El stock mínimo no puede superar 1.000.000.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        dto = new InsumoDTO
+        {
+            Id = EsEdicion && SelectedInsumo != null ? SelectedInsumo.Id : 0,
+            Nombre = nombre,
+            Unidad = unidad,
+            Stock = FormStock,
+            StockMinimo = FormStockMinimo
+        };
+
+        return true;
     }
 
     [RelayCommand]

@@ -29,6 +29,23 @@ public partial class App : Application
 
         base.OnStartup(e);
 
+        // Red de seguridad: cualquier excepcion no controlada se informa sin cerrar la aplicacion
+        DispatcherUnhandledException += (_, args) =>
+        {
+            MessageBox.Show(
+                "Ocurrió un error inesperado, pero la aplicación sigue funcionando.\n\n" +
+                $"Detalle: {args.Exception.Message}",
+                "Error inesperado",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            args.Handled = true;
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            args.SetObserved();
+        };
+
         // Configuracion de la biblioteca para generar los comprobantes
         QuestPDF.Settings.License = LicenseType.Community;
 

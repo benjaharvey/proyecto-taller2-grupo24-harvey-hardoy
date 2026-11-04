@@ -48,6 +48,8 @@
                     <!-- Quantity to produce -->
                     <TextBlock Text="Cantidad a Producir (unidades) (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding CantidadAElaborar, UpdateSourceTrigger=PropertyChanged}" 
+                             MaxLength="7"
+                            
                              Padding="8,6" 
                              Margin="0,0,0,12" 
                              BorderBrush="{StaticResource SecondaryBrush}"

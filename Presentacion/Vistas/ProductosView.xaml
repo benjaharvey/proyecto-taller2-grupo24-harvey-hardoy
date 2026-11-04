@@ -33,6 +33,7 @@
                 <!-- Search Input -->
                 <TextBox Grid.Column="0" 
                          Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}"
+                         MaxLength="100"
                          Padding="12,8"
                          Margin="0,0,12,0"
                          VerticalContentAlignment="Center"
@@ -239,15 +240,15 @@
 
                         <!-- Name -->
                         <TextBlock Text="Nombre del Producto" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormNombre}" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBox Text="{Binding FormNombre}" MaxLength="40" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                         <!-- Price -->
                         <TextBlock Text="Precio Unitario ($)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormPrecio}" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBox Text="{Binding FormPrecio}" MaxLength="12" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                         <!-- Cost -->
                         <TextBlock Text="Costo de Producción por Unidad ($)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                        <TextBox Text="{Binding FormCosto}" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
+                        <TextBox Text="{Binding FormCosto}" MaxLength="12" Padding="6,4" Margin="0,0,0,16" BorderBrush="{StaticResource SecondaryBrush}"/>
 
                         <Separator Margin="0,0,0,12" Background="#E2DCD5"/>
 
@@ -344,7 +345,7 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,10,0">
                             <TextBlock Text="Cantidad requerida (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding NuevoInsumoCantidad}" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
+                            <TextBox Text="{Binding NuevoInsumoCantidad}" MaxLength="9" Padding="6,4" BorderBrush="{StaticResource SecondaryBrush}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="0,0,0,4">
                             <TextBlock Text="{Binding InsumoSeleccionadoParaReceta.UnidadMedida}" FontWeight="Bold" FontSize="14" Foreground="{StaticResource PrimaryBrush}"/>

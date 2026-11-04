@@ -14,7 +14,7 @@ using CasoCancelarVenta = Aplicacion.CasosDeUso.CancelarVenta;
 namespace Presentacion.ViewModels;
 
 // ViewModel del historial: filtros sobre SQL, detalle de la venta y cancelacion (solo admin).
-public partial class HistorialVentasViewModel : ObservableObject
+public partial class HistorialVentasViewModel : ObservableObject, ISeccionRecargable
 {
     private readonly ListarVentas _listarVentas;
     private readonly CasoCancelarVenta _cancelarVenta;
@@ -98,9 +98,23 @@ public partial class HistorialVentasViewModel : ObservableObject
         catch (Exception ex) { Error(ex); }
     }
 
+    public void Recargar()
+    {
+        if (!SesionActual.EsAdmin) return;
+
+        CargarCombos();
+        Buscar();
+    }
+
     [RelayCommand]
     private void Buscar()
     {
+        if (FiltroDesde is DateTime desde && FiltroHasta is DateTime hasta && desde.Date > hasta.Date)
+        {
+            Aviso("La fecha 'desde' no puede ser posterior a la fecha 'hasta'.");
+            return;
+        }
+
         var filtro = new VentaFiltro
         {
             SucursalId = FiltroSucursalId,
@@ -153,7 +167,17 @@ public partial class HistorialVentasViewModel : ObservableObject
     [RelayCommand]
     private void CancelarVenta()
     {
-        if (VentaSeleccionada == null || !PuedeCancelarSeleccionada) return;
+        if (VentaSeleccionada == null)
+        {
+            Aviso("Seleccioná una venta del historial para cancelarla.");
+            return;
+        }
+
+        if (!PuedeCancelarSeleccionada)
+        {
+            Aviso("Solo se pueden cancelar ventas confirmadas.");
+            return;
+        }
 
         var confirmacion = MessageBox.Show(
             $"¿Cancelar la venta {VentaSeleccionada.NumeroComprobante}?\n" +

@@ -175,6 +175,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBox Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}"
                                      Grid.Column="0"
+                                     MaxLength="100"
                                      Padding="10,6"
                                      BorderBrush="{StaticResource SecondaryBrush}"
                                      FontSize="13"

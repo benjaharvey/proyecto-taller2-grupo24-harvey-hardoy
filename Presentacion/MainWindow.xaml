@@ -450,34 +450,34 @@
             <!-- Main Content Area -->
             <Grid Grid.Column="1" Margin="24">
                 <!-- Productos View -->
-                <vistas:ProductosView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Productos, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:ProductosView x:Name="VistaProductos" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Productos, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
                 
                 <!-- Ventas View -->
-                <vistas:VentasView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Ventas, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:VentasView x:Name="VistaVentas" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Ventas, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Historial de Ventas View (solo Admin) -->
-                <vistas:HistorialVentasView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Historial, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:HistorialVentasView x:Name="VistaHistorial" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Historial, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Stock View -->
-                <vistas:StockView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Stock, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:StockView x:Name="VistaStock" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Stock, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Cocina View -->
-                <vistas:CocinaView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Cocina, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:CocinaView x:Name="VistaCocina" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Cocina, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Reportes View -->
-                <vistas:ReportesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Reportes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:ReportesView x:Name="VistaReportes" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Reportes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Usuario View -->
-                <vistas:UsuarioView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Usuario, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:UsuarioView x:Name="VistaUsuario" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Usuario, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Sucursales View -->
-                <vistas:SucursalesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Sucursales, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:SucursalesView x:Name="VistaSucursales" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Sucursales, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Clientes View -->
-                <vistas:ClientesView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Clientes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:ClientesView x:Name="VistaClientes" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Clientes, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
 
                 <!-- Backup View -->
-                <vistas:BackupView Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Backup, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
+                <vistas:BackupView x:Name="VistaBackup" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Backup, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
             </Grid>
         </Grid>
     </Grid>

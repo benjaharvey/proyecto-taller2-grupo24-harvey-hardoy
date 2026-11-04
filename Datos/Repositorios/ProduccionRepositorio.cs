@@ -88,7 +88,7 @@ namespace Datos.Repositorios
         }
 
         public List<(string NombreProducto, int Total)> ObtenerTotalesPorProducto(
-            DateTime desde, DateTime hastaExclusivo, int? productoId, int? sucursalId)
+            DateTime desde, DateTime hastaExclusivo, int? productoId, int? sucursalId, int? categoriaId)
         {
             using var context = _contextFactory.CreateDbContext();
 
@@ -101,6 +101,9 @@ namespace Datos.Repositorios
 
             if (sucursalId.HasValue)
                 query = query.Where(p => p.SucursalId == sucursalId.Value);
+
+            if (categoriaId.HasValue)
+                query = query.Where(p => p.Producto!.CategoriaId == categoriaId.Value);
 
             // El GROUP BY y el SUM se ejecutan en SQL Server; acá solo vuelve una fila por producto.
             return query

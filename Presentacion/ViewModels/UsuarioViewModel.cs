@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Mail;
+using System.Text.RegularExpressions;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -12,8 +14,11 @@ namespace Presentacion.ViewModels;
 
 public record SucursalOpcion(int Id, string Nombre);
 
-public partial class UsuarioViewModel : ObservableObject
+public partial class UsuarioViewModel : ObservableObject, ISeccionRecargable
 {
+    private static readonly Regex RegexNombre = new(@"^\p{L}+([ '\-]\p{L}+)*$", RegexOptions.Compiled);
+    private static readonly Regex RegexDni = new(@"^\d{7,8}$", RegexOptions.Compiled);
+
     private readonly CrearUsuario _crearUsuario;
     private readonly ActualizarUsuario _actualizarUsuario;
     private readonly EliminarUsuario _eliminarUsuario;
@@ -127,6 +132,12 @@ public partial class UsuarioViewModel : ObservableObject
         AplicarFiltro();
     }
 
+    public void Recargar()
+    {
+        CargarCombos();
+        CargarGrilla();
+    }
+
     partial void OnBusquedaTextoChanged(string value)
     {
         AplicarFiltro();
@@ -213,6 +224,12 @@ public partial class UsuarioViewModel : ObservableObject
     [RelayCommand]
     private void Guardar()
     {
+        if (EsEdicion)
+        {
+            Actualizar();
+            return;
+        }
+
         if (!ValidarFormulario(esEdicion: false, out var dto)) return;
 
         try
@@ -225,6 +242,10 @@ public partial class UsuarioViewModel : ObservableObject
         catch (InvalidOperationException ex)
         {
             MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo registrar el usuario.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -249,6 +270,10 @@ public partial class UsuarioViewModel : ObservableObject
         catch (InvalidOperationException ex)
         {
             MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"No se pudo actualizar el usuario.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -288,6 +313,10 @@ public partial class UsuarioViewModel : ObservableObject
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo dar de baja el usuario.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         else
         {
@@ -307,6 +336,10 @@ public partial class UsuarioViewModel : ObservableObject
             catch (InvalidOperationException ex)
             {
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo reactivar el usuario.\n\nDetalle: {ex.Message}", "Error inesperado", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -342,9 +375,37 @@ public partial class UsuarioViewModel : ObservableObject
             return false;
         }
 
+        if (!RegexDni.IsMatch(FormDni.Trim()))
+        {
+            MessageBox.Show("El DNI debe tener 7 u 8 dígitos, sin puntos ni espacios.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(FormEmail))
         {
             MessageBox.Show("Ingresá el email.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        string email = FormEmail.Trim();
+        if (!MailAddress.TryCreate(email, out var direccionEmail)
+            || direccionEmail.Address != email
+            || !direccionEmail.Host.Contains('.')
+            || direccionEmail.Host.EndsWith('.'))
+        {
+            MessageBox.Show("El email no tiene un formato válido (ej: nombre@dominio.com).", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (!RegexNombre.IsMatch(FormNombre.Trim()))
+        {
+            MessageBox.Show("El nombre solo puede contener letras, espacios, guiones y apóstrofes.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (!RegexNombre.IsMatch(FormApellido.Trim()))
+        {
+            MessageBox.Show("El apellido solo puede contener letras, espacios, guiones y apóstrofes.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
 
@@ -352,6 +413,27 @@ public partial class UsuarioViewModel : ObservableObject
         {
             MessageBox.Show("Ingresá una contraseña.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
+        }
+
+        if (!string.IsNullOrEmpty(FormPassword))
+        {
+            if (FormPassword.Length < 8 || FormPassword.Length > 64)
+            {
+                MessageBox.Show("La contraseña debe tener entre 8 y 64 caracteres.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (FormPassword.Any(char.IsWhiteSpace))
+            {
+                MessageBox.Show("La contraseña no puede contener espacios.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!FormPassword.Any(char.IsLetter) || !FormPassword.Any(char.IsDigit))
+            {
+                MessageBox.Show("La contraseña debe contener al menos una letra y un número.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
         }
 
         if (FormPassword != FormConfirmarPassword)
@@ -363,6 +445,33 @@ public partial class UsuarioViewModel : ObservableObject
         if (FormFechaNacimiento is not DateTime fechaNacimiento)
         {
             MessageBox.Show("Seleccioná una fecha de nacimiento.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (fechaNacimiento.Date > DateTime.Today)
+        {
+            MessageBox.Show("La fecha de nacimiento no puede ser futura.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        int edad = DateTime.Today.Year - fechaNacimiento.Year;
+        if (fechaNacimiento.Date > DateTime.Today.AddYears(-edad)) edad--;
+
+        if (edad < 18)
+        {
+            MessageBox.Show("El usuario debe tener al menos 18 años.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (edad > 100)
+        {
+            MessageBox.Show("La fecha de nacimiento no es válida.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(FormDireccion))
+        {
+            MessageBox.Show("Ingresá la dirección.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
             return false;
         }
 
