@@ -77,6 +77,7 @@ namespace Datos.Repositorios
             using var context = _contextFactory.CreateDbContext();
             var ahora = DateTime.Now;
 
+            // Trae la venta con su detalle
             var venta = CargarPendiente(context, ventaId);
 
             // El precio y el costo se congelan en la primera carga del producto.
@@ -99,6 +100,7 @@ namespace Datos.Repositorios
                 item.Cantidad += cantidad;
             }
 
+            // Total de la venta = suma de cantidad * precio unitario
             venta.Total = CalcularTotal(venta);
             venta.UpdatedAt = ahora;
 
@@ -198,11 +200,14 @@ namespace Datos.Repositorios
                 .OrderBy(d => d.ProductoId)
                 .Select(d => new { d.ProductoId, NombreProducto = d.Producto!.Nombre, d.Cantidad })
                 .ToList();
-
+            
+            // Frena la confirmación si algún producto de la venta fue dado de baja después
+            // de agregarlo al carrito.
             ValidarProductosActivos(context, detalles.Select(d => d.ProductoId).ToList());
 
             foreach (var detalle in detalles)
             {
+                // Ejecuta el procedimineto almacenado que hace el UPDATE condicional del stock
                 var descontadas = DescontarStock(context, sucursalId, detalle.ProductoId, detalle.Cantidad, ahora);
 
                 if (descontadas == 0)
@@ -248,6 +253,7 @@ namespace Datos.Repositorios
                 .ToList();
 
             foreach (var detalle in detalles)
+                // Devuelve al stock las unidades de una venta confirmada que se cancela.
                 ReponerStock(context, sucursalId, detalle.ProductoId, detalle.Cantidad, ahora);
 
             transaccion.Commit();
@@ -560,6 +566,7 @@ namespace Datos.Repositorios
         // Helpers privados
         // ---------------------------------------------------------------
 
+        // Trae la venta con su detalle
         private static VentaCabecera CargarPendiente(AppDbContext context, int ventaId)
         {
             var venta = context.VentasCabecera
@@ -573,6 +580,8 @@ namespace Datos.Repositorios
             return venta;
         }
 
+        // Resuelve a qué cabecera pertenece un detalle cuando el caso de uso solo
+        // conoce el DetalleId.
         private static int ObtenerVentaIdDelDetalle(AppDbContext context, int detalleId)
         {
             return context.VentasDetalle
@@ -583,6 +592,8 @@ namespace Datos.Repositorios
                 ?? throw new InvalidOperationException("El ítem no existe.");
         }
 
+        // Total de la venta = suma de cantidad * precio unitario de cada renglón,
+        // redondeado a 2 decimales
         private static decimal CalcularTotal(VentaCabecera venta)
         {
             return Math.Round(
@@ -591,6 +602,8 @@ namespace Datos.Repositorios
                 MidpointRounding.AwayFromZero);
         }
 
+        // Frena la confirmación si algún producto de la venta fue dado de baja después
+        // de agregarlo al carrito.
         private static void ValidarProductosActivos(AppDbContext context, List<int> productoIds)
         {
             if (productoIds.Count == 0)
@@ -607,6 +620,8 @@ namespace Datos.Repositorios
                     $"La venta incluye productos dados de baja: {string.Join(", ", dadosDeBaja)}.");
         }
 
+        // Ejecuta el procedimineto almacenado que hace el UPDATE condicional del stock. Devuelve las filas
+        // afectadas: 0 significa que no había unidades suficientes en esa sucursal.
         private static int DescontarStock(
             AppDbContext context, int sucursalId, int productoId, int cantidad, DateTime ahora)
         {
@@ -626,6 +641,8 @@ namespace Datos.Repositorios
             return Convert.ToInt32(filasAfectadas.Value);
         }
 
+        // Devuelve al stock las unidades de una venta confirmada que se cancela.
+        // Va por procedimiento almacenado y, a diferencia del descuento, reponer nunca puede fallar por cantidad.
         private static void ReponerStock(
             AppDbContext context, int sucursalId, int productoId, int cantidad, DateTime ahora)
         {
