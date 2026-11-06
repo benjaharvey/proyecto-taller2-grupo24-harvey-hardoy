@@ -25,12 +25,15 @@ public class StockProductoItem
 public partial class StockViewModel : ObservableObject, ISeccionRecargable
 {
     private const string TodasConsolidado = "Todas (Consolidado)";
+    private const string TodasCategorias = "Todas";
 
     private readonly ListarSucursales _listarSucursales;
+    private readonly ListarCategorias _listarCategorias;
     private readonly ConsultarStockPorSucursal _consultarStock;
     private readonly AjustarStockProducto _ajustarStock;
 
     private List<SucursalDTO> _sucursalesDb = new();
+    private List<CategoriaDTO> _categoriasDb = new();
 
     [ObservableProperty]
     private string _tabActivo = "Productos"; // "Productos" o "Insumos"
@@ -39,7 +42,7 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
     private string _filtroSucursal = TodasConsolidado;
 
     [ObservableProperty]
-    private string _filtroCategoria = "Todas";
+    private string _filtroCategoria = TodasCategorias;
 
     [ObservableProperty]
     private string _busquedaTexto = string.Empty;
@@ -69,21 +72,20 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
 
     public ObservableCollection<string> Sucursales { get; } = new();
 
-    public ObservableCollection<string> Categorias { get; } = new()
-    {
-        "Todas", "Alfajores", "Conitos", "Tabletas", "Tortas"
-    };
+    public ObservableCollection<string> Categorias { get; } = new();
 
     public InsumoViewModel InsumosVM { get; }
 
     public StockViewModel(
         InsumoViewModel insumosVM,
         ListarSucursales listarSucursales,
+        ListarCategorias listarCategorias,
         ConsultarStockPorSucursal consultarStock,
         AjustarStockProducto ajustarStock)
     {
         InsumosVM = insumosVM;
         _listarSucursales = listarSucursales;
+        _listarCategorias = listarCategorias;
         _consultarStock = consultarStock;
         _ajustarStock = ajustarStock;
 
@@ -92,7 +94,21 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
             TabActivo = "Insumos";
 
         CargarSucursales();
+        CargarCategorias();
         CargarStock();
+    }
+
+    private void CargarCategorias()
+    {
+        string seleccionPrevia = FiltroCategoria;
+        _categoriasDb = _listarCategorias.Ejecutar();
+
+        Categorias.Clear();
+        Categorias.Add(TodasCategorias);
+        foreach (var c in _categoriasDb)
+            Categorias.Add(c.Nombre);
+
+        FiltroCategoria = Categorias.Contains(seleccionPrevia) ? seleccionPrevia : TodasCategorias;
     }
 
     private void CargarSucursales()
@@ -125,6 +141,7 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
     public void Recargar()
     {
         CargarSucursales();
+        CargarCategorias();
         InsumosVM.Recargar();
         CargarStock();
     }
@@ -146,7 +163,11 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
                 sucursalId = sucursal.Id;
         }
 
-        var consulta = _consultarStock.Ejecutar(sucursalId);
+        int? categoriaId = null;
+        if (FiltroCategoria != TodasCategorias)
+            categoriaId = _categoriasDb.FirstOrDefault(c => c.Nombre == FiltroCategoria)?.Id;
+
+        var consulta = _consultarStock.Ejecutar(sucursalId, categoriaId);
 
         // Sin sucursal concreta (admin, "Todas"): el consolidado es la vista principal.
         var filas = sucursalId.HasValue ? consulta.Detalle : consulta.Consolidado;
@@ -188,6 +209,13 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
     partial void OnFiltroSucursalChanged(string value)
     {
         if (Sucursales.Count > 0)
+            CargarStock();
+    }
+
+    partial void OnFiltroCategoriaChanged(string value)
+    {
+        // value es null mientras se hace Categorias.Clear() (el ComboBox limpia la selección).
+        if (value != null && Categorias.Count > 0)
             CargarStock();
     }
 

@@ -33,7 +33,7 @@
                 <TextBlock Text="Existencias por sucursal e inventario global de insumos para elaboración" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <!-- Tab Switcher -->
+            <!-- NAV 1 | PESTAÑAS: 2 RadioButton → CambiarTabCommand("Productos"/"Insumos") → StockViewModel.CambiarTab → TabActivo. Visibility = permiso por rol (PuedeVerProductosTab / PuedeVerInsumosTab) -->
             <Border Grid.Column="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="8" Padding="4">
                 <StackPanel Orientation="Horizontal">
                     <RadioButton Content="📦 Productos por Sucursal"
@@ -104,7 +104,7 @@
             </Border>
         </Grid>
 
-        <!-- Filters Section -->
+        <!-- NAV 2 | BARRA DE FILTROS: buscador, combos y botones de insumos. Cada filtro termina en CargarStock() -->
         <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,16" Padding="12">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -113,7 +113,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Search -->
+                <!-- NAV 2a | BUSCADOR: BusquedaTexto → OnBusquedaTextoChanged → CargarStock() y además copia el texto a InsumosVM.BusquedaTexto -->
                 <TextBox Grid.Column="0" 
                          Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}"
                          MaxLength="100"
@@ -124,7 +124,7 @@
                     <TextBox.Resources>
                         <VisualBrush x:Key="HintBrush" TileMode="None" Opacity="0.6" Stretch="None" AlignmentX="Left">
                             <VisualBrush.Visual>
-                                <TextBlock Text="🔍  Buscar por nombre o código..." Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="18,0,0,0"/>
+                                <TextBlock Text="🔍  Buscar por nombre" Foreground="{StaticResource TextBodyBrush}" FontSize="12" Margin="18,0,0,0"/>
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </TextBox.Resources>
@@ -139,7 +139,7 @@
                     </TextBox.Style>
                 </TextBox>
 
-                <!-- Product Filters (visible only in Productos tab) -->
+                <!-- NAV 2b | FILTROS DE PRODUCTOS (sucursal + categoría): visibles solo si TabActivo == "Productos" -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -152,7 +152,7 @@
                         </Style>
                     </StackPanel.Style>
 
-                    <!-- Branch Filter: solo administrador (RF-12: el vendedor no elige sucursal, ve la suya) -->
+                    <!-- NAV 2b-1 | COMBO SUCURSAL: Sucursales / FiltroSucursal → OnFiltroSucursalChanged → CargarStock(). Solo admin (EsAdmin). Opciones: CargarSucursales(). RF-12: el vendedor no elige sucursal, ve la suya -->
                     <ComboBox Width="180"
                               ItemsSource="{Binding Sucursales}"
                               SelectedItem="{Binding FiltroSucursal}"
@@ -161,7 +161,7 @@
                               BorderBrush="{StaticResource SecondaryBrush}"
                               Visibility="{Binding EsAdmin, Converter={StaticResource BoolToVis}}"/>
 
-                    <!-- Category Filter -->
+                    <!-- NAV 2b-2 | COMBO CATEGORÍA: Categorias / FiltroCategoria → OnFiltroCategoriaChanged → CargarStock(). Opciones: CargarCategorias(). Lo ven todos los roles -->
                     <ComboBox Width="160"
                               ItemsSource="{Binding Categorias}" 
                               SelectedItem="{Binding FiltroCategoria}"
@@ -170,7 +170,7 @@
                               BorderBrush="{StaticResource SecondaryBrush}"/>
                 </StackPanel>
 
-                <!-- Insumo Action Buttons (visible in Insumos tab) -->
+                <!-- NAV 2c | BOTONES DE INSUMOS (solo si TabActivo == "Insumos"): Nuevo Insumo → modal NAV 7 / Ingreso de Stock → modal NAV 6. Ambos comandos viven en InsumoViewModel (InsumosVM) -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -197,7 +197,7 @@
             </Grid>
         </Border>
 
-        <!-- TAB 1: PRODUCTOS POR SUCURSAL TABLE -->
+        <!-- NAV 3 | GRILLA DE PRODUCTOS (visible si TabActivo == "Productos"): ItemsSource = StockProductos, lista de StockProductoItem que arma AplicarStock() -->
         <Border Grid.Row="2" Padding="0">
             <Border.Style>
                 <Style TargetType="Border" BasedOn="{StaticResource MaieCardStyle}">
@@ -240,7 +240,7 @@
                     <DataGridTextColumn Header="Stock Actual" Binding="{Binding StockActual, StringFormat='{}{0} un.'}" Width="110" />
                     <DataGridTextColumn Header="Mínimo" Binding="{Binding StockMinimo, StringFormat='{}{0} un.'}" Width="90" />
 
-                    <!-- Alert / Status -->
+                    <!-- NAV 3a | COLUMNA NIVEL DE STOCK: texto y color según StockProductoItem.NivelAlerta (Bajo Stock / Crítico (Sin Stock)); el mínimo es fijo en 15 -->
                     <DataGridTemplateColumn Header="Nivel de Stock" Width="140">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -278,7 +278,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <!-- Actions (RF-13 Ajuste manual de stock, solo administrador) -->
+                    <!-- NAV 3b | BOTÓN AJUSTAR (RF-13, solo admin): AbrirAjusteProductoCommand(fila) → modal NAV 5. La columna se oculta en StockView.xaml.cs (AplicarPermisosPorRol) si no es admin -->
                     <DataGridTemplateColumn x:Name="ColumnaAjustes" Header="Acciones" Width="120">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -296,7 +296,7 @@
             </DataGrid>
         </Border>
 
-        <!-- TAB 2: INSUMOS GLOBALES COCINA TABLE -->
+        <!-- NAV 4 | GRILLA DE INSUMOS (visible si TabActivo == "Insumos"): ItemsSource = InsumosVM.InsumosFiltrados (InsumoDTO). SelectedItem → InsumosVM.SelectedInsumo → OnSelectedInsumoChanged -->
         <Border Grid.Row="2" Padding="0">
             <Border.Style>
                 <Style TargetType="Border" BasedOn="{StaticResource MaieCardStyle}">
@@ -339,7 +339,7 @@
                     <DataGridTextColumn Header="Unidad" Binding="{Binding Unidad}" Width="80" />
                     <DataGridTextColumn Header="Stock Mínimo" Binding="{Binding StockMinimo, StringFormat='{}{0:N3}'}" Width="110" />
 
-                    <!-- Status -->
+                    <!-- NAV 4a | COLUMNA ESTADO DE INSUMO: color según InsumoDTO.NivelAlerta (Bajo Stock / Sin Stock / Inactivo) -->
                     <DataGridTemplateColumn Header="Estado" Width="130">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -383,7 +383,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <!-- Actions -->
+                    <!-- NAV 4b | BOTONES DE FILA: Sumar → AbrirIngresoInsumoCommand(fila) → modal NAV 6 / Estado → CambiarEstadoCommand(fila) (dar de baja o reactivar, con MessageBox). Usan DataContext.InsumosVM porque dentro de la fila el DataContext es el insumo -->
                     <DataGridTemplateColumn Header="Acciones" Width="160">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -412,7 +412,7 @@
             </DataGrid>
         </Border>
 
-        <!-- MODAL: Ajuste de Stock de Producto (RF-13) -->
+        <!-- NAV 5 | MODAL AJUSTE DE STOCK (RF-13): se abre con MostrarDialogoAjusteProducto. Confirmar → GuardarAjusteProductoCommand → AjustarStockProducto → StockSucursalRepositorio.Ajustar / Cancelar → CerrarAjusteProductoCommand -->
         <Grid Grid.RowSpan="3" Background="#70000000">
             <Grid.Style>
                 <Style TargetType="Grid">
@@ -461,7 +461,7 @@
             </Border>
         </Grid>
 
-        <!-- MODAL: Ingreso de Insumos Globales (RF-14) -->
+        <!-- NAV 6 | MODAL INGRESO DE INSUMO (RF-14): se abre con InsumosVM.MostrarDialogoIngresoInsumo. Registrar → GuardarIngresoInsumoCommand (suma al stock y llama a ActualizarInsumo) / Cancelar → CerrarIngresoInsumoCommand -->
         <Grid Grid.RowSpan="3" Background="#70000000">
             <Grid.Style>
                 <Style TargetType="Grid">
@@ -516,7 +516,7 @@
             </Border>
         </Grid>
 
-        <!-- MODAL: Registrar Nuevo Tipo de Insumo (RF-07) -->
+        <!-- NAV 7 | MODAL NUEVO INSUMO (RF-07): se abre con InsumosVM.MostrarDialogoNuevoInsumo. Campos Form* del InsumoViewModel. Crear → GuardarNuevoInsumoCommand → CrearInsumo → InsumoRepositorio.Agregar / Cancelar → CerrarNuevoInsumoCommand -->
         <Grid Grid.RowSpan="3" Background="#70000000">
             <Grid.Style>
                 <Style TargetType="Grid">
