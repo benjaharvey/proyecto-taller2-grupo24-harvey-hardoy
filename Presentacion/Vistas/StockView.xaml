@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:vm="clr-namespace:Presentacion.ViewModels"
-             mc:Ignorable="d" 
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
+             mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:StockViewModel}"
              d:DesignHeight="750" d:DesignWidth="1000">
 
@@ -26,7 +27,11 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+
+            <!-- NAV Ayuda | BOTÓN AYUDA (columna 2): control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Va en su propia columna porque la columna 1 tiene las pestañas -->
+            <ctrl:BotonAyuda Grid.Column="2" VerticalAlignment="Top" Margin="12,0,0,0" />
 
             <StackPanel Grid.Column="0">
                 <TextBlock Text="Control de Stock e Insumos" Style="{StaticResource HeaderTitleStyle}"/>

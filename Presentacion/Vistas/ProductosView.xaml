@@ -5,9 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:vm="clr-namespace:Presentacion.ViewModels"
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="950">
 
+    <!-- NAV 1 | ESTRUCTURA: Grid de 3 filas. Row 0 = encabezado, Row 1 = filtros, Row 2 = contenido (tabla + panel lateral de formulario). El modal de insumos (NAV 7) se dibuja encima de las 3 filas con Grid.RowSpan. ViewModel: ProductosViewModel -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -15,12 +17,17 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- NAV 2 | ENCABEZADO (Row 0): título y subtítulo fijos, sin bindings -->
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Catálogo de Productos" Style="{StaticResource HeaderTitleStyle}"/>
             <TextBlock Text="Administración de productos, precios y fórmulas de recetas" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
 
+        <!-- NAV Ayuda | BOTÓN AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Está en la misma celda del encabezado, alineado arriba a la derecha -->
+        <ctrl:BotonAyuda Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+
+        <!-- NAV 3 | FILTROS (Row 1): 3 columnas. Buscador (*), combo de categoría (200 px) y botón Limpiar. Cualquier cambio dispara AplicarFiltro en el VM, que arma una nueva lista Productos desde la lista completa -->
         <!-- Filters Section -->
         <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,16" Padding="12">
             <Grid>
@@ -30,6 +37,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
+                <!-- NAV 3a | BUSCADOR: BusquedaTexto (OnBusquedaTextoChanged → AplicarFiltro). Busca en nombre y en nombre de categoría. El texto gris es un VisualBrush que aparece solo con el Text vacío -->
                 <!-- Search Input -->
                 <TextBox Grid.Column="0" 
                          Text="{Binding BusquedaTexto, UpdateSourceTrigger=PropertyChanged}"
@@ -57,6 +65,7 @@
                     </TextBox.Style>
                 </TextBox>
 
+                <!-- NAV 3b | FILTRO DE CATEGORÍA: ItemsSource = Categorias, SelectedItem = FiltroCategoria. Acá null significa "sin filtro" (no hay un ítem Todas) -->
                 <!-- Category Filter -->
                 <ComboBox Grid.Column="1" 
                           ItemsSource="{Binding Categorias}"
@@ -67,6 +76,7 @@
                           BorderBrush="{StaticResource SecondaryBrush}"
                           VerticalContentAlignment="Center"/>
 
+                <!-- NAV 3c | LIMPIAR FILTROS: LimpiarFiltrosCommand deja BusquedaTexto vacío y FiltroCategoria en null -->
                 <Button Grid.Column="2" 
                         Content="Limpiar Filtros" 
                         Command="{Binding LimpiarFiltrosCommand}"
@@ -75,6 +85,7 @@
             </Grid>
         </Border>
 
+        <!-- NAV 4 | CONTENIDO (Row 2): 2 columnas. Izquierda = tabla de productos (*), derecha = panel de formulario/receta (360 px fijos) -->
         <!-- Main Content Area: Products Grid & Detail / Edit Drawer -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
@@ -82,6 +93,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
+            <!-- NAV 4a | TABLA DE PRODUCTOS: Productos (ProductoDTO). Al elegir una fila, SelectedProducto dispara OnSelectedProductoChanged, que carga el formulario en modo edición. Columnas: Nombre, NombreCategoria, Precio, Costo, Estado y Acciones -->
             <!-- Products Table -->
             <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <DataGrid ItemsSource="{Binding Productos}"
@@ -126,6 +138,7 @@
                         <DataGridTextColumn Header="Precio Unit." Binding="{Binding Precio, StringFormat='${0:N2}'}" Width="110" />
                         <DataGridTextColumn Header="Costo Unit." Binding="{Binding Costo, StringFormat='${0:N2}'}" Width="110" />
                         
+                        <!-- NAV 4a-1 | COLUMNA ESTADO: etiqueta de color. Verde con "Activo" por defecto; rojo con "Inactivo" si Activo es False (DataTrigger) -->
                         <!-- Status Badge -->
                         <DataGridTemplateColumn Header="Estado" Width="95">
                             <DataGridTemplateColumn.CellTemplate>
@@ -160,6 +173,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
+                        <!-- NAV 4a-2 | COLUMNA ACCIONES: dos botones por fila. Sus comandos viven en el ViewModel, no en la fila, por eso el Binding sube con RelativeSource AncestorType=UserControl hasta el DataContext y pasa la fila con CommandParameter={Binding}. Lápiz = EditarProductoCommand (selecciona la fila). Segundo botón = ToggleEstadoProductoCommand (pide confirmación y da de baja o reactiva; el ícono cambia con un DataTrigger sobre Activo) -->
                         <!-- Actions Column -->
                         <DataGridTemplateColumn Header="Acciones" Width="120">
                             <DataGridTemplateColumn.HeaderStyle>
@@ -217,6 +231,7 @@
                 </DataGrid>
             </Border>
 
+            <!-- NAV 5 | PANEL DE FORMULARIO (columna derecha): sirve para crear un producto nuevo o editar el elegido. El título viene de FormTitulo ("Nuevo Producto" o "Editar ...") -->
             <!-- Product Form / Recipe Detail Drawer -->
             <Border Grid.Column="1" 
                     Width="360" 
@@ -226,6 +241,7 @@
                     <StackPanel>
                         <TextBlock Text="{Binding FormTitulo}" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,16"/>
 
+                        <!-- NAV 5a | CATEGORÍA: FormCategoria (ItemsSource = Categorias). Está en la columna 1 del Grid; la columna 0 quedó vacía (resto de un campo código que ya no existe) -->
                         <!-- Code & Category -->
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
@@ -238,6 +254,7 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- NAV 5b | NOMBRE, PRECIO Y COSTO: FormNombre (máximo 40), FormPrecio y FormCosto (máximo 12). Sin UpdateSourceTrigger: el valor llega al VM cuando el campo pierde el foco -->
                         <!-- Name -->
                         <TextBlock Text="Nombre del Producto" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding FormNombre}" MaxLength="40" Padding="6,4" Margin="0,0,0,12" BorderBrush="{StaticResource SecondaryBrush}"/>
@@ -252,6 +269,7 @@
 
                         <Separator Margin="0,0,0,12" Background="#E2DCD5"/>
 
+                        <!-- NAV 5c | RECETA (RF-08): título y botón + Insumo (AbrirModalAgregarInsumoCommand abre el modal NAV 7) -->
                         <!-- Recipe Section (RF-08) -->
                         <DockPanel Margin="0,0,0,8">
                             <TextBlock Text="Fórmula / Receta (por unidad)" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontSize="13" VerticalAlignment="Center"/>
@@ -266,6 +284,7 @@
                                     Padding="10,4"/>
                         </DockPanel>
 
+                        <!-- NAV 5d | LISTA DE INSUMOS DE LA RECETA: FormRecetaInsumos (InsumoRecetaItem). Cada fila muestra InsumoNombre, Cantidad y UnidadMedida, y un botón ✖ con QuitarInsumoRecetaCommand (también por RelativeSource, con la fila como parámetro) -->
                         <!-- Recipe Ingredients List -->
                         <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="8" Margin="0,0,0,16">
                             <ItemsControl ItemsSource="{Binding FormRecetaInsumos}">
@@ -295,6 +314,7 @@
                             </ItemsControl>
                         </Border>
 
+                        <!-- NAV 5e | BOTONES: Cancelar (CancelarFormularioCommand, limpia el formulario y vuelve a "Nuevo Producto") y Guardar Producto (GuardarFormularioCommand, crea o actualiza según EsEdicion) -->
                         <!-- Form Buttons -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="Cancelar" 
@@ -312,6 +332,7 @@
             </Border>
         </Grid>
 
+        <!-- NAV 7 | MODAL AGREGAR INSUMO: un Grid semitransparente (#70000000) que cubre toda la vista. Está Collapsed y un DataTrigger lo muestra cuando MostrarModalAgregarInsumo es True -->
         <!-- Modal: Agregar Insumo a la Receta -->
         <Grid Grid.RowSpan="3" Background="#70000000">
             <Grid.Style>
@@ -325,6 +346,7 @@
                 </Style>
             </Grid.Style>
 
+            <!-- NAV 7a | CAJA DEL MODAL: combo de insumos (InsumosDisponibles / InsumoSeleccionadoParaReceta), cantidad requerida por unidad (NuevoInsumoCantidad) y la unidad de medida del insumo elegido (InsumoSeleccionadoParaReceta.UnidadMedida) -->
             <Border Width="380" Background="White" CornerRadius="8" Padding="20" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <StackPanel>
                     <TextBlock Text="Agregar Insumo a la Receta" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,4"/>
@@ -352,6 +374,7 @@
                         </StackPanel>
                     </Grid>
 
+                    <!-- NAV 7b | BOTONES DEL MODAL: Cancelar (CerrarModalAgregarInsumoCommand) y Agregar a Receta (ConfirmarAgregarInsumoCommand, valida y suma el insumo a FormRecetaInsumos) -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" 
                                 Command="{Binding CerrarModalAgregarInsumoCommand}"

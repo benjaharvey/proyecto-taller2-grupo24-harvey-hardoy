@@ -98,6 +98,7 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
         CargarStock();
     }
 
+/* leido */
     private void CargarCategorias()
     {
         string seleccionPrevia = FiltroCategoria;
@@ -111,6 +112,7 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
         FiltroCategoria = Categorias.Contains(seleccionPrevia) ? seleccionPrevia : TodasCategorias;
     }
 
+/* leido */
     private void CargarSucursales()
     {
         string seleccionPrevia = FiltroSucursal;
@@ -146,6 +148,7 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
         CargarStock();
     }
 
+/* leido */
     private void CargarStock()
     {
         int? sucursalId = null;
@@ -230,6 +233,12 @@ public partial class StockViewModel : ObservableObject, ISeccionRecargable
     {
         // el ajuste manual de stock es exclusivo del administrador.
         if (prod == null || !EsAdmin) return;
+        if(prod.SucursalId == 0)
+        {
+            MessageBox.Show("Debe seleccionar una sucursal en el selector para poder ajustar el stock.", "Ajuste de stock",
+            MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         ProductoAjustando = prod;
         NuevoStockProducto = prod.StockActual;
         MostrarDialogoAjusteProducto = true;

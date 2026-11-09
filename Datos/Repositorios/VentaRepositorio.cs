@@ -428,7 +428,9 @@ namespace Datos.Repositorios
         {
             using var context = _contextFactory.CreateDbContext();
 
-            var query = context.VentasCabecera.Where(v => v.Estado == EstadoVenta.CONFIRMADA && v.CreatedAt >= desde && v.CreatedAt < hastaExclusivo);
+            var query = context.VentasCabecera.Where(v => v.Estado == EstadoVenta.CONFIRMADA 
+            && v.CreatedAt >= desde 
+            && v.CreatedAt < hastaExclusivo);
 
             if (sucursalId.HasValue)
             {

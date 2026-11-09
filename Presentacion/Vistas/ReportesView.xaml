@@ -1,4 +1,4 @@
-<UserControl x:Class="Presentacion.Vistas.ReportesView"
+﻿<UserControl x:Class="Presentacion.Vistas.ReportesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,13 +6,15 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:vm="clr-namespace:Presentacion.ViewModels"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
              mc:Ignorable="d"
              d:DesignHeight="750" d:DesignWidth="1000">
 
     <UserControl.Resources>
+        <!-- NAV R-1 | CONVERSOR BoolToVis: convierte un bool del VM en Visible o Collapsed. Lo usan los mensajes de sin datos (ProduccionSinDatos, MetodoPagoSinDatos, etc.) -->
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
-        <!-- Encabezado de las grillas de reportes: mismo look que la tabla consolidada. -->
+        <!-- NAV R-2 | ESTILO ENCABEZADO DE GRILLAS: ReporteColumnHeaderStyle, mismo look que la tabla consolidada. Se aplica con ColumnHeaderStyle en cada DataGrid -->
         <Style x:Key="ReporteColumnHeaderStyle" TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
@@ -23,7 +25,7 @@
             <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
         </Style>
 
-        <!-- Celdas numéricas/fecha: alineadas a la derecha para poder comparar de un vistazo. -->
+        <!-- NAV R-3 | ESTILO CELDAS NUMÉRICAS: ReporteNumeroCellStyle, alineadas a la derecha para comparar de un vistazo. Se aplica con ElementStyle en las columnas del reporte de stock -->
         <Style x:Key="ReporteNumeroCellStyle" TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -31,6 +33,7 @@
         </Style>
     </UserControl.Resources>
 
+    <!-- NAV 0a | ESTRUCTURA GENERAL: un ScrollViewer con un Grid de 9 filas (Row 0 a Row 8), una por bloque. Todo se enlaza a ReportesViewModel. Los bloques se cargan con los métodos Cargar... y RefrescarReportes -->
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,20,0">
         <Grid Margin="0,0,10,24">
             <Grid.RowDefinitions>
@@ -45,24 +48,30 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Row 0: Header Section -->
+            <!-- NAV 0 | ENCABEZADO (Row 0): título y subtítulo, texto fijo sin bindings -->
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
                 <TextBlock Text="Reportes y Estadísticas de Gestión" Style="{StaticResource HeaderTitleStyle}"/>
                 <TextBlock Text="Métricas consolidadas de ventas por mostrador y producción en cocina" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <!-- Row 1: Filters Bar (se aplican solos al cambiar) -->
+            <!-- NAV Ayuda | BOTÓN AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Está en la misma celda del encabezado, alineado arriba a la derecha -->
+            <ctrl:BotonAyuda Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+
+            <!-- NAV 1 | BARRA DE FILTROS (Row 1): FechaDesde, FechaHasta y SucursalFiltro. Cada cambio dispara un On...Changed del VM y recarga los reportes. No hay botón Aplicar. Valen para casi todos los reportes (Ventas por Sucursal ignora la sucursal) -->
             <Border Grid.Row="1" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,24" Padding="16,14">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Filtrar por:" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" Margin="0,0,20,0" FontSize="13"/>
                     
                     <TextBlock Text="Desde:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <!-- NAV 1a | FECHA DESDE: FechaDesde (DateTime?, por defecto hoy menos 30 días) → OnFechaDesdeChanged → AplicarFiltrosDeFecha → RefrescarReportes -->
                     <DatePicker SelectedDate="{Binding FechaDesde}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
                     <TextBlock Text="Hasta:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <!-- NAV 1b | FECHA HASTA: FechaHasta (DateTime?, por defecto hoy) → OnFechaHastaChanged → AplicarFiltrosDeFecha. El repositorio la usa como hastaExclusivo (hasta mas un día) -->
                     <DatePicker SelectedDate="{Binding FechaHasta}" Width="130" VerticalAlignment="Center" Margin="0,0,16,0"/>
 
                     <TextBlock Text="Sucursal:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <!-- NAV 1c | COMBO SUCURSAL: Sucursales (Todas las Sucursales + puntos de venta, sin Casa Central ni Fábrica) / SucursalFiltro → OnSucursalFiltroChanged → RefrescarReportes sin Ventas por Sucursal. El VM lo traduce a int? (null = todas) -->
                     <ComboBox ItemsSource="{Binding Sucursales}" 
                               SelectedItem="{Binding SucursalFiltro}"
                               Padding="10,6"
@@ -71,7 +80,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 2: KPI Cards Row -->
+            <!-- NAV 2 | TARJETAS KPI (Row 2): cuatro tarjetas en 4 columnas. Las llena CargarResumenVentas con el resultado de ObtenerResumenVentas -->
             <Grid Grid.Row="2" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -80,7 +89,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Card 1: Ingresos -->
+                <!-- NAV 2a | TARJETA GANANCIAS: TotalGanancia (número grande) y TotalIngresosVentas (Facturado, abajo). Ganancia = suma de cantidad x (PrecioUnit menos CostoUnit) de cada renglón; con costos en 0 coincide con lo facturado -->
                 <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,8,0">
                     <StackPanel>
                         <TextBlock Text="💰 Ganancias por Ventas" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
@@ -94,7 +103,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Card 2: Operaciones -->
+                <!-- NAV 2b | TARJETA VENTAS CONFIRMADAS: TotalOperacionesVenta (cantidad de tickets). Solo cuenta ventas en estado CONFIRMADA -->
                 <Border Grid.Column="1" Style="{StaticResource MaieCardStyle}" Margin="4,0,8,0">
                     <StackPanel>
                         <TextBlock Text="🧾 Ventas Confirmadas" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
@@ -108,7 +117,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Card 3: Unidades Vendidas -->
+                <!-- NAV 2c | TARJETA UNIDADES VENDIDAS: TotalUnidadesVendidas; el texto de abajo repite la sucursal elegida (SucursalFiltro) -->
                 <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Margin="4,0,8,0">
                     <StackPanel>
                         <TextBlock Text="📦 Unidades Vendidas" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
@@ -122,7 +131,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Card 4: Unidades Elaboradas -->
+                <!-- NAV 2d | TARJETA TICKET PROMEDIO: TicketPromedio = facturado dividido ventas confirmadas (el comentario original decía Unidades Elaboradas, pero la tarjeta muestra el ticket promedio) -->
                 <Border Grid.Column="3" Style="{StaticResource MaieCardStyle}" Margin="8,0,0,0">
                     <StackPanel>
                         <TextBlock Text="💰 Ticket Promedio" FontSize="12" Foreground="{StaticResource TextBodyBrush}"/>
@@ -137,7 +146,7 @@
                 </Border>
             </Grid>
 
-            <!-- Row 3: Producción por producto (usa los filtros globales de la barra superior) -->
+            <!-- NAV 3 | PRODUCCIÓN POR PRODUCTO (Row 3): usa los filtros globales (fechas y sucursal) y además un combo de categoría propio, arriba a la derecha (CategoriasFiltro / ProduccionCategoriaFiltro → OnProduccionCategoriaFiltroChanged → CargarProduccion). Id 0 = Todas las categorías -->
             <Border Grid.Row="3" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
                 <StackPanel>
                     <DockPanel Margin="0,0,0,14">
@@ -155,9 +164,11 @@
                     </DockPanel>
 
                     <Grid Height="320">
+                        <!-- NAV 3a | GRÁFICO DE COLUMNAS (LiveCharts): ProduccionSeries (valores), ProduccionXAxes (nombres de producto, rotados) y ProduccionYAxes (eje fijo en el VM). Todo lo arma CargarProduccion -->
                         <lvc:CartesianChart Series="{Binding ProduccionSeries}"
                                             XAxes="{Binding ProduccionXAxes}"
                                             YAxes="{Binding ProduccionYAxes}"/>
+                        <!-- NAV 3b | MENSAJE SIN DATOS: se superpone al gráfico y se ve solo si ProduccionSinDatos es true (conversor BoolToVis) -->
                         <TextBlock Text="No hay producción registrada con los filtros seleccionados."
                                    Style="{StaticResource BodyTextStyle}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -166,7 +177,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 4: Recaudación por método de pago (datos reales) -->
+            <!-- NAV 4 | RECAUDACIÓN POR MÉTODO DE PAGO (Row 4): torta a la izquierda y tabla con resumen a la derecha. Lo llena CargarRecaudacionPorMetodoPago -->
             <Border Grid.Row="4" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
                 <StackPanel>
                     <TextBlock Text="💳 Recaudación por Medio de Pago" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
@@ -177,7 +188,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Doughnut: 3 porciones, el punto es la composición del total -->
+                        <!-- NAV 4a | TORTA (PieChart): MetodoPagoSeries, una porción por método con recaudación mayor a cero. El mensaje de abajo se ve con MetodoPagoSinDatos -->
                         <Grid Grid.Column="0" Height="260" Margin="0,0,20,0">
                             <lvc:PieChart Series="{Binding MetodoPagoSeries}" LegendPosition="Right" />
                             <TextBlock Text="No hay ventas confirmadas en el período seleccionado."
@@ -187,6 +198,7 @@
                         </Grid>
 
                         <StackPanel Grid.Column="1">
+                            <!-- NAV 4b | TABLA POR MÉTODO: MetodosPago (RecaudacionPorMetodoPagoDTO). Columnas: Nombre, TotalRecaudado, CantidadVentas, TicketPromedio. Aparecen también los métodos en cero -->
                             <DataGrid ItemsSource="{Binding MetodosPago}"
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
@@ -206,7 +218,7 @@
                                 </DataGrid.Columns>
                             </DataGrid>
 
-                            <!-- efectivo vs. digital y total del período -->
+                            <!-- NAV 4c | RESUMEN: TotalRecaudadoMetodoPago, ParticipacionEfectivo y ParticipacionDigital (digital = tarjeta mas transferencia = 100 menos efectivo). Se calculan en CargarRecaudacionPorMetodoPago -->
                             <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,12,0,0">
                                 <StackPanel>
                                     <TextBlock Text="{Binding TotalRecaudadoMetodoPago, StringFormat='Total del período: ${0:N2}'}"
@@ -240,7 +252,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 5: Recaudación por categoría (datos reales) -->
+            <!-- NAV 5 | RECAUDACIÓN POR CATEGORÍA (Row 5): gráfico de barras a la izquierda y tabla con resumen a la derecha. Lo llena CargarRecaudacionPorCategoria. No tiene filtro de categoría propio (muestra todas) -->
             <Border Grid.Row="5" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
                 <StackPanel>
                     <TextBlock Text="🏷️ Recaudación por Categoría" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
@@ -251,7 +263,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <!-- Barras: comparar longitudes es más preciso que comparar ángulos -->
+                        <!-- NAV 5a | BARRAS (CartesianChart): CategoriaSeries (valores), CategoriaXAxes (nombres de categoría) y CategoriaYAxes (eje fijo en el VM). Mensaje sin datos: CategoriaSinDatos -->
                         <Grid Grid.Column="0" Height="260" Margin="0,0,20,0">
                             <lvc:CartesianChart Series="{Binding CategoriaSeries}"
                                                 XAxes="{Binding CategoriaXAxes}"
@@ -263,6 +275,7 @@
                         </Grid>
 
                         <StackPanel Grid.Column="1">
+                            <!-- NAV 5b | TABLA POR CATEGORÍA: Categorias (RecaudacionPorCategoriaDTO). Columnas: NombreCategoria, TotalRecaudado, Participacion (%), Unidades, PrecioPromedio -->
                             <DataGrid ItemsSource="{Binding Categorias}"
                                       AutoGenerateColumns="False"
                                       IsReadOnly="True"
@@ -285,6 +298,7 @@
 
                             <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="12,10" Margin="0,12,0,0">
                                 <StackPanel>
+                                    <!-- NAV 5c | RESUMEN: TotalRecaudadoCategorias, CategoriaLider (la primera de la lista, ordenada por recaudación) y ParticipacionCategoriaLider -->
                                     <TextBlock Text="{Binding TotalRecaudadoCategorias, StringFormat='Total del período: ${0:N2}'}"
                                                FontWeight="SemiBold" FontSize="13"
                                                Foreground="{StaticResource PrimaryBrush}" />
@@ -302,11 +316,11 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 6: Productos con stock sin ventas -->
+            <!-- NAV 6 | PRODUCTOS CON STOCK SIN VENTAS (Row 6): el reporte más completo. Lo llena CargarStockSinVentas (ObtenerStockSinVentas, ObtenerConStockSinVentas del repositorio de stock) -->
             <Border Grid.Row="6" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,20" Padding="16">
                 <StackPanel>
                     <DockPanel Margin="0,0,0,14">
-                        <!-- El combo va a la derecha; el título ocupa el resto. -->
+                        <!-- NAV 6a | COMBO CATEGORÍA PROPIO (a la derecha): CategoriasFiltro / CategoriaStockFiltro → OnCategoriaStockFiltroChanged → solo recarga este reporte. Id 0 = Todas las categorías, que el VM traduce a null -->
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
                             <TextBlock Text="Categoría:" FontSize="12" Foreground="{StaticResource TextBodyBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                             <ComboBox ItemsSource="{Binding CategoriasFiltro}"
@@ -320,6 +334,7 @@
                                    FontSize="15" VerticalAlignment="Center"/>
                     </DockPanel>
 
+                    <!-- NAV 6b | DOS TARJETAS RESUMEN: ProductosSinVenta (cantidad de filas del reporte) y ValorizadoSinVenta (suma de stock por precio de venta) -->
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -346,6 +361,7 @@
                     </Grid>
 
                     <Grid>
+                        <!-- NAV 6c | TABLA: StockSinVenta (StockSinVentaDTO). Columnas: NombreProducto, NombreCategoria, Stock, Valorizado, UltimaVentaTexto (Nunca vendido si no hay), DiasSinVender y VendidasOtrasSucursales -->
                         <DataGrid ItemsSource="{Binding StockSinVenta}"
                                   AutoGenerateColumns="False"
                                   IsReadOnly="True"
@@ -371,6 +387,7 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
+                        <!-- NAV 6d | MENSAJE SIN DATOS: se ve solo si StockSinVentaSinDatos es true (todos los productos con stock vendieron en el período) -->
                         <TextBlock Text="Todos los productos con stock vendieron en el período."
                                    Style="{StaticResource BodyTextStyle}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -379,17 +396,17 @@
                 </StackPanel>
             </Border>
 
-            <!-- Row 7: Mid Row: Top Products Ranking & Branch Distribution -->
+            <!-- NAV 7 | FILA DOBLE (Row 7): a la izquierda el ranking de productos (7a) y a la derecha las ventas por sucursal (7b) -->
             <Grid Grid.Row="7" Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.4*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Top Products -->
+                <!-- NAV 7a | RANKING DE PRODUCTOS: lo llena CargarRankingProductos con los 10 más (o menos) vendidos del período, según MostrarMenosVendidos -->
                 <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,12,0" Padding="16">
                     <StackPanel>
-                        <!-- El botón va primero y pegado a la derecha; el título ocupa el espacio que queda. -->
+                        <!-- NAV 7a-1 | BOTÓN ALTERNAR: Command AlternarRankingCommand, texto TextoBotonRanking. Cambia MostrarMenosVendidos y el título (TituloRanking) cambia solo, por NotifyPropertyChangedFor -->
                         <DockPanel Margin="0,0,0,14">
                             <Button Content="{Binding TextoBotonRanking}"
                                     Command="{Binding AlternarRankingCommand}"
@@ -401,6 +418,7 @@
                             <TextBlock Text="{Binding TituloRanking}" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" VerticalAlignment="Center"/>
                         </DockPanel>
 
+                        <!-- NAV 7a-2 | LISTA DEL RANKING: TopProductos (TopProductoReporteItem). Cada fila muestra Nombre, UnidadesVendidas y Recaudacion, con una barra debajo -->
                         <ItemsControl ItemsSource="{Binding TopProductos}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -415,7 +433,7 @@
                                             <TextBlock Text="{Binding Recaudacion, StringFormat='${0:N2}'}" DockPanel.Dock="Right" HorizontalAlignment="Right" FontWeight="Bold" FontSize="12" Foreground="{StaticResource AccentBrush}"/>
                                         </DockPanel>
 
-                                        <!-- Progress Bar for representation -->
+                                        <!-- NAV 7a-3 | BARRA DE PROGRESO: Value = PorcentajeTotal (0 a 100), medido contra el producto más vendido, que vale 100 -->
                                         <ProgressBar Grid.Row="1" 
                                                      Value="{Binding PorcentajeTotal}" 
                                                      Maximum="100" 
@@ -430,7 +448,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Branch Participation -->
+                <!-- NAV 7b | VENTAS POR SUCURSAL: VentasPorSucursal (SucursalVentaReporteItem), lo llena CargarVentasPorSucursal. Compara todas las sucursales: NO usa el filtro de sucursal de la barra de arriba -->
                 <Border Grid.Column="1" Style="{StaticResource MaieCardStyle}" Padding="16">
                     <StackPanel>
                         <TextBlock Text="📍 Ventas por Sucursal" Style="{StaticResource SubheaderTitleStyle}" FontSize="15" Margin="0,0,0,14"/>
@@ -461,7 +479,7 @@
                 </Border>
             </Grid>
 
-            <!-- Row 8: Ventas por vendedor (torta) -->
+            <!-- NAV 8 | VENTAS POR VENDEDOR (Row 8): torta con VendedorSeries (una porción por vendedor, con su cantidad de ventas). Lo llena CargarVentasPorVendedor. Mensaje sin datos: VendedoresSinDatos -->
             <Border Grid.Row="8" Style="{StaticResource MaieCardStyle}" Padding="20" Margin="0,0,0,20">
                 <StackPanel>
                     <TextBlock Text="Ventas por vendedor"

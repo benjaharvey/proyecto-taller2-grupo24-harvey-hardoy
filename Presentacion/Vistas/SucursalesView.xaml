@@ -4,23 +4,29 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:Presentacion.ViewModels"
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
              mc:Ignorable="d"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
              d:DataContext="{d:DesignInstance Type=viewModels:SucursalViewModel}"
              d:DesignHeight="700" d:DesignWidth="950">
 
+    <!-- NAV 1 | ESTRUCTURA: Grid de 2 filas. Row 0 = encabezado, Row 1 = contenido en 3 columnas (formulario 360 px, separador 20 px, lista *). ViewModel: SucursalViewModel (el d:DataContext de la línea 10 solo sirve en el diseñador) -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- NAV 2 | ENCABEZADO (Row 0): título y subtítulo fijos, sin bindings -->
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Gestión de Sucursales" Style="{StaticResource HeaderTitleStyle}"/>
             <TextBlock Text="Administrá los puntos de venta y dependencias operativas del sistema" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
+
+        <!-- NAV Ayuda | BOTÓN AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Está en la misma celda del encabezado, alineado arriba a la derecha -->
+        <ctrl:BotonAyuda Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -29,6 +35,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!-- NAV 3 | FORMULARIO (columna izquierda): alta y edición de una sucursal. UpdateSourceTrigger=PropertyChanged: el VM recibe el texto mientras se escribe. MaxLength limita desde la vista -->
             <!-- Form Card -->
             <Border Grid.Column="0"
                     Style="{StaticResource MaieCardStyle}"
@@ -36,6 +43,7 @@
                     VerticalAlignment="Top">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
+                        <!-- NAV 3a | NOMBRE: FormNombre, máximo 30 caracteres -->
                         <TextBlock Text="Nombre de la Sucursal" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding FormNombre, UpdateSourceTrigger=PropertyChanged}"
                                  MaxLength="30"
@@ -44,6 +52,7 @@
                                  BorderBrush="{StaticResource SecondaryBrush}"
                                  FontSize="13"/>
 
+                        <!-- NAV 3b | UBICACIÓN: FormUbicacion, máximo 150 caracteres -->
                         <TextBlock Text="Ubicación / Dirección" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding FormUbicacion, UpdateSourceTrigger=PropertyChanged}"
                                  MaxLength="150"
@@ -52,6 +61,7 @@
                                  BorderBrush="{StaticResource SecondaryBrush}"
                                  FontSize="13"/>
 
+                        <!-- NAV 3c | BOTONES: el primero usa GuardarCommand y cambia su texto con un DataTrigger sobre EsEdicion ("Crear Sucursal" por defecto, "Guardar Cambios" si se está editando). Cancelar / Nuevo ejecuta CancelarCommand y limpia el formulario -->
                         <!-- Action Buttons -->
                         <StackPanel Margin="0,10,0,0">
                             <Button Padding="14,8"
@@ -78,6 +88,7 @@
                 </ScrollViewer>
             </Border>
 
+            <!-- NAV 4 | LISTA DE SUCURSALES (columna derecha): barra superior (botón de estado + buscador) y tabla -->
             <!-- Grid Card -->
             <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
@@ -92,6 +103,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
+                        <!-- NAV 4a | BOTÓN DE ESTADO: el texto viene de TextoBotonEstado ("Dar de Baja" o "Reactivar", lo define OnSelectedSucursalChanged según el Estado) y ejecuta CambiarEstadoCommand. Solo se habilita con EsEdicion, o sea con una sucursal elegida -->
                         <!-- Header Bar -->
                         <Grid Grid.Row="0" Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
@@ -114,6 +126,7 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- NAV 4b | BUSCADOR: BusquedaTexto filtra mientras se escribe (por nombre, ubicación o estado). Limpiar ejecuta LimpiarBusquedaCommand. El texto gris "Buscar por..." es un VisualBrush que se muestra solo cuando el Text está vacío (Trigger) -->
                         <!-- Search Bar -->
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
@@ -155,6 +168,7 @@
                         </Grid>
                     </Grid>
 
+                    <!-- NAV 4c | TABLA: SucursalesFiltradas (resultado del buscador). La fila elegida va a SelectedSucursal y activa el modo edición. El DataTrigger de la fila baja la Opacity a 0.65 cuando Estado es INACTIVA -->
                     <!-- DataGrid -->
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding SucursalesFiltradas}"
@@ -197,6 +211,7 @@
                             <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="1.5*" />
                             <DataGridTextColumn Header="Ubicación" Binding="{Binding Ubicacion}" Width="2*" />
 
+                            <!-- NAV 4c-1 | COLUMNA ESTADO: etiqueta de color. Verde con texto "Activa" por defecto; si Estado es INACTIVA, rojo con texto "Inactiva" (DataTrigger) -->
                             <!-- Status Badge Column -->
                             <DataGridTemplateColumn Header="Estado" Width="100">
                                 <DataGridTemplateColumn.CellTemplate>

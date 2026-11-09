@@ -1,0 +1,12 @@
+<UserControl x:Class="Presentacion.Controles.BotonAyuda"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Botón de ayuda reutilizable: se pone una sola línea en cada vista (<ctrl:BotonAyuda/>) y la lógica vive en BotonAyuda.xaml.cs -->
+    <Button Content="❓  Ayuda"
+            ToolTip="Abrir el manual de usuario (PDF)"
+            Style="{StaticResource OutlineButtonStyle}"
+            Padding="12,6"
+            Cursor="Hand"
+            Click="BtnAyuda_Click" />
+</UserControl>

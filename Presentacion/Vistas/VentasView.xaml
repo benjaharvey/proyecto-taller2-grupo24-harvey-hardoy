@@ -4,21 +4,28 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="1000">
 
+    <!-- NAV 1 | ESTRUCTURA: Grid de 2 filas. Row 0 = encabezado, Row 1 = punto de venta en 2 columnas (catálogo a la izquierda, ticket a la derecha). Los dos modales (NAV 4 y NAV 5) se dibujan encima con Grid.RowSpan=2. ViewModel: VentasViewModel -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- NAV 2 | ENCABEZADO (Row 0): título y subtítulo fijos, sin bindings -->
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
             <TextBlock Text="Punto de Venta (Caja)" Style="{StaticResource HeaderTitleStyle}"/>
             <TextBlock Text="Terminal de cobro y registro de operaciones por mostrador" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
 
+        <!-- NAV Ayuda | BOTÓN AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Está en la misma celda del encabezado, alineado arriba a la derecha -->
+        <ctrl:BotonAyuda Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+
+        <!-- NAV 3 | CUERPO (Row 1): 2 columnas. Izquierda 1.5* = catálogo de productos. Derecha * (mínimo 380 px) = ticket de la venta en curso -->
         <!-- Main Body: Punto de Venta -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -26,6 +33,7 @@
                 <ColumnDefinition Width="*" MinWidth="380" />
             </Grid.ColumnDefinitions>
 
+            <!-- NAV 3a | CATÁLOGO (columna izquierda): 2 filas. Row 0 = buscador y categoría, Row 1 = lista de productos -->
             <!-- LEFT: Product Quick Selection -->
             <Grid Grid.Column="0" Margin="0,0,16,0">
                 <Grid.RowDefinitions>
@@ -33,6 +41,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
+                <!-- NAV 3a-1 | BUSCADOR Y CATEGORÍA: BusquedaCatalogo (busca por nombre o código mientras se escribe) y combo Categorias / CategoriaFiltro, cuyo primer ítem es el texto "Todas". Cualquier cambio llama a AplicarFiltroCatalogo, que arma CatalogoFiltrado desde Catalogo (la lista completa) -->
                 <!-- Search and Categories -->
                 <Border Grid.Row="0" Style="{StaticResource MaieCardStyle}" Margin="0,0,0,12" Padding="10">
                     <Grid>
@@ -73,6 +82,7 @@
                     </Grid>
                 </Border>
 
+                <!-- NAV 3a-2 | LISTA DE PRODUCTOS: ItemsControl sobre CatalogoFiltrado (CatalogoVentaItem). Se dibuja una tarjeta por producto con el DataTemplate: Icono, Nombre y Categoria, stock, precio y botón de agregar -->
                 <!-- Product Items List (Single Line Rows) -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
                     <ItemsControl ItemsSource="{Binding CatalogoFiltrado}">
@@ -102,6 +112,7 @@
                                             <TextBlock Text="{Binding Categoria}" FontSize="11" Foreground="{StaticResource TextBodyBrush}"/>
                                         </StackPanel>
 
+                                        <!-- NAV 3a-2a | STOCK Y PRECIO: StockDisponible es el stock de la sucursal del usuario logueado. Precio con formato de moneda -->
                                         <!-- Stock Badge -->
                                         <Border Grid.Column="2" VerticalAlignment="Center" Background="#E8F0FE" CornerRadius="4" Padding="8,3" Margin="0,0,14,0">
                                             <TextBlock Text="{Binding StockDisponible, StringFormat='{}Stock: {0}'}" FontSize="11" FontWeight="SemiBold" Foreground="#1A73E8"/>
@@ -118,6 +129,7 @@
                                                    VerticalAlignment="Center"
                                                    Margin="0,0,14,0"/>
 
+                                        <!-- NAV 3a-2b | BOTÓN + AGREGAR: AgregarAlCarritoCommand vive en el ViewModel y no en cada tarjeta, por eso el Binding sube con RelativeSource AncestorType=UserControl hasta el DataContext, y la tarjeta se pasa con CommandParameter={Binding} -->
                                         <!-- Add Button -->
                                          <Button Grid.Column="4" 
                                                  Content="+ Agregar"
@@ -134,6 +146,7 @@
                 </ScrollViewer>
             </Grid>
 
+            <!-- NAV 3b | TICKET DE LA VENTA (columna derecha): 4 filas. Row 0 = encabezado, Row 1 = cliente, Row 2 = carrito (ocupa el espacio libre), Row 3 = totales y botones -->
             <!-- RIGHT: Sale Ticket / Cart Summary -->
             <Border Grid.Column="1" Style="{StaticResource MaieCardStyle}" Padding="16">
                 <Grid>
@@ -144,6 +157,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
+                    <!-- NAV 3b-1 | ENCABEZADO DEL TICKET: título, SucursalActual (nombre de la sucursal del usuario) y la etiqueta PENDIENTE, que es texto fijo (la venta siempre está pendiente hasta que se confirma) -->
                     <!-- Ticket Header -->
                     <DockPanel Grid.Row="0" Margin="0,0,0,12">
                         <StackPanel>
@@ -155,6 +169,7 @@
                         </Border>
                     </DockPanel>
 
+                    <!-- NAV 3b-2 | CLIENTE ASOCIADO: ClienteNombre y ClienteDni. Si el DNI está vacío, el Trigger sobre Text="DNI: " oculta esa línea. Botones: Asociar Cliente (AbrirSeleccionarClienteModalCommand, abre el modal NAV 4) y el + (AbrirNuevoClienteModalCommand, abre el modal NAV 5) -->
                     <!-- Customer Info Bar (Asociar / Cambiar / Registrar Cliente) -->
                     <Border Grid.Row="1" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,12">
                         <Grid>
@@ -195,6 +210,7 @@
                         </Grid>
                     </Border>
 
+                    <!-- NAV 3b-3 | CARRITO (RF-18 / RF-19): ItemsControl sobre Carrito. Cada renglón muestra Nombre, PrecioUnitario, controles de cantidad, Subtotal y botón de quitar -->
                     <!-- Cart Items List (RF-18 / RF-19) -->
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,12">
                         <ItemsControl ItemsSource="{Binding Carrito}">
@@ -215,6 +231,7 @@
                                                 <TextBlock Text="{Binding PrecioUnitario, StringFormat='${0:N2} c/u'}" FontSize="10" Foreground="{StaticResource TextBodyBrush}"/>
                                             </StackPanel>
 
+                                            <!-- NAV 3b-3a | CONTROLES DE CANTIDAD: - y + (DecrementarCantidadCommand e IncrementarCantidadCommand, por RelativeSource con la fila como parámetro) y un TextBox editable con UpdateSourceTrigger=LostFocus, o sea que el valor tipeado llega al VM recién cuando se sale del campo. Al cambiar Cantidad, OnCantidadChanged avisa al VM para recalcular -->
                                             <!-- Quantity Controls -->
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0">
                                                 <Button Content="-" 
@@ -244,6 +261,7 @@
                                                        HorizontalAlignment="Right" 
                                                        VerticalAlignment="Center"/>
 
+                                            <!-- NAV 3b-3b | BOTÓN QUITAR: QuitarDelCarritoCommand, también por RelativeSource con la fila como parámetro -->
                                             <!-- Delete Button -->
                                             <Button Grid.Column="3" 
                                                     Content="✖" 
@@ -260,6 +278,7 @@
                         </ItemsControl>
                     </ScrollViewer>
 
+                    <!-- NAV 3b-4 | TOTALES Y ACCIONES: CantidadTotalItems y TotalVenta son propiedades calculadas del VM (suma sobre Carrito) y se refrescan con OnPropertyChanged cada vez que cambia el carrito -->
                     <!-- Total & Confirmation Actions -->
                     <StackPanel Grid.Row="3">
                         <Separator Margin="0,0,0,12" Background="#E2DCD5"/>
@@ -278,6 +297,7 @@
                                        Foreground="{StaticResource AccentBrush}"/>
                         </DockPanel>
 
+                        <!-- NAV 3b-4a | MÉTODO DE PAGO (RF-20): ItemsSource = MetodosPago (los valores del enum MetodoPago), SelectedItem = MetodoPagoSeleccionado (nulo hasta que se elige) -->
                         <!-- Método de pago (obligatorio para confirmar, RF-20) -->
                         <TextBlock Text="Método de pago" FontSize="12"
                                    Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
@@ -286,6 +306,7 @@
                                   Padding="8,6"
                                   Margin="0,0,0,10"/>
 
+                        <!-- NAV 3b-4b | BOTONES (RF-20 / RF-21): Confirmar Venta (ConfirmarVentaCommand; el VM exige carrito no vacío, cliente y método de pago, pide confirmación, confirma la venta, genera el comprobante y empieza una venta nueva) y Cancelar Venta Actual (CancelarVentaCommand, descarta el carrito sin tocar el stock). El botón Confirmar usa un ControlTemplate propio con triggers de hover y presionado -->
                         <!-- Action Buttons (RF-20 / RF-21) -->
                         <Button Command="{Binding ConfirmarVentaCommand}"
                                 Margin="0,0,0,8"
@@ -320,6 +341,7 @@
         </Grid>
 
 
+        <!-- NAV 4 | MODAL ASOCIAR CLIENTE (RF-16): Grid semitransparente que cubre toda la vista. Empieza Collapsed y un DataTrigger lo muestra cuando MostrarDialogoSeleccionarCliente es True -->
         <!-- MODAL: Buscar y Asociar Cliente Existente (RF-16) -->
         <Grid Grid.RowSpan="2" Background="#70000000">
             <Grid.Style>
@@ -348,6 +370,7 @@
                         <TextBlock Text="Busque por nombre o DNI, o registre un nuevo cliente" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,2,0,0"/>
                     </StackPanel>
 
+                    <!-- NAV 4a | BUSCADOR DE CLIENTES: BusquedaClienteTexto filtra ClientesFiltrados mientras se escribe (OnBusquedaClienteTextoChanged). Busca por nombre, apellido o DNI -->
                     <!-- Search Input -->
                     <TextBox Grid.Row="1" 
                              Text="{Binding BusquedaClienteTexto, UpdateSourceTrigger=PropertyChanged}"
@@ -374,6 +397,7 @@
                         </TextBox.Style>
                     </TextBox>
 
+                    <!-- NAV 4b | LISTA DE CLIENTES: ClientesFiltrados. Cada fila muestra NombreCompleto y Dni, y un botón Asociar (AsociarClienteSeleccionadoCommand por RelativeSource, con el cliente como parámetro) -->
                     <!-- Registered Clients List -->
                     <Border Grid.Row="2" Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="6" Margin="0,0,0,16">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -405,6 +429,7 @@
                         </ScrollViewer>
                     </Border>
 
+                    <!-- NAV 4c | CERRAR: CerrarSeleccionarClienteModalCommand oculta el modal -->
                     <!-- Modal Actions -->
                     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cerrar" 
@@ -416,6 +441,7 @@
             </Border>
         </Grid>
 
+        <!-- NAV 5 | MODAL REGISTRAR CLIENTE NUEVO (RF-15): mismo mecanismo que el otro modal. Se muestra cuando MostrarDialogoNuevoCliente es True -->
         <!-- New Customer Modal Overlay (RF-15) -->
         <Grid Grid.RowSpan="2" Background="#70000000">
             <Grid.Style>
@@ -439,6 +465,7 @@
                     <TextBlock Text="Registrar Cliente en Mostrador" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,4"/>
                     <TextBlock Text="Ingrese los datos para asociarlo a la venta actual" Style="{StaticResource BodyTextStyle}" FontSize="12" Margin="0,0,0,16"/>
 
+                    <!-- NAV 5a | CAMPOS: NuevoClienteNombre, NuevoClienteApellido, NuevoClienteDni (máximo 8), NuevoClienteEmail y NuevoClienteFechaNacimiento. Todos obligatorios (*); ValidadorCliente los exige al dar de alta -->
                     <TextBlock Text="Nombre (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding NuevoClienteNombre}" MaxLength="50" Padding="8,6" Margin="0,0,0,10" BorderBrush="{StaticResource SecondaryBrush}"/>
 
@@ -455,6 +482,7 @@
                     <TextBlock Text="Fecha de Nacimiento (*)" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <DatePicker SelectedDate="{Binding NuevoClienteFechaNacimiento}" Margin="0,0,0,20"/>
 
+                    <!-- NAV 5b | BOTONES: Cancelar (CerrarNuevoClienteModalCommand) y Registrar y Asociar (GuardarNuevoClienteCommand, crea el cliente y lo deja asociado a la venta en curso) -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Cancelar" 
                                 Command="{Binding CerrarNuevoClienteModalCommand}"

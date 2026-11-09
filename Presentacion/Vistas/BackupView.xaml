@@ -3,11 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
              mc:Ignorable="d"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
              d:DesignHeight="700" d:DesignWidth="950">
 
+    <!-- NAV 1 | ESTRUCTURA: Grid de 3 filas. Row 0 = encabezado, Row 1 = contenido (panel de generación + historial), Row 2 = mensaje de estado. Todo se enlaza a BackupViewModel -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -15,12 +17,17 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- NAV 2 | ENCABEZADO (Row 0): título y subtítulo fijos, sin bindings -->
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Copias de Seguridad (Backup)" Style="{StaticResource HeaderTitleStyle}"/>
             <TextBlock Text="Generación manual de copias de seguridad de la base de datos" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
 
+        <!-- NAV Ayuda | BOTÓN AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Está en la misma celda del encabezado, alineado arriba a la derecha -->
+        <ctrl:BotonAyuda Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
+
+        <!-- NAV 3 | CONTENIDO (Row 1): 3 columnas. 380 px panel de generación (izquierda), 20 px separador y * historial (derecha) -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="380" />
@@ -28,11 +35,13 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!-- NAV 3a | PANEL DE GENERACIÓN (columna izquierda): dónde guardar y botón para generar la copia -->
             <!-- Panel de Generación -->
             <Border Grid.Column="0" Style="{StaticResource MaieCardStyle}" Padding="20" VerticalAlignment="Top">
                 <StackPanel>
                     <TextBlock Text="Guardar Copia de Seguridad" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" Margin="0,0,0,14"/>
 
+                    <!-- NAV 3a-1 | CARPETA DE DESTINO: RutaDestinoLocal (solo lectura, OneWay) y botón con la carpeta que ejecuta SeleccionarCarpetaCommand (abre el selector de carpetas y recarga el historial) -->
                     <TextBlock Text="Carpeta de destino local" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
@@ -55,6 +64,7 @@
                                 Command="{Binding SeleccionarCarpetaCommand}"/>
                     </Grid>
 
+                    <!-- NAV 3a-2 | ESTADO DE ONEDRIVE: EstadoOneDrive es solo informativo (ruta de la carpeta BackupsMaie o aviso de que no está disponible). La copia a OneDrive la hace el caso de uso GenerarBackup, no esta vista -->
                     <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="6" Padding="10" Margin="0,0,0,16">
                         <StackPanel>
                             <TextBlock Text="Copia en la nube (OneDrive)"
@@ -69,6 +79,7 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- NAV 3a-3 | BOTÓN GUARDAR COPIA: GenerarBackupAhoraCommand (async). Se deshabilita solo mientras EstaGenerando o si no hay carpeta (CanExecute = PuedeGenerarBackup) -->
                     <Button Content="💾  Guardar Copia"
                             Style="{StaticResource AccentButtonStyle}"
                             Padding="16,10"
@@ -79,6 +90,7 @@
                 </StackPanel>
             </Border>
 
+            <!-- NAV 3b | HISTORIAL (columna derecha): lista de los .bak que hay en la carpeta elegida -->
             <!-- Historial de Backups Realizados -->
             <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
@@ -87,6 +99,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
+                    <!-- NAV 3b-1 | BARRA SUPERIOR: título, Actualizar (ActualizarListaCommand) y Restaurar seleccionado (AvisarRestauracionManualCommand). Restaurar NO restaura nada: muestra un mensaje con el teléfono del administrador de base de datos -->
                     <Grid Grid.Row="0" Margin="20,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -115,6 +128,7 @@
                                 Command="{Binding AvisarRestauracionManualCommand}"/>
                     </Grid>
 
+                    <!-- NAV 3b-2 | TABLA: HistorialBackups (BackupDTO). La fila elegida va a BackupSeleccionado (TwoWay) y habilita el botón Restaurar. Columnas: NombreArchivo, TamanoLegible, FechaBackup, CreadoPor, RutaCompleta -->
                     <Grid Grid.Row="1">
                         <DataGrid ItemsSource="{Binding HistorialBackups}"
                                   SelectedItem="{Binding BackupSeleccionado, Mode=TwoWay}"
@@ -165,6 +179,7 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
+                        <!-- NAV 3b-3 | MENSAJE SIN DATOS: se ve solo cuando HayBackups es False (DataTrigger). IsHitTestVisible=False para no tapar la tabla -->
                         <TextBlock Text="Todavía no hay copias de seguridad en esta carpeta."
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
@@ -187,6 +202,7 @@
             </Border>
         </Grid>
 
+        <!-- NAV 4 | ESTADO DE LA ÚLTIMA OPERACIÓN (Row 2): muestra MensajeEstado. Verde por defecto, rojo si MensajeEsError es True (DataTrigger) y oculto si MensajeEstado está vacío -->
         <!-- Estado de la última operación -->
         <Border Grid.Row="2" Margin="0,16,0,0" Padding="12,10" CornerRadius="6">
             <Border.Style>

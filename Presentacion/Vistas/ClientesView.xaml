@@ -5,21 +5,27 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:Presentacion.ViewModels"
              xmlns:local="clr-namespace:Presentacion"
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
              mc:Ignorable="d"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
              d:DesignHeight="700" d:DesignWidth="950">
+    <!-- NAV 1 | ESTRUCTURA: Grid de 2 filas. Row 0 = encabezado, Row 1 = contenido en 2 columnas (formulario de 420 px a la izquierda, lista de clientes a la derecha). ViewModel: ClientesViewModel -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- NAV 2 | ENCABEZADO (Row 0): título y subtítulo fijos, sin bindings -->
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Gestión de Clientes" Style="{StaticResource HeaderTitleStyle}"/>
             <TextBlock Text="Registro y administración de clientes para la atención en mostrador" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
+
+        <!-- NAV Ayuda | BOTÓN AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Está en la misma celda del encabezado, alineado arriba a la derecha -->
+        <ctrl:BotonAyuda Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -28,6 +34,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!-- NAV 3 | FORMULARIO (columna izquierda): alta y edición de un cliente. Los campos usan UpdateSourceTrigger=PropertyChanged, así que el ViewModel recibe el valor mientras se escribe. MaxLength limita la longitud desde la vista -->
             <!-- Form -->
             <Border Grid.Column="0"
                     Style="{StaticResource MaieCardStyle}"
@@ -37,6 +44,7 @@
                     <StackPanel>
                         <TextBlock Text="Datos del Cliente" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" Margin="0,0,0,16"/>
 
+                        <!-- NAV 3a | NOMBRE Y APELLIDO (obligatorios): FormNombre y FormApellido, en dos columnas -->
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -52,17 +60,21 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- NAV 3b | DNI (obligatorio): FormDni, máximo 8 caracteres -->
                         <TextBlock Text="DNI / Documento *" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
+                        <!-- NAV 3c | CORREO ELECTRÓNICO (opcional): FormEmail -->
                         <TextBlock Text="Correo Electrónico" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
+                        <!-- NAV 3d | FECHA DE NACIMIENTO (opcional): FormFechaNacimiento (DatePicker) -->
                         <TextBlock Text="Fecha de Nacimiento" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                         <DatePicker SelectedDate="{Binding FormFechaNacimiento, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,20" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch"/>
 
                         <TextBlock Text="* Campos obligatorios para agilizar la atención en mostrador." FontSize="11" FontStyle="Italic" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,16" TextWrapping="Wrap"/>
 
+                        <!-- NAV 3e | BOTONES: Cancelar (CancelarCommand), Actualizar (ActualizarCommand, habilitado solo si EsEdicion) y Guardar (GuardarCommand, habilitado solo si NO EsEdicion: el InverseBooleanConverter invierte el bool). EsEdicion pasa a true cuando se elige un cliente de la tabla -->
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                             <Button Content="Cancelar"
                                     Style="{StaticResource OutlineButtonStyle}"
@@ -86,6 +98,7 @@
                 </ScrollViewer>
             </Border>
 
+            <!-- NAV 4 | CLIENTES REGISTRADOS (columna derecha): botón de estado, buscador y tabla -->
             <!-- Clientes Registrados -->
             <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
@@ -95,6 +108,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
+                    <!-- NAV 4a | BOTÓN DE ESTADO: el texto viene de TextoBotonEstado ("Dar de Baja" o "Reactivar" según el cliente elegido) y ejecuta EliminarCommand. Solo se habilita con EsEdicion -->
                     <!-- Header with Actions -->
                     <Grid Grid.Row="0" Margin="20,16">
                         <Grid.ColumnDefinitions>
@@ -111,6 +125,7 @@
                         </StackPanel>
                     </Grid>
 
+                    <!-- NAV 4b | BUSCADOR: BusquedaTexto filtra la lista mientras se escribe (OnBusquedaTextoChanged). Busca por DNI, apellido o nombre -->
                     <!-- Search Box -->
                     <Grid Grid.Row="1" Margin="20,0,20,12">
                         <Grid.ColumnDefinitions>
@@ -124,6 +139,7 @@
                                  ToolTip="Buscar por DNI, Apellido o Nombre"/>
                     </Grid>
 
+                    <!-- NAV 4c | TABLA: ClientesFiltrados (la lista ya filtrada por el buscador). Al elegir una fila se guarda en SelectedCliente (TwoWay) y OnSelectedClienteChanged carga el formulario y activa EsEdicion. Columnas: Dni, Nombre, Apellido, Email, FechaNacimiento, NombreRegistradoPor, CreatedAt -->
                     <!-- DataGrid -->
                     <DataGrid Grid.Row="2"
                               ItemsSource="{Binding ClientesFiltrados}"

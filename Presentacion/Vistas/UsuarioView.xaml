@@ -4,27 +4,34 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:Presentacion.ViewModels"
+             xmlns:ctrl="clr-namespace:Presentacion.Controles"
              mc:Ignorable="d"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True"
              d:DataContext="{d:DesignInstance Type=viewModels:UsuarioViewModel}"
              d:DesignHeight="700" d:DesignWidth="950">
 
+    <!-- NAV 0 | RECURSO LOCAL: BoolToVisConverter convierte un bool en Visibility. Se usa en el combo de sucursal (MostrarSucursal) -->
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
     </UserControl.Resources>
 
+    <!-- NAV 1 | ESTRUCTURA: Grid de 2 filas. Row 0 = encabezado, Row 1 = contenido en 3 columnas (formulario 360 px, separador 20 px, lista *). ViewModel: UsuarioViewModel, que la vista toma de App.Services en el constructor de UsuarioView.xaml.cs -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- NAV 2 | ENCABEZADO (Row 0): título y subtítulo fijos, sin bindings -->
         <!-- Header Section -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Gestión de Usuarios" Style="{StaticResource HeaderTitleStyle}"/>
             <TextBlock Text="Administrá, registrá y modificá los usuarios del sistema" Style="{StaticResource BodyTextStyle}" Margin="0,4,0,0"/>
         </StackPanel>
+
+        <!-- NAV Ayuda | BOTÓN AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF. Está en la misma celda del encabezado, alineado arriba a la derecha -->
+        <ctrl:BotonAyuda Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" />
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -33,6 +40,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!-- NAV 3 | FORMULARIO (columna izquierda): alta y edición de un usuario. Los campos usan UpdateSourceTrigger=PropertyChanged y MaxLength -->
             <!-- Form -->
             <Border Grid.Column="0"
                     Style="{StaticResource MaieCardStyle}"
@@ -40,6 +48,7 @@
                     VerticalAlignment="Top">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
+                    <!-- NAV 3a | NOMBRE Y APELLIDO: FormNombre y FormApellido, en dos columnas -->
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -55,12 +64,15 @@
                         </StackPanel>
                     </Grid>
 
+                    <!-- NAV 3b | DNI: FormDni, máximo 8. Los eventos PreviewTextInput y DataObject.Pasting van al code-behind (SoloDigitos_...) y bloquean todo lo que no sea dígito, incluso al pegar -->
                     <TextBlock Text="DNI" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding FormDni, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" PreviewTextInput="SoloDigitos_PreviewTextInput" DataObject.Pasting="SoloDigitos_Pasting" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
+                    <!-- NAV 3c | EMAIL: FormEmail, máximo 100 -->
                     <TextBlock Text="Email" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding FormEmail, UpdateSourceTrigger=PropertyChanged}" MaxLength="100" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
+                    <!-- NAV 3d | CONTRASEÑA Y CONFIRMACIÓN: PasswordBox no admite Binding, así que el evento PasswordChanged del code-behind copia el texto a FormPassword y FormConfirmarPassword. Al editar, dejarlas en blanco mantiene la contraseña actual -->
                     <Grid Margin="0,0,0,4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -77,12 +89,14 @@
                     </Grid>
                     <TextBlock Text="Al actualizar un usuario, dejar en blanco para no cambiar la contraseña." FontSize="11" FontStyle="Italic" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
+                    <!-- NAV 3e | FECHA DE NACIMIENTO Y DIRECCIÓN: FormFechaNacimiento (DisplayDateEnd = hoy, no deja elegir fechas futuras) y FormDireccion (máximo 200) -->
                     <TextBlock Text="Fecha de Nacimiento" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <DatePicker SelectedDate="{Binding FormFechaNacimiento, UpdateSourceTrigger=PropertyChanged}" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" HorizontalAlignment="Stretch" DisplayDateEnd="{x:Static sys:DateTime.Today}" xmlns:sys="clr-namespace:System;assembly=mscorlib"/>
 
                     <TextBlock Text="Dirección" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                     <TextBox Text="{Binding FormDireccion, UpdateSourceTrigger=PropertyChanged}" MaxLength="200" Padding="8,6" Margin="0,0,0,14" BorderBrush="{StaticResource SecondaryBrush}" FontSize="13"/>
 
+                    <!-- NAV 3f | ROL Y SUCURSAL: el combo de rol (RolesDisponibles / FormRolSeleccionado) se deshabilita con PuedeEditarRol (false si el usuario elegido es Admin). El combo de sucursal (SucursalesDisponibles / FormSucursalSeleccionada) solo se ve si MostrarSucursal es true, o sea si el rol elegido es Vendedor -->
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -105,6 +119,7 @@
                         </StackPanel>
                     </Grid>
 
+                    <!-- NAV 3g | BOTONES: Actualizar Usuario (ActualizarCommand, solo con EsEdicion), Guardar Usuario (GuardarCommand, un DataTrigger lo deshabilita cuando EsEdicion es True) y Cancelar (CancelarCommand, limpia el formulario) -->
                     <StackPanel Margin="0,10,0,0">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
                             <Button Content="Actualizar Usuario"
@@ -139,6 +154,7 @@
             </ScrollViewer>
             </Border>
 
+            <!-- NAV 4 | USUARIOS REGISTRADOS (columna derecha): botón de estado, buscador y tabla -->
             <!-- Usuarios Registrados -->
             <Border Grid.Column="2" Style="{StaticResource MaieCardStyle}" Padding="0">
                 <Grid>
@@ -158,6 +174,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Usuarios Registrados" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" FontFamily="Noto Serif" VerticalAlignment="Center"/>
+                            <!-- NAV 4a | BOTÓN DE ESTADO: el texto viene de TextoBotonEstado ("Dar de Baja" o "Reactivar", lo fija OnSelectedUsuarioChanged según Activo) y ejecuta CambiarEstadoCommand. Solo se habilita con EsEdicion -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button Content="{Binding TextoBotonEstado}"
                                         Style="{StaticResource OutlineButtonStyle}"
@@ -167,6 +184,7 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- NAV 4b | BUSCADOR: BusquedaTexto filtra mientras se escribe (nombre, apellido, DNI, email, rol, dirección). Limpiar ejecuta LimpiarBusquedaCommand. El texto gris es un VisualBrush que aparece solo con el Text vacío -->
                         <!-- Search Bar -->
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
@@ -205,6 +223,7 @@
                         </Grid>
                     </Grid>
 
+                    <!-- NAV 4c | TABLA: UsuariosFiltrados. La fila elegida va a SelectedUsuario; OnSelectedUsuarioChanged carga el formulario, activa EsEdicion y decide si se puede editar el rol. Las filas con Activo=False se ven con Opacity 0.65. Columnas: NombreCompleto, Dni, Email, NombreRol, NombreSucursal y Estado -->
                     <DataGrid Grid.Row="1"
                               ItemsSource="{Binding UsuariosFiltrados}"
                               SelectedItem="{Binding SelectedUsuario}"
@@ -248,6 +267,7 @@
                             <DataGridTextColumn Header="Rol" Binding="{Binding NombreRol}" Width="*" />
                             <DataGridTextColumn Header="Sucursal" Binding="{Binding NombreSucursal}" Width="110" />
 
+                            <!-- NAV 4c-1 | COLUMNA ESTADO: etiqueta de color. Verde con "Activo" por defecto; rojo con "Inactivo" si Activo es False (DataTrigger) -->
                             <!-- Status Column -->
                             <DataGridTemplateColumn Header="Estado" Width="85">
                                 <DataGridTemplateColumn.CellTemplate>

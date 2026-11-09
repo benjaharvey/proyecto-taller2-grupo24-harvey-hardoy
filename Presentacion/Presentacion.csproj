@@ -20,6 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Manual de usuario: se enlaza el PDF de la raíz y se copia junto al .exe para que el botón Ayuda lo encuentre -->
+    <Content Include="..\Manual_de_Usuario_Maie.pdf" Link="Manual_de_Usuario_Maie.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Aplicacion\Aplicacion.csproj" />
     <ProjectReference Include="..\Datos\Datos.csproj" />
   </ItemGroup>

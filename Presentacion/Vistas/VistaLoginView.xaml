@@ -4,15 +4,18 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Presentacion"
+        xmlns:ctrl="clr-namespace:Presentacion.Controles"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         mc:Ignorable="d"
         Title="Maie - Iniciar Sesión" Height="600" Width="420"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
 
+    <!-- NAV 1 | VENTANA DE LOGIN: es una Window (no un UserControl) y no usa ViewModel. La lógica está en el code-behind VistaLoginView.xaml.cs (btnIngresar_Click). Un solo Border centrado con el formulario -->
     <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
         <Border Style="{StaticResource MaieCardStyle}" Width="340" Padding="28">
             <StackPanel>
+                <!-- NAV 2 | MARCA: nombre del sistema y subtítulo fijos -->
                 <TextBlock Text="MAIE"
                            FontFamily="Noto Serif"
                            FontSize="26"
@@ -30,6 +33,7 @@
 
                 <TextBlock Text="Iniciar Sesión" Style="{StaticResource SubheaderTitleStyle}" Margin="0,0,0,20"/>
 
+                <!-- NAV 3 | CAMPO E-MAIL: txtEmail, el code-behind lo lee por x:Name (no hay binding). MaxLength 100 -->
                 <TextBlock Text="E-mail" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                 <TextBox x:Name="txtEmail"
                          MaxLength="100"
@@ -38,6 +42,7 @@
                          BorderBrush="{StaticResource SecondaryBrush}"
                          FontSize="13"/>
 
+                <!-- NAV 4 | CAMPO CONTRASEÑA: txtPassword (PasswordBox, no se puede enlazar por binding). MaxLength 64 -->
                 <TextBlock Text="Contraseña" FontSize="12" Foreground="{StaticResource TextBodyBrush}" Margin="0,0,0,4"/>
                 <PasswordBox x:Name="txtPassword"
                              MaxLength="64"
@@ -46,6 +51,7 @@
                              BorderBrush="{StaticResource SecondaryBrush}"
                              FontSize="13"/>
 
+                <!-- NAV 5 | BOTÓN INGRESAR: Click="btnIngresar_Click" en el code-behind (no es un Command). Valida que no estén vacíos, llama al caso de uso IniciarSesion, guarda el usuario en SesionActual.UsuarioLogueado, abre MainWindow y cierra el login -->
                 <Button x:Name="btnIngresar"
                         Content="Ingresar"
                         Click="btnIngresar_Click"
@@ -53,6 +59,9 @@
                         HorizontalAlignment="Stretch"
                         FontSize="13"
                         Padding="14,10"/>
+
+                <!-- NAV 6 | AYUDA: control compartido BotonAyuda (Controles/BotonAyuda.xaml). Abre el manual de usuario en PDF, también disponible antes de iniciar sesión -->
+                <ctrl:BotonAyuda HorizontalAlignment="Center" Margin="0,12,0,0" />
             </StackPanel>
         </Border>
     </Grid>

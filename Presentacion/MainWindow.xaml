@@ -13,31 +13,37 @@
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
 
+    <!-- NAV 1 | VIEWMODEL DE LA VENTANA: MainViewModel guarda CurrentSection (el nombre de la sección visible) y expone NavigateCommand. Las vistas hijas tienen sus propios ViewModels, que cada una toma de App.Services -->
     <Window.DataContext>
         <vm:MainViewModel />
     </Window.DataContext>
 
+    <!-- NAV 2 | ESTRUCTURA: Grid de 2 filas. Row 0 = barra de título, Row 1 = cuerpo (menú lateral + contenido) -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- NAV 3 | BARRA DE TÍTULO: ui:TitleBar de WPF-UI (FluentWindow). Título fijo, sin bindings -->
         <!-- Custom TitleBar -->
         <ui:TitleBar Grid.Row="0" Title="Maie · Dulces Artesanales — Panel de Gestión" />
 
+        <!-- NAV 4 | CUERPO (Row 1): 2 columnas. 220 px menú lateral (izquierda) y * área de contenido (derecha) -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <!-- NAV 4a | MENÚ LATERAL (columna izquierda): DockPanel con la marca arriba, los botones de navegación y la sesión activa abajo (DockPanel.Dock=Bottom) -->
             <!-- Sidebar Navigation -->
             <Border Grid.Column="0" 
                     Background="{StaticResource PrimaryBrush}" 
                     BorderThickness="0,0,1,0"
                     BorderBrush="{StaticResource SecondaryBrush}">
                 <DockPanel LastChildFill="False">
+                    <!-- NAV 4a-1 | MARCA: nombre del negocio, texto fijo -->
                     <!-- Brand Header -->
                     <StackPanel DockPanel.Dock="Top" Margin="20,24,20,24">
                         <TextBlock Text="MAIE" 
@@ -54,8 +60,10 @@
                         <Separator Margin="0,16,0,0" Background="#80BE8E75"/>
                     </StackPanel>
 
+                    <!-- NAV 4a-2 | BOTONES DE NAVEGACIÓN: 10 RadioButton con el mismo ControlTemplate repetido (fondo transparente, hover y marcado con color de acento). GroupName="NavMenu" hace que solo uno esté marcado. Todos ejecutan NavigateCommand y el CommandParameter es el nombre de la sección. El constructor de MainWindow.xaml.cs llama a AplicarPermisosPorRol, que oculta con Visibility.Collapsed los botones que el rol no puede usar, y SincronizarRadioButtons marca el botón de la sección actual -->
                     <!-- Nav Buttons -->
                     <StackPanel DockPanel.Dock="Top" Margin="10,0">
+                        <!-- NAV 4a-2.1 | PRODUCTOS (RbProductos): parámetro "Productos" → ProductosView -->
                         <RadioButton x:Name="RbProductos"
                                      Content="🛒  Productos"
                                      GroupName="NavMenu"
@@ -90,6 +98,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.2 | USUARIOS (RbUsuario): parámetro "Usuario" → UsuarioView -->
                         <RadioButton x:Name="RbUsuario"
                                      Content="👤 Usuarios"
                                      GroupName="NavMenu"
@@ -124,6 +133,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.3 | SUCURSALES (RbSucursales): parámetro "Sucursales" → SucursalesView -->
                         <RadioButton x:Name="RbSucursales"
                                      Content="🏢  Sucursales"
                                      GroupName="NavMenu"
@@ -158,6 +168,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.4 | PUNTO DE VENTA (RbVentas): parámetro "Ventas" → VentasView -->
                         <RadioButton x:Name="RbVentas"
                                      Content="💳  Punto de Venta"
                                      GroupName="NavMenu"
@@ -192,6 +203,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.5 | HISTORIAL DE VENTAS (RbHistorial): parámetro "Historial" → HistorialVentasView (solo Admin) -->
                         <RadioButton x:Name="RbHistorial"
                                      Content="🧾  Historial de Ventas"
                                      GroupName="NavMenu"
@@ -226,6 +238,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.6 | CLIENTES (RbClientes): parámetro "Clientes" → ClientesView -->
                         <RadioButton x:Name="RbClientes"
                                      Content="🤝  Clientes"
                                      GroupName="NavMenu"
@@ -260,6 +273,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.7 | STOCK E INSUMOS (RbStock): parámetro "Stock" → StockView -->
                         <RadioButton x:Name="RbStock"
                                      Content="📦  Stock e Insumos"
                                      GroupName="NavMenu"
@@ -294,6 +308,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.8 | COCINA (RbCocina): parámetro "Cocina" → CocinaView -->
                         <RadioButton x:Name="RbCocina"
                                      Content="👨‍🍳  Cocina (Producción)"
                                      GroupName="NavMenu"
@@ -328,6 +343,7 @@
                             </RadioButton.Style>
                         </RadioButton>
 
+                        <!-- NAV 4a-2.9 | REPORTES (RbReportes): parámetro "Reportes" → ReportesView -->
                         <RadioButton x:Name="RbReportes"
                                      Content="📊  Reportes"
                                      GroupName="NavMenu"
@@ -361,6 +377,7 @@
                                 </Style>
                             </RadioButton.Style>
                         </RadioButton>
+                        <!-- NAV 4a-2.10 | BACKUP (RbBackup): parámetro "Backup" → BackupView -->
                         <RadioButton x:Name="RbBackup"
                                      Content="🗄️  Backup"
                                      GroupName="NavMenu"
@@ -396,6 +413,7 @@
                         </RadioButton>
                     </StackPanel>
 
+                    <!-- NAV 4a-3 | SESIÓN ACTIVA: TxtInfoSesion se completa desde el code-behind (ActualizarInfoSesion: nombre, apellido y rol del usuario logueado). Cerrar Sesión usa Click="BtnCerrarSesion_Click" (no es un Command): pide confirmación, descarta la venta pendiente (RF-17) y vuelve al login -->
                     <!-- Active Session Footer -->
                     <Border DockPanel.Dock="Bottom" Margin="12,20" Padding="12" Background="#20000000" CornerRadius="6">
                         <StackPanel>
@@ -447,8 +465,10 @@
                 </DockPanel>
             </Border>
 
+            <!-- NAV 4b | ÁREA DE CONTENIDO (columna derecha): las 10 vistas están apiladas en la misma celda del Grid. Solo una se ve a la vez: el Visibility de cada una se calcula con SectionVisibilityConverter, que compara CurrentSection (Binding por ElementName=RootWindow) con el ConverterParameter y devuelve Visible o Collapsed -->
             <!-- Main Content Area -->
             <Grid Grid.Column="1" Margin="24">
+                <!-- NAV 4b-1 | EJEMPLO DEL PATRÓN: ProductosView es visible solo si CurrentSection es "Productos". Las otras 9 vistas siguen exactamente el mismo esquema, cambiando el ConverterParameter. Al cambiar de sección, MainWindow.xaml.cs llama a RecargarSeccion, que ejecuta Recargar() si el ViewModel de esa vista implementa ISeccionRecargable -->
                 <!-- Productos View -->
                 <vistas:ProductosView x:Name="VistaProductos" Visibility="{Binding DataContext.CurrentSection, ElementName=RootWindow, ConverterParameter=Productos, Converter={x:Static local:SectionVisibilityConverter.Instance}}" />
                 
